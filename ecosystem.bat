@@ -1,0 +1,1 @@
+R -e "shiny::runApp('C:/Users/Seo/NaverCloud/MOTIVE_Ecosystem/R/Programs/ecosystem', launch.browser = TRUE)
