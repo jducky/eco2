@@ -170,8 +170,10 @@ shinyUI(
 					
 						shinyDirButton("SE_Dir_Link", SE_Name_DE_Link, SE_Name_DE_Link),
 						verbatimTextOutput("SE_Dir_Link", placeholder = TRUE),
+						
 						shinyDirButton("SE_Dir_Species", SE_Name_DE_Species, SE_Name_DE_Species),
 						verbatimTextOutput("SE_Dir_Species", placeholder = TRUE),
+						
 						tags$hr(),
 						fileInput("SE_speciesinfo", SE_Name_DE_Species_Index,
 							accept = c(

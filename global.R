@@ -35,18 +35,15 @@ if (length(CHK_libraries) > 0) {
 #####=========================================================
 
 rm(list = ls())
-#ROOT_DIR <- "C:"
-#ROOT_DIR <- "C:/Users/Seo/NaverCloud"
-ROOT_DIR <- "C:/Users/Eco_R&D1/NaverCloud"
-#setwd(paste(ROOT_DIR, "/MOTIVE_Ecosystem/R/Programs/ecosystem", sep=''))
+MOTIVE_DIR <- "C:/MOTIVE_Ecosystem/"
  
 ##### Path
 G <- reactiveValues()
-G$SE_Dir_Project <- paste(ROOT_DIR, "/MOTIVE_projects/project20191120", sep='')
-G$SE_Dir_Climate <- paste(ROOT_DIR, "/MOTIVE_Ecosystem/DATA/Climate2", sep='')
-G$SE_Dir_Link <- paste(ROOT_DIR, "/MOTIVE_Ecosystem/DATA/Link", sep='')
-G$SE_Dir_Species <- paste(ROOT_DIR, "/MOTIVE_Ecosystem/DATA/Species", sep='')
-G$SE_Dir_GIS <- paste(ROOT_DIR, "/MOTIVE_Ecosystem/DATA/GIS", sep='')
+G$SE_Dir_Project <- "set a working project"
+G$SE_Dir_Climate <- paste(MOTIVE_DIR, "DATA/Climate", sep='')
+G$SE_Dir_Link <- paste(MOTIVE_DIR, "DATA/Link", sep='')
+G$SE_Dir_Species <- paste(MOTIVE_DIR, "DATA/Species", sep='')
+G$SE_Dir_GIS <- paste(MOTIVE_DIR, "DATA/GIS", sep='')
 G$SE_speciesindex <- "speciesname_final.csv"
 G$SE_specieslocation <- "shin_specieslocation.csv"
 G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")

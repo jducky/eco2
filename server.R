@@ -26,7 +26,7 @@ shinyServer(function(input, output) {
 		G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
 		output$SE_Dir_Project <- renderText({G$SE_Dir_Project})
 	})
-  
+	  
 	observeEvent(input$SE_Dir_Climate, {
 		volumes <- getVolumes()
 		shinyDirChoose(input, 'SE_Dir_Climate', roots = volumes)
