@@ -35,7 +35,6 @@ if (length(CHK_libraries) > 0) {
 #####=========================================================
 
 rm(list = ls())
-getwd()
 MOTIVE_DIR <- getwd()
 system_env <- read.csv(file.path(MOTIVE_DIR, "System_Environment.txt"), header = T, sep = "=")
 
