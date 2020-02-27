@@ -8,8 +8,8 @@ shinyServer(function(input, output) {
 	output$SE_speciesindex <- renderText({G$SE_speciesindex})
 	output$SE_specieslocation <- renderText({G$SE_specieslocation})
   
-	onclick("kor_link_top", SE$Language <<- "Korean")
-	onclick("eng_link_top", SE$Language <<- "English")
+#	onclick("kor_link_top", SE$Language <<- "Korean")
+#	onclick("eng_link_top", SE$Language <<- "English")
 
 	observeEvent(input$login, {
 		showModal(modalDialog(

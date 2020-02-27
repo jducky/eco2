@@ -34,18 +34,23 @@ if (length(CHK_libraries) > 0) {
 ##### End installing and loading packages ====================
 #####=========================================================
 
-#rm(list = ls())
-MOTIVE_DIR <- "D:/MOTIVE_Ecosystem/"
- 
-##### Path
+rm(list = ls())
+getwd()
+MOTIVE_DIR <- getwd()
+system_env <- read.csv(file.path(MOTIVE_DIR, "System_Environment.txt"), header = T, sep = "=")
+
+SE_Language <- as.character(system_env[1,2])
+Input_img <- as.character(system_env[9,2])
+Output_img <- as.character(system_env[10,2])
+
 G <- reactiveValues()
-G$SE_Dir_Project <- getwd() #"Set a working project"
-G$SE_Dir_Climate <- paste(MOTIVE_DIR, "DATA/Climate", sep='')
-G$SE_Dir_Link <- paste(MOTIVE_DIR, "DATA/Link", sep='')
-G$SE_Dir_Species <- paste(MOTIVE_DIR, "DATA/Species", sep='')
-G$SE_Dir_GIS <- paste(MOTIVE_DIR, "DATA/GIS", sep='')
-G$SE_speciesindex <- "speciesname_final.csv"
-G$SE_specieslocation <- "shin_specieslocation.csv"
+G$SE_Dir_Project <- as.character(system_env[2,2])
+G$SE_Dir_Climate <- as.character(system_env[3,2])
+G$SE_Dir_Link <- as.character(system_env[4,2])
+G$SE_Dir_Species <- as.character(system_env[5,2])
+G$SE_Dir_GIS <- as.character(system_env[6,2])
+G$SE_speciesindex <- as.character(system_env[7,2])
+G$SE_specieslocation <- as.character(system_env[8,2])
 G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
 G_FILE_specieslocation <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
 G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
@@ -58,15 +63,7 @@ G$IS_VA_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep 
 G$IS_MI_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
 G$IS_AO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
 
-Input_img <- "tif"  #asc",
-Output_img <- "tif"
-
-getwd()
-##### Language
-Language_list <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/Language.csv", header = T, sep = ",")
-SE_Language <- as.character(Language_list[1,1])
-
-Variable_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/variable_lists.csv", header = T, sep = ",")
+Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[11,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
 if (SE_Language == "English") {
     lang <- 3
@@ -76,15 +73,12 @@ if (SE_Language == "English") {
     lang <- 3
 }
 
-#SE_Language <- "English"
-#SE_Language <- "Korean" 
-
 if (SE_Language == "English") {
-    Option_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/option_lists_ENG.csv", header = T, sep = ",")
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[12,2])), header = T, sep = ",")
 } else if (SE_Language == "Korean"){
-    Option_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/option_lists_KOR.csv", header = T, sep = ",")    
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[13,2])), header = T, sep = ",")   
 } else {
-    Option_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/option_lists_ENG.csv", header = T, sep = ",")    
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[12,2])), header = T, sep = ",")  
 }
 Option_lists[is.na(Option_lists)] = ""
 
@@ -141,6 +135,5 @@ for (v in 1: nrow(Variable_lists)) {
         assign(Variable_name, get(as.character(Variable_lists[v,lang])))
     }
 }
-
 
 
