@@ -1,5 +1,5 @@
 Variable=Value
-Language=English
+Language=Korean
 Project_Path=C:/MOTIVE_Projects
 Climate_Path=C:/MOTIVE_Ecosystem/DATA/Climate
 Link_Path=C:/MOTIVE_Ecosystem/DATA/Link
