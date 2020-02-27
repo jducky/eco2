@@ -1,1 +1,1 @@
-R -e "shiny::runApp('C:/Users/Eco_R&D1/NaverCloud/MOTIVE_Ecosystem/R/Programs/ecosystem', launch.browser = TRUE)
+R -e "SE_Language <<- "Korean"; shiny::runApp('D:/MOTIVE_Ecosystem/R/Programs/ecosystem', launch.browser = TRUE)"

@@ -34,12 +34,12 @@ if (length(CHK_libraries) > 0) {
 ##### End installing and loading packages ====================
 #####=========================================================
 
-rm(list = ls())
+#rm(list = ls())
 MOTIVE_DIR <- "D:/MOTIVE_Ecosystem/"
  
 ##### Path
 G <- reactiveValues()
-G$SE_Dir_Project <- "Set a working project"
+G$SE_Dir_Project <- getwd() #"Set a working project"
 G$SE_Dir_Climate <- paste(MOTIVE_DIR, "DATA/Climate", sep='')
 G$SE_Dir_Link <- paste(MOTIVE_DIR, "DATA/Link", sep='')
 G$SE_Dir_Species <- paste(MOTIVE_DIR, "DATA/Species", sep='')
@@ -61,25 +61,30 @@ G$IS_AO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep 
 Input_img <- "tif"  #asc",
 Output_img <- "tif"
 
+getwd()
 ##### Language
-SE <- reactiveValues(Language = "English")
+Language_list <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/Language.csv", header = T, sep = ",")
+SE_Language <- as.character(Language_list[1,1])
 
-observe({
-    if (SE$Language == "English") {
-        SE$Name_System <- "MOTIVE ECOSYSTEM (Climate Change Impact and Vulnerability Assessment Model for Ecosystem)"
-    } else {
-        SE$Name_System <- "MOTIVE ECOSYSTEM (생태계 기후변화 영향 및 취약성 평가모형)"
-    }
-})
+Variable_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/variable_lists.csv", header = T, sep = ",")
+Variable_lists[is.na(Variable_lists)] = ""
+if (SE_Language == "English") {
+    lang <- 3
+} else if (SE_Language == "Korean"){
+    lang <- 4
+} else {
+    lang <- 3
+}
 
-
-SE_Language <- "English"
+#SE_Language <- "English"
 #SE_Language <- "Korean" 
 
 if (SE_Language == "English") {
     Option_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/option_lists_ENG.csv", header = T, sep = ",")
-} else {
+} else if (SE_Language == "Korean"){
     Option_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/option_lists_KOR.csv", header = T, sep = ",")    
+} else {
+    Option_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/option_lists_ENG.csv", header = T, sep = ",")    
 }
 Option_lists[is.na(Option_lists)] = ""
 
@@ -126,15 +131,6 @@ names(IS_Group_list) = as.character(Option_lists[,"IS_Group_name"][Option_lists[
 VH_Group_list = as.character(Option_lists[,"VH_Group_value"][Option_lists[,"VH_Group_value"] != ""])
 names(VH_Group_list) = as.character(Option_lists[,"VH_Group_name"][Option_lists[,"VH_Group_name"] != ""])
 
-
-Variable_lists <- read.csv("D:/MOTIVE_Ecosystem/R/Programs/ecosystem/variable_lists.csv", header = T, sep = ",")
-Variable_lists[is.na(Variable_lists)] = ""
-
-if (SE_Language == "English") {
-    lang <- 3
-} else {
-    lang <- 4
-}
 
 for (v in 1: nrow(Variable_lists)) {
     if(Variable_lists[v,2] == 0) {

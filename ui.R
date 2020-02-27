@@ -13,22 +13,20 @@ shinyUI(
       
       shinyjs::useShinyjs(),
       
-      
       fluidPage( div(
         h4(SE_Name_System, style = "display: inline-block; color: white; font-size: 200%; margin-left: 20px; position: absolute; line-height: 8vh;"), 
         div( style = "display: inline-block; margin-left: 80%; margin-top: 10px; font-size: 110%; color: white;",
                   
-             a("   한국어", style = "cursor:pointer; margin-right: 5px; color: white;" ),
-             a("English", style = "cursor:pointer; margin-right: 5px; color: white; " ),
-             a("CONTACT US", style = "cursor:pointer; margin-right: 5px; color: white; " ),
-             a("LOGOUT", style = "cursor:pointer; margin-right: 5px; color: white;" )
-        )
-        , style = "background-image: url(eco_title.png); height: 10vh; position: relative;"),
+#             a("   한국어", style = "cursor:pointer; margin-right: 5px; color: white;" ),
+#             a("English", style = "cursor:pointer; margin-right: 5px; color: white; " ),
+#             a("CONTACT US", style = "cursor:pointer; margin-right: 5px; color: white; " ),
+#             a("LOGOUT", style = "cursor:pointer; margin-right: 5px; color: white;" )
+            a(SE_Name_System_institute, style = "cursor:pointer; margin-right: 5px; color: ghostwhite;" )
+
+        ),
+        style = "background-image: url(eco_title.png); height: 10vh; position: relative;"),
         tags$script(HTML(
-          
           'document.querySelector("body").classList.add("sidebar-collapse");'
-          
-          
         )),
         
         theme = shinytheme("yeti"),
@@ -53,7 +51,6 @@ shinyUI(
                                   
                                   #CM_UI, #CS_UI, #PY_UI, #SYNC_UI {
                                   display: inline-block;
-                                  
                                   }
                                   
                                   #CM_btn, #CS_btn, #PY_btn {
@@ -93,7 +90,6 @@ shinyUI(
                                   width: 40%;
                                   }
                                   
-                                  
                                   .fa-folder-open {
                                   color: #3498db;
                                   }
@@ -109,48 +105,12 @@ shinyUI(
                                   .container-fluid > .tabbable > .nav-tabs {
                                   font-weight: bold;
                                   }
-                                  
-                                  
-                                  
-                                  
                                   '))),
-                
-                
-                
-                # div( style = "display: inline-block;",
-                
-                # div( style = "display: inline-block;",
-                #      shinyDirButton("SE_Dir_Project", "Working Project", "Working Project"),
-                #      verbatimTextOutput("SE_Dir_Project", placeholder = TRUE)
-                # ),
-                
-                # div( style = "display: inline-block; margin-left: 60%;",
-                #      
-                #      a("   한국어", style = "cursor:pointer; margin-right: 5px;" ),
-                #      a("English", style = "cursor:pointer; margin-right: 5px; " ),
-                #      a("CONTACT US", style = "cursor:pointer; margin-right: 5px; " ),
-                #      a("LOGOUT", style = "cursor:pointer; margin-right: 5px;" )
-                # ),
-                
-                # ),
-                br(),
-                
 
-                #   setBackgroundColor(
-                #     color = c("white", "green"),
-                #     gradient = "linear",
-                #     direction = "bottom"
-                #   ),
-                
-                # setBackgroundColor("ghostwhite"),  
-  
 #	fluidPage(h4(SE_Name_System),
-		tags$hr(),
+	tags$hr(),
 
-
-		setBackgroundColor("ghostwhite"),
-
-
+    setBackgroundColor("ghostwhite"),
 
 	tabsetPanel(
 		tabPanel(SE_Name,
