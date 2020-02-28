@@ -1,7 +1,7 @@
 Variables,Type,Variables_name_ENG,Variables_name_KOR
 SE_Name_Language,0,English,한국어
 SE_Name_System,0,MOTIVE ECOSYSTEM (Climate Change Impact and Vulnerability Assessment Model),MOTIVE ECOSYSTEM (생태계 기후변화 영향 및 취약성 평가모형)
-SE_Name_System_institute,0,National Institute of Ecology,국립생태원
+SE_Name_System_institute,0,National Institute of Ecology        since 2020,국립생태원        since 2020
 SE_Name,0,Setting,환경설정
 SE_Name_WE,0,Working Environment,작업환경
 SE_Name_WE_Project,0,Working Project,작업디렉토리
@@ -170,8 +170,8 @@ SS_Name_Group2_list,1,SS_Group2_list,SS_Group2_list
 SS_Name_Group2_selected,0,Model,Model
 SS_Name_Group3_list,1,SS_Group3_list,SS_Group3_list
 SS_Name_Group3_selected,0,Model,Model
-SS_Name_MO_Dir,0,Sensitive Speices Assessment Input Folder,민감종평가 입력폴더
-SS_Name_AO_Dir,0,Sensitive Speices Assessment Output Folder,민감종평가 결과폴더
+SS_Name_MO_Dir,0,Input Folder,민감종평가 입력폴더
+SS_Name_AO_Dir,0,Output Folder,민감종평가 결과폴더
 IS_Name,0,Invasive Species,외래종
 IS_Name_Anlayis,0,Change Analysis,영향 평가
 IS_Name_Out,0,Model Outputs,평가결과
@@ -202,7 +202,7 @@ IS_Name_models_run,0,Run,실행
 IS_Name_models_out,0,Model types,모델유형
 IS_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
 IS_Name_models_out_selected,0,GLM,GLM
-IS_Name_Dir,0,Invasive Assessment Output Folder,외래종 평가결과 폴더
+IS_Name_Dir,0,Output Folder,외래종 평가결과 폴더
 IS_Name_Action,0,Assessing Impact and Vulnerabilty,영향 및 취약성 평가 실행
 IS_Name_Action_Admin,0,Grouping by Administration,행정구역별로 결과분석
 IS_Name_Admin,0,Select a Administration Type,행정구역유형을 선택하세요
@@ -217,8 +217,8 @@ IS_Name_CD_Scenarios_out_selected,0,RCP4.5,RCP4.5
 IS_Name_CD_Year_out,0,Projecting Years,예측년도
 IS_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
 IS_Name_CD_Year_out_selected,0,2000,2000
-IS_Name_MO_Dir,0,Invasive Species Asessment Input Folder,외래종평가 입력폴더
-IS_Name_AO_Dir,0,Invasive Species Asessment Output Folder,외래종평가 결과폴더
+IS_Name_MO_Dir,0,Input Folder,외래종평가 입력폴더
+IS_Name_AO_Dir,0,Output Folder,외래종평가 결과폴더
 VH_Name,0,Climate Vulnerable Habitat,취약서식지
 VH_Name_Analysis,0,Change Analysis,영향 및 취약성평가
 VH_Name_Out,0,Model Outputs,평가결과
@@ -254,7 +254,7 @@ VH_Name_models_list,1,SDM_models_list,SDM_models_list
 VH_Name_models_selected,0,GLM,GLM
 VH_Name_EMmodels,0,Ensemble,앙상블
 VH_Name_models_run,0,Run,실행
-VH_Name_Dir,0,Habitat Assessment Output Folder,서식지 평가결과 폴더
+VH_Name_Dir,0,Output Folder,서식지 평가결과 폴더
 VH_Name_Action,0,Assessing Impact and Vulnerabilty,영향 및 취약성 평가 실행
 VH_Name_Action_Habitat,0,Grouping by Habitat,서식지별로 결과분석
 VH_Name_Habitat,0,Select a Habitat Type,서식지유형을 선택하세요
@@ -272,6 +272,7 @@ VH_Name_CD_Scenarios_out_selected,0,RCP4.5,RCP4.5
 VH_Name_CD_Year_out,0,Projecting Years,예측년도
 VH_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
 VH_Name_CD_Year_out_selected,0,2000,2000
-VH_Name_MO_Dir,0,Vulnerable Habitat Asessment Input Folder,취약서식지평가 입력폴더
-VH_Name_AO_Dir,0,Vulnerable Habitat Asessment Output Folder,취약서식지평가 결과폴더
+VH_Name_MO_Dir,0,Input Folder,취약서식지평가 입력폴더
+VH_Name_AO_Dir,0,Output Folder,취약서식지평가 결과폴더
 HELP_Name,0,Help,도움말
+HELP_Name_Content,0,"MOTIVE Ecosystem (Climate Change Impact and Vulnerability Assessment Model for Ecosystem) was funded by the “Climate Change Response Technology Project” of the Ministry of Environment, the Republic of Korea (Project No.: 2014001310009)",MOTIVE Ecosystem (생태계 기후변화 영향 및 취약성평가모형)은 대한민국 환경부 기후변화 R&D 과제인 “Climate Change Response Technology Project” (Project No.: 2014001310009)의 결과물입니다.

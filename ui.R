@@ -1726,7 +1726,7 @@ shinyUI(
 		tabPanel(HELP_Name, fluid = TRUE,
 			tags$hr(),
 			sidebarPanel(width = 5,
-        helpText("MOTIVE ECOSYSTEM(생태계 기후변화 영향 및 취약성평가모형)은 환경부 기후변화 R&D 과제의 결과물입니다.")
+        helpText(h5(HELP_Name_Content))
 			)
 		)
 	)
