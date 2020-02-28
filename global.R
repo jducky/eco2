@@ -1,6 +1,7 @@
 #####=========================================================
 ##### installing and Loading packages ========================
 # Setting packages and library
+
 packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "SDMTools", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "biomod2", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
 libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "SDMTools", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "biomod2", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
 
@@ -39,17 +40,17 @@ MOTIVE_DIR <- getwd()
 system_env <- read.csv(file.path(MOTIVE_DIR, "System_Environment.txt"), header = T, sep = "=")
 
 SE_Language <- as.character(system_env[1,2])
-Input_img <- as.character(system_env[9,2])
-Output_img <- as.character(system_env[10,2])
+Input_img <- as.character(system_env[10,2])
+Output_img <- as.character(system_env[11,2])
 
 G <- reactiveValues()
-G$SE_Dir_Project <- as.character(system_env[2,2])
-G$SE_Dir_Climate <- as.character(system_env[3,2])
-G$SE_Dir_Link <- as.character(system_env[4,2])
-G$SE_Dir_Species <- as.character(system_env[5,2])
-G$SE_Dir_GIS <- as.character(system_env[6,2])
-G$SE_speciesindex <- as.character(system_env[7,2])
-G$SE_specieslocation <- as.character(system_env[8,2])
+G$SE_Dir_Project <- as.character(system_env[3,2])
+G$SE_Dir_Climate <- as.character(system_env[4,2])
+G$SE_Dir_Link <- as.character(system_env[5,2])
+G$SE_Dir_Species <- as.character(system_env[6,2])
+G$SE_Dir_GIS <- as.character(system_env[7,2])
+G$SE_speciesindex <- as.character(system_env[8,2])
+G$SE_specieslocation <- as.character(system_env[9,2])
 G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
 G_FILE_specieslocation <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
 G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
@@ -62,7 +63,7 @@ G$IS_VA_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep 
 G$IS_MI_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
 G$IS_AO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
 
-Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[11,2])), header = T, sep = ",")
+Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[12,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
 if (SE_Language == "English") {
     lang <- 3
@@ -73,11 +74,11 @@ if (SE_Language == "English") {
 }
 
 if (SE_Language == "English") {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[12,2])), header = T, sep = ",")
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[13,2])), header = T, sep = ",")
 } else if (SE_Language == "Korean"){
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[13,2])), header = T, sep = ",")   
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[14,2])), header = T, sep = ",")   
 } else {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[12,2])), header = T, sep = ",")  
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[13,2])), header = T, sep = ",")  
 }
 Option_lists[is.na(Option_lists)] = ""
 
