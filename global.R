@@ -82,12 +82,11 @@ if (SE_Language == "English") {
 }
 Option_lists[is.na(Option_lists)] = ""
 
+CD_Models_list = as.character(Option_lists[,"CD_Models_value"][Option_lists[,"CD_Models_value"] != ""])
+names(CD_Models_list) = as.character(Option_lists[,"CD_Models_name"][Option_lists[,"CD_Models_name"] != ""])
 
 CD_Scenarios_list = as.character(Option_lists[,"CD_Scenarios_value"][Option_lists[,"CD_Scenarios_value"] != ""])
 names(CD_Scenarios_list) = as.character(Option_lists[,"CD_Scenarios_name"][Option_lists[,"CD_Scenarios_name"] != ""])
-
-CD_Models_list = as.character(Option_lists[,"CD_Models_value"][Option_lists[,"CD_Models_value"] != ""])
-names(CD_Models_list) = as.character(Option_lists[,"CD_Models_name"][Option_lists[,"CD_Models_name"] != ""])
 
 CD_Year_list = as.character(Option_lists[,"CD_Year_value"][Option_lists[,"CD_Year_value"] != ""])
 names(CD_Year_list) = as.character(Option_lists[,"CD_Year_name"][Option_lists[,"CD_Year_name"] != ""])

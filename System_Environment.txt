@@ -1,11 +1,11 @@
 Variable=Value
 Language=English
-Working_Path=D:/MOTIVE_Ecosystem/Github/Projects
-Project_Path=D:/MOTIVE_Projects
-Climate_Path=D:/MOTIVE_Ecosystem/DATA/Climate
-Link_Path=D:/MOTIVE_Ecosystem/DATA/Link
-Species_Path=D:/MOTIVE_Ecosystem/DATA/Species
-GIS_Path=D:/MOTIVE_Ecosystem/DATA/GIS
+Working_Path=C:/MOTIVE_Ecosystem/Github/Projects
+Project_Path=C:/MOTIVE_Projects/proj41
+Climate_Path=C:/MOTIVE_Ecosystem/DATA/Climate
+Link_Path=C:/MOTIVE_Ecosystem/DATA/Link
+Species_Path=C:/MOTIVE_Ecosystem/DATA/Species
+GIS_Path=C:/MOTIVE_Ecosystem/DATA/GIS
 Species_File_Index=speciesname_final.csv
 Species_File_Location=shin_specieslocation.csv
 Input_Image=tif

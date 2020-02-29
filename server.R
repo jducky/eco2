@@ -4,6 +4,7 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project <- renderText({G$SE_Dir_Project})
 	output$SE_Dir_Climate <- renderText({G$SE_Dir_Climate})
 	output$SE_Dir_Link <- renderText({G$SE_Dir_Link})
+	output$SE_Dir_GIS <- renderText({G$SE_Dir_GIS})
 	output$SE_Dir_Species <- renderText({G$SE_Dir_Species})
 	output$SE_speciesindex <- renderText({G$SE_speciesindex})
 	output$SE_specieslocation <- renderText({G$SE_specieslocation})
@@ -11,22 +12,92 @@ shinyServer(function(input, output) {
 #	onclick("kor_link_top", SE$Language <<- "Korean")
 #	onclick("eng_link_top", SE$Language <<- "English")
 
-	observeEvent(input$login, {
-		showModal(modalDialog(
-			title = "You have logged in.",
-			paste0("It seems you have logged in as ",input$userid,'.'),
-			easyClose = TRUE,
-			footer = NULL
-		))
-	})
-    
+#	observeEvent(input$login, {
+#		showModal(modalDialog(
+#			title = "You have logged in.",
+#			paste0("It seems you have logged in as ",input$userid,'.'),
+#			easyClose = TRUE,
+#			footer = NULL
+#		))
+#	})
+
+	output$SE_Menu_Project <- renderUI({
+	  Menu_Project_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	  Menu_Project_selected <- Menu_Project_list[1]
+	  radioButtons("Menu_Project", "Lists of Projects",
+	               choices = c(Menu_Project_list),
+	               selected = Menu_Project_selected
+	  )
+	})	
+	    
 	observeEvent(input$SE_Dir_Project, {
 		volumes <- getVolumes()
 		shinyDirChoose(input, 'SE_Dir_Project', roots = volumes)
 		G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
 		output$SE_Dir_Project <- renderText({G$SE_Dir_Project})
 	})
-	  
+
+	output$SE_Dir_Project_SDM <- renderUI({
+	  Dir_Project_SDM_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	  Dir_Project_SDM_selected <- Dir_Project_SDM_list[1]
+	  radioButtons("Dir_Project_SDM", "Lists of Species Distribution Folder",
+	              choices = c(Dir_Project_SDM_list),
+	              selected = Dir_Project_SDM_selected
+	  )
+	})
+	
+	output$SE_Dir_Project_SDM_Species <- renderUI({
+	  Dir_Project_SDM_Species_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM), full.names = FALSE, recursive = FALSE)
+	  Dir_Project_SDM_Species_selected <- Dir_Project_SDM_Species_list[1]
+	  selectInput("Dir_Project_SDM_Species", "Select a species",
+	              choices = c(Dir_Project_SDM_Species_list),
+	              selected = Dir_Project_SDM_Species_selected
+	  )
+	})
+	
+	output$SE_Dir_Project_SDM_Species_Model <- renderUI({
+	  Dir_Project_SDM_Species_Model_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species), full.names = FALSE, recursive = FALSE)
+	  Dir_Project_SDM_Species_Model_selected <<- Dir_Project_SDM_Species_Model_list[1]
+	  selectInput("Dir_Project_SDM_Species_Model", "Select a Model",
+	              choices = c(Dir_Project_SDM_Species_Model_list),
+	              selected = Dir_Project_SDM_Species_Model_selected
+	  )
+	})
+	
+	output$SE_Dir_Project_SDM_Species_Model_Output <- renderPrint({
+	  Dir_Project_SDM_Species_Model_list <- list.files(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model), pattern=NULL, all.files=FALSE, full.names=FALSE)
+	  cat(as.character(Dir_Project_SDM_Species_Model_list))
+	})
+	
+	output$SE_Dir_Project_IS <- renderUI({
+	  Dir_Project_IS_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Invasive_Species"), full.names = FALSE, recursive = FALSE)
+	  Dir_Project_IS_selected <<- Dir_Project_IS_list[1]
+	  radioButtons("Dir_Project_IS", "Lists of Invasive Species Folder",
+	               choices = c(Dir_Project_IS_list),
+	               selected = Dir_Project_IS_selected
+	  )
+	})
+	
+	output$SE_Dir_Project_IS_Output <- renderPrint({
+	  Dir_Project_IS_list <- list.files(path = file.path(G$SE_Dir_Project, "Invasive_Species", input$Dir_Project_IS), pattern=NULL, all.files=FALSE, full.names=FALSE)
+	  cat(as.character(Dir_Project_IS_list))
+	})
+	
+	output$SE_Dir_Project_VH <- renderUI({
+	  Dir_Project_VH_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"), full.names = FALSE, recursive = FALSE)
+	  Dir_Project_VH_selected <<- Dir_Project_VH_list[1]
+	  radioButtons("Dir_Project_VH", "Lists of Vulnerable Habitat Folder",
+	               choices = c(Dir_Project_VH_list),
+	               selected = Dir_Project_VH_selected
+	  )
+	})
+	
+	output$SE_Dir_Project_VH_Output <- renderPrint({
+	  Dir_Project_VH_list <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern=NULL, all.files=FALSE, full.names=FALSE)
+	  cat(as.character(Dir_Project_VH_list))
+	})
+
+		  
 	observeEvent(input$SE_Dir_Climate, {
 		volumes <- getVolumes()
 		shinyDirChoose(input, 'SE_Dir_Climate', roots = volumes)
@@ -39,6 +110,13 @@ shinyServer(function(input, output) {
 		shinyDirChoose(input, 'SE_Dir_Link', roots = volumes)
 		G$SE_Dir_Link <<- parseDirPath(volumes, input$SE_Dir_Link)
 		output$SE_Dir_Link <- renderText({G$SE_Dir_Link})
+	})
+	
+	observeEvent(input$SE_Dir_GIS, {
+	  volumes <- getVolumes()
+	  shinyDirChoose(input, 'SE_Dir_GIS', roots = volumes)
+	  G$SE_Dir_GIS <<- parseDirPath(volumes, input$SE_Dir_GIS)
+	  output$SE_Dir_GIS <- renderText({G$SE_Dir_GIS})
 	})
   
 	observeEvent(input$SE_Dir_Species, {
@@ -61,61 +139,6 @@ shinyServer(function(input, output) {
 	})
 	
 
-  
-	observeEvent(input$DM_MO_Action, {
-		withProgress(message = 'Runing Dispersal model.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-
-	observeEvent(input$SS_IV_Action_vindex, {
-		withProgress(message = 'Runing Invasive species expansion.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-	
-	observeEvent(input$IS_VA_Action_intro, {
-		withProgress(message = 'Runing Invasive species introduction.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-	
-	observeEvent(input$IS_VA_Action_expan, {
-		withProgress(message = 'Runing Invasive species expansion.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-	
-	observeEvent(input$VH_VA_Action_SR, {
-		withProgress(message = 'Runing Species richness.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-	
-	observeEvent(input$VH_VA_Action_SRL, {
-		withProgress(message = 'Runing Species richness loss.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-	
-	observeEvent(input$VH_VA_Action_SLA, {
-		withProgress(message = 'Runing Species loss area.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-	
-	observeEvent(input$VH_VA_Action_SSA, {
-		withProgress(message = 'Runing Species stay area.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-	
-	observeEvent(input$VH_VA_Action_SIA, {
-		withProgress(message = 'Runing Species introduction area.........', value = 2, {
-		Sys.sleep(10.0)
-		})
-	})
-  
 	output$SP_Info <- DT::renderDataTable(G_FILE_speciesinfo, server = TRUE)
 	
 	output$SP_Summary <- renderPrint({
@@ -241,7 +264,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_SP_Info <- DT::renderDataTable(G_FILE_speciesinfo, server = TRUE)    
 	
-	output$SDM_SP_Selection = renderPrint({
+	output$SDM_SP_Selection <- renderPrint({
 		s_id <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$ID)
 		s_kname <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$K_NAME)
 		if (length(s_id)) {
@@ -267,15 +290,15 @@ shinyServer(function(input, output) {
 	    dir.create(file.path(PATH_PROJECT, "Species_Distribution"))
 	  }
 	  
-	  # creating Sensitive_Species output path
-	  if (dir.exists(file.path(PATH_PROJECT, "Sensitive_Species"))) {
-	    cat(paste("Sensitive_Species exists in", PATH_PROJECT, "and is a directory"))
-	  } else if (file.exists(file.path(PATH_PROJECT, "Sensitive_Species"))) {
-	    cat(paste("Sensitive_Species exists exists in", PATH_PROJECT, "but is a file"))
-	  } else {
-	    cat(paste("Sensitive_Species does not exist in", PATH_PROJECT, "- creating"))
-	    dir.create(file.path(PATH_PROJECT, "Sensitive_Species"))
-	  }
+#	  # creating Sensitive_Species output path
+#	  if (dir.exists(file.path(PATH_PROJECT, "Sensitive_Species"))) {
+#	    cat(paste("Sensitive_Species exists in", PATH_PROJECT, "and is a directory"))
+#	  } else if (file.exists(file.path(PATH_PROJECT, "Sensitive_Species"))) {
+#	    cat(paste("Sensitive_Species exists exists in", PATH_PROJECT, "but is a file"))
+#	  } else {
+#	    cat(paste("Sensitive_Species does not exist in", PATH_PROJECT, "- creating"))
+#	    dir.create(file.path(PATH_PROJECT, "Sensitive_Species"))
+#	  }
 	  
 	  # creating Invasive_Species output path
 	  if (dir.exists(file.path(PATH_PROJECT, "Invasive_Species"))) {
@@ -287,14 +310,14 @@ shinyServer(function(input, output) {
 	    dir.create(file.path(PATH_PROJECT, "Invasive_Species"))
 	  }
 	  
-	  # creating Vulnerable_Species output path
-	  if (dir.exists(file.path(PATH_PROJECT, "Vulnerable_Species"))) {
-	    cat(paste("Vulnerable_Species exists in", PATH_PROJECT, "and is a directory"))
-	  } else if (file.exists(file.path(PATH_PROJECT, "Vulnerable_Species"))) {
-	    cat(paste("Vulnerable_Species exists exists in", PATH_PROJECT, "but is a file"))
+	  # creating Vulnerable_Habitat output path
+	  if (dir.exists(file.path(PATH_PROJECT, "Vulnerable_Habitat"))) {
+	    cat(paste("Vulnerable_Habitat exists in", PATH_PROJECT, "and is a directory"))
+	  } else if (file.exists(file.path(PATH_PROJECT, "Vulnerable_Habitat"))) {
+	    cat(paste("Vulnerable_Habitat exists exists in", PATH_PROJECT, "but is a file"))
 	  } else {
-	    cat(paste("Vulnerable_Species does not exist in", PATH_PROJECT, "- creating"))
-	    dir.create(file.path(PATH_PROJECT, "Vulnerable_Species"))
+	    cat(paste("Vulnerable_Habitat does not exist in", PATH_PROJECT, "- creating"))
+	    dir.create(file.path(PATH_PROJECT, "Vulnerable_Habitat"))
 	  }
 	  
 	  
@@ -340,9 +363,7 @@ shinyServer(function(input, output) {
 	    PATH_ENV       <- G$SE_Dir_Climate
 	    PATH_ENV_INPUT <- file.path(PATH_ENV, "2000", sep = "")
 	    #		PATH_PROJECT   <- G$SDM_MO_Dir_Folder # G$SE_Dir_Project
-	    
-	    
-	    
+
 	    PATH_MODEL_OUTPUT  <- G$SDM_MO_Dir_Folder
 	    
 	    file.copy(file.path(getwd(), "maxent.jar"), PATH_MODEL_OUTPUT)
@@ -3008,7 +3029,7 @@ shinyServer(function(input, output) {
 	})
 	
 	observeEvent(input$VH_AO_Dir_Folder, {
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Vulnerable_Species"))
+	  volumes <- c(main = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"))
 	  shinyDirChoose(input, 'VH_AO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
 	  G$VH_AO_Dir_Folder <<- parseDirPath(volumes, input$VH_AO_Dir_Folder)
 	  output$VH_AO_Dir_Folder <- renderText({G$VH_AO_Dir_Folder})

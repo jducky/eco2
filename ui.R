@@ -1,16 +1,63 @@
 ### JD Edition
 library(shinythemes)
-ST_Name <- "success"
+#ST_Name <- "success"
 
 
 shinyUI(
 
   dashboardPage(
-    skin = "green",
+    skin = "blue",
     dashboardHeader(title = "MOTIVE Ecosystem"),
-    dashboardSidebar(),
+    dashboardSidebar(
+      width = 400,
+      sidebarMenu(
+        menuItem("Finished Projects", 
+          tags$hr(),                 
+          uiOutput("SE_Menu_Project"),
+          tags$hr()
+          ),
+        menuItem("Working Project",
+          tags$hr(),
+          shinyDirButton("SE_Dir_Project", SE_Name_WE_Project, SE_Name_WE_Project),
+          br(),
+          textOutput("SE_Dir_Project"),
+          tags$hr()
+          ),
+        menuItem("Data Environment",
+          tags$hr(),
+          shinyDirButton("SE_Dir_Climate", SE_Name_DE_Climate, SE_Name_DE_Climate),
+          textOutput("SE_Dir_Climate"),
+                 
+          shinyDirButton("SE_Dir_Link", SE_Name_DE_Link, SE_Name_DE_Link),
+          textOutput("SE_Dir_Link"),
+                 
+          shinyDirButton("SE_Dir_GIS", SE_Name_DE_GIS, SE_Name_DE_GIS),
+          textOutput("SE_Dir_GIS"),
+                 
+          shinyDirButton("SE_Dir_Species", SE_Name_DE_Species, SE_Name_DE_Species),
+          textOutput("SE_Dir_Species"),
+          tags$hr(),
+          fileInput("SE_speciesinfo", SE_Name_DE_Species_Index,
+                    accept = c(
+                    "text/csv",
+                    "text/comma-separated-values,text/plain",
+                    ".csv")
+          ),
+          textOutput("SE_speciesindex"),
+          tags$hr(),                         
+          fileInput("SE_speciesdata1", SE_Name_DE_Species_Location,
+                    accept = c(
+                    "text/csv",
+                    "text/comma-separated-values,text/plain",
+                    ".csv")
+          ), 
+          textOutput("SE_specieslocation"),
+          tags$hr()
+        )
+      )
+    ),
+    
     dashboardBody(
-      
       shinyjs::useShinyjs(),
       
       fluidPage( div(
@@ -33,126 +80,126 @@ shinyUI(
         # shinythemes::themeSelector(),
         
         tags$head(tags$style(HTML('
+        
+          .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
+          background-color: rgb(0,0,0);
+          color: rgb(255,255,255);font-weight: bold;font-size: 18px;
+          }  
+
+          #SE_Dir_Project {
+          display: inline;
+          }
                                   
-                                  #SE_Dir_Project {
-                                  display: inline;
-                                  }
+          #SDM_MO_SDM_run {
+          width: 200px;
+          height: 70px;
+          font-size: 3rem;
+          }
                                   
-                                  #SDM_MO_SDM_run {
-                                  width: 200px;
-                                  height: 70px;
-                                  font-size: 3rem;
-                                  }
+          #DM_MO_Action {
+          width: 200px;
+          height: 70px;
+          }
                                   
-                                  #DM_MO_Action {
-                                  width: 200px;
-                                  height: 70px;
-                                  }
+          #CM_UI, #CS_UI, #PY_UI, #SYNC_UI {
+          display: inline-block;
+          }
                                   
-                                  #CM_UI, #CS_UI, #PY_UI, #SYNC_UI {
-                                  display: inline-block;
-                                  }
+          #CM_btn, #CS_btn, #PY_btn {
+          color: #fff;
+          background-color: #0080ff;
+          }
                                   
-                                  #CM_btn, #CS_btn, #PY_btn {
-                                  color: #fff;
-                                  background-color: #0080ff;
-                                  }
+          #SS_Analy_Box > div > div {
+          padding-left: 0;
+          padding-right: 15px;
+          }
                                   
-                                  #SS_Analy_Box > div > div {
-                                  padding-left: 0;
-                                  padding-right: 15px;
-                                  }
+          #SS_Analy_Box > div > div:first-child,
+          #SS_Analy_Box > div > div:last-child {
+          width: 20%;
+          }
                                   
-                                  #SS_Analy_Box > div > div:first-child,
-                                  #SS_Analy_Box > div > div:last-child {
-                                  width: 20%;
-                                  }
+          #SS_Analy_Box > div > div:nth-child(2),
+          #SS_Analy_Box > div > div:nth-child(3) {
+          width: 13%;
+          }
                                   
-                                  #SS_Analy_Box > div > div:nth-child(2),
-                                  #SS_Analy_Box > div > div:nth-child(3) {
-                                  width: 13%;
-                                  }
+          #SS_Analy_Box > div > div:nth-child(4) {
+          width: 15%;
+          }
                                   
-                                  #SS_Analy_Box > div > div:nth-child(4) {
-                                  width: 15%;
-                                  }
+          #SS_Analy_Box > div > div:nth-child(5) {
+          width: 18%;
+          }
                                   
-                                  #SS_Analy_Box > div > div:nth-child(5) {
-                                  width: 18%;
-                                  }
+          #CD_Summary, #CD_Histogram {
+          display: inline-block;
+          width: 40%;
+          }
                                   
-                                  #CD_Summary, #CD_Histogram {
-                                  display: inline-block;
-                                  width: 40%;
-                                  }
+          ##CD_Histogram {
+          width: 40%;
+          }
                                   
-                                  ##CD_Histogram {
-                                  width: 40%;
-                                  }
+          .fa-folder-open {
+          color: #3498db;
+          }
                                   
-                                  .fa-folder-open {
-                                  color: #3498db;
-                                  }
+          .fa-pie-chart {
+          color: #9b59b6;
+          }
                                   
-                                  .fa-pie-chart {
-                                  color: #9b59b6;
-                                  }
+          .fa-table {
+          color: #e74c3c;
+          }
                                   
-                                  .fa-table {
-                                  color: #e74c3c;
-                                  }
-                                  
-                                  .container-fluid > .tabbable > .nav-tabs {
-                                  font-weight: bold;
-                                  }
-                                  '))),
+          .container-fluid > .tabbable > .nav-tabs {
+          font-weight: bold;
+          }
+          '))),
 
 #	fluidPage(h4(SE_Name_System),
 	tags$hr(),
-
-    setBackgroundColor("ghostwhite"),
+  setBackgroundColor("ghostwhite"),
 
 	tabsetPanel(
 		tabPanel(SE_Name,
-			tabsetPanel(
-				tabPanel(SE_Name_WE,
-					fluidRow(column(6,
-					tags$hr(),
-						shinyDirButton("SE_Dir_Project", SE_Name_WE_Project, SE_Name_WE_Project),
-						verbatimTextOutput("SE_Dir_Project", placeholder = TRUE)
-					))
-				),
-				tabPanel(SE_Name_DE, 
-					fluidRow(column(6,
-						tags$hr(),
-						shinyDirButton("SE_Dir_Climate", SE_Name_DE_Climate, SE_Name_DE_Climate),
-						verbatimTextOutput("SE_Dir_Climate", placeholder = TRUE),
-					
-						shinyDirButton("SE_Dir_Link", SE_Name_DE_Link, SE_Name_DE_Link),
-						verbatimTextOutput("SE_Dir_Link", placeholder = TRUE),
-						
-						shinyDirButton("SE_Dir_Species", SE_Name_DE_Species, SE_Name_DE_Species),
-						verbatimTextOutput("SE_Dir_Species", placeholder = TRUE),
-						
-						tags$hr(),
-						fileInput("SE_speciesinfo", SE_Name_DE_Species_Index,
-							accept = c(
-                "text/csv",
-                "text/comma-separated-values,text/plain",
-                ".csv")
-							),
-						verbatimTextOutput("SE_speciesindex", placeholder = TRUE),
-						tags$hr(),                         
-						fileInput("SE_speciesdata1", SE_Name_DE_Species_Location,
-							accept = c(
-                "text/csv",
-                "text/comma-separated-values,text/plain",
-                ".csv")
-						), 
-						verbatimTextOutput("SE_specieslocation", placeholder = TRUE)
-					))
+      tags$hr(),
+
+				  sidebarLayout(
+				    sidebarPanel(width = 3, Fluid = TRUE,
+				      tags$hr(),
+				      uiOutput("SE_Dir_Project_SDM"),
+				      uiOutput("SE_Dir_Project_SDM_Species"),
+              uiOutput("SE_Dir_Project_SDM_Species_Model"),
+				      tags$hr(),
+				    
+				      uiOutput("SE_Dir_Project_IS"),
+				      tags$hr(),
+				    
+				      uiOutput("SE_Dir_Project_VH"),
+				    tags$hr()	
+				    ),
+				    
+				    mainPanel(
+				      tabsetPanel(
+				        tabPanel(SE_Name_Dir_Project_SDM,
+				          tags$hr(),
+                  textOutput("SE_Dir_Project_SDM_Species_Model_Output"),
+#                  tags$hr()
+				        ),
+				        tabPanel(SE_Name_Dir_Project_IS,
+                  tags$hr(),
+                  textOutput("SE_Dir_Project_IS_Output"),				                 
+				        ),
+				        tabPanel(SE_Name_Dir_Project_VH,
+                  tags$hr(),
+                  textOutput("SE_Dir_Project_VH_Output"),				                 
+				        )
+				      )
+				    )
 				)
-			)
 		),       
 
 		tabPanel(SP_Name,
