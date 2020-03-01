@@ -38,6 +38,7 @@ if (length(CHK_libraries) > 0) {
 rm(list = ls())
 MOTIVE_DIR <- getwd()
 system_env <- read.csv(file.path(MOTIVE_DIR, "System_Environment.txt"), header = T, sep = "=")
+Project_info <- read.csv(file.path(MOTIVE_DIR, "Project_Information.csv"), header = T, sep = ",")
 
 SE_Language <- as.character(system_env[1,2])
 Input_img <- as.character(system_env[10,2])

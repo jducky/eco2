@@ -21,20 +21,73 @@ shinyServer(function(input, output) {
 #		))
 #	})
 
-	output$SE_Menu_Project <- renderUI({
-	  Menu_Project_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
-	  Menu_Project_selected <- Menu_Project_list[1]
-	  radioButtons("Menu_Project", "Lists of Projects",
-	               choices = c(Menu_Project_list),
-	               selected = Menu_Project_selected
+	output$SE_Project <- renderUI({
+	  Project_list <- as.character(Project_info[,1])
+	  Project_selected <- as.character(Project_list[1])
+	  selectInput("Project_Name", "Lists of Projects",
+	               choices = Project_list,
+	               selected = Project_selected
 	  )
-	})	
-	    
+	})
+
+
+	output$SE_Project_Info_Manager <- renderPrint({
+	  Project_Info_Manager <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,2])
+	  cat(as.character(Project_Info_Manager))
+	})
+	
+	output$SE_Project_Info_Institute <- renderPrint({
+	  Project_Info_Institute <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,3])
+	  cat(as.character(Project_Info_Institute))
+	})
+
+	output$SE_Project_Info_Date <- renderPrint({
+	  Project_Info_Date <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,4])
+	  cat(as.character(Project_Info_Date))
+	})
+
+	output$SE_Project_Info_Path <- renderPrint({
+	  Project_Info_Path <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,5])
+	  cat(as.character(Project_Info_Path))
+	})
+	
+	output$SE_Project_Info_Description <- renderPrint({
+	  Project_Info_Description <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,6])
+	  cat(as.character(Project_Info_Description))
+	})
+
 	observeEvent(input$SE_Dir_Project, {
-		volumes <- getVolumes()
-		shinyDirChoose(input, 'SE_Dir_Project', roots = volumes)
-		G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
-		output$SE_Dir_Project <- renderText({G$SE_Dir_Project})
+	  volumes <- getVolumes()
+	  shinyDirChoose(input, 'SE_Dir_Project', roots = volumes)
+	  G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
+	  output$SE_Dir_Project <- renderText({G$SE_Dir_Project})
+#	  Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+#	  Project_New_Name <- as.character(Project_working[1,1])
+	})
+	
+	output$SE_Project_New_Name <- renderUI({
+	  textInput("Project_New_Name", "Project Name",
+	            value = "Create a new project name")
+	})
+	
+	output$SE_Project_NewManager <- renderUI({
+	  textInput("Project_New_Manager", "Project Manager",
+	            value = "Create a new project Manager")
+	})
+	
+	output$SE_Project_New_Institute <- renderUI({
+	  textInput("Project_New_Institute", "Project Institute",
+	            value = "Create a new project Institute")
+	})
+	
+	output$SE_Project_New_Date <- renderUI({
+	  textInput("Project_New_Date", "Project Date",
+	            value = "Create a new project Date")
+	})
+
+	output$SE_Project_New_Description <- renderUI({
+	  textInput("Project_New_escription", "Project Description",
+	            value = "Create a new project Description")
 	})
 
 	output$SE_Dir_Project_SDM <- renderUI({
