@@ -49,6 +49,7 @@ shinyServer(function(input, output) {
 	output$SE_Project_Info_Path <- renderPrint({
 	  Project_Info_Path <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,5])
 	  cat(as.character(Project_Info_Path))
+	  G$SE_Dir_Project <- Project_Info_Path
 	})
 	
 	output$SE_Project_Info_Description <- renderPrint({
@@ -60,40 +61,60 @@ shinyServer(function(input, output) {
 	  volumes <- getVolumes()
 	  shinyDirChoose(input, 'SE_Dir_Project', roots = volumes)
 	  G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
-	  output$SE_Dir_Project <- renderText({G$SE_Dir_Project})
-#	  Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
-#	  Project_New_Name <- as.character(Project_working[1,1])
+	  output$SE_Dir_Project_Path <- renderText({G$SE_Dir_Project})
+	  path <- G$SE_Dir_Project
+	  cat(G$SE_Dir_Project)
+	  file <- file.path(path, "Project_Information.csv")
+	  cat(file)
+#	  Project_working <- read.csv(file, header = T, sep = ",")
+	  Project_New_Name <<- as.character(Project_working[1,1])
+	  Project_New_Manager <<- as.character(Project_working[2,1])
+	  Project_New_Institute <<- as.character(Project_working[3,1])
+	  Project_New_Date <<- as.character(Project_working[4,1])
+	  Project_New_Path <<- as.character(Project_working[5,1])
+	  Project_New_Description <<- as.character(Project_working[6,1])
 	})
-	
+
+	output$SE_Project_New_Path <- renderUI({
+	    Project_New_Path <- as.character(Project_working[1,5])
+	    textInput("Project_New_Path", "Path",
+	              value = Project_New_Path)
+	})
+		
 	output$SE_Project_New_Name <- renderUI({
-	  textInput("Project_New_Name", "Project Name",
-	            value = "Create a new project name")
+	  Project_New_Name <- as.character(Project_working[1,1])
+	  textInput("Project_New_Name", "Name",
+	            value = Project_New_Name)
 	})
 	
-	output$SE_Project_NewManager <- renderUI({
-	  textInput("Project_New_Manager", "Project Manager",
-	            value = "Create a new project Manager")
+	output$SE_Project_New_Manager <- renderUI({
+	  Project_New_Manager <- as.character(Project_working[1,2])  
+	  textInput("Project_New_Manager", "Manager",
+	            value = Project_New_Manager)
 	})
 	
 	output$SE_Project_New_Institute <- renderUI({
-	  textInput("Project_New_Institute", "Project Institute",
-	            value = "Create a new project Institute")
+	  Project_New_Institute <- as.character(Project_working[1,3])
+	  textInput("Project_New_Institute", "Institute",
+	            value = Project_New_Institute)
 	})
 	
 	output$SE_Project_New_Date <- renderUI({
-	  textInput("Project_New_Date", "Project Date",
-	            value = "Create a new project Date")
+	  Project_New_Date <- as.character(Project_working[1,4])
+	  textInput("Project_New_Date", "Date",
+	            value = Project_New_Date)
 	})
 
 	output$SE_Project_New_Description <- renderUI({
-	  textInput("Project_New_escription", "Project Description",
-	            value = "Create a new project Description")
+	  Project_New_Description <- as.character(Project_working[1,6])
+	  textInput("Project_New_Description", "Description",
+	            value = Project_New_Description)
 	})
 
 	output$SE_Dir_Project_SDM <- renderUI({
 	  Dir_Project_SDM_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
 	  Dir_Project_SDM_selected <- Dir_Project_SDM_list[1]
-	  radioButtons("Dir_Project_SDM", "Lists of Species Distribution Folder",
+	  selectInput("Dir_Project_SDM", "Working Species Distribution Folders",
 	              choices = c(Dir_Project_SDM_list),
 	              selected = Dir_Project_SDM_selected
 	  )
@@ -125,7 +146,7 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_IS <- renderUI({
 	  Dir_Project_IS_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Invasive_Species"), full.names = FALSE, recursive = FALSE)
 	  Dir_Project_IS_selected <<- Dir_Project_IS_list[1]
-	  radioButtons("Dir_Project_IS", "Lists of Invasive Species Folder",
+	  selectInput("Dir_Project_IS", "Working Invasive Species Folders",
 	               choices = c(Dir_Project_IS_list),
 	               selected = Dir_Project_IS_selected
 	  )
@@ -139,7 +160,7 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_VH <- renderUI({
 	  Dir_Project_VH_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"), full.names = FALSE, recursive = FALSE)
 	  Dir_Project_VH_selected <<- Dir_Project_VH_list[1]
-	  radioButtons("Dir_Project_VH", "Lists of Vulnerable Habitat Folder",
+	  selectInput("Dir_Project_VH", "Working Vulnerable Habitat Folders",
 	               choices = c(Dir_Project_VH_list),
 	               selected = Dir_Project_VH_selected
 	  )

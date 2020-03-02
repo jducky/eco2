@@ -28,13 +28,9 @@ shinyUI(
           tags$hr()
           ),
         menuItem("Working Project",
-#          tags$hr(),
-#          shinyDirButton("SE_Dir_Project", SE_Name_WE_Project, SE_Name_WE_Project),
-#          br(),
-#          verbatimTextOutput("SE_Dir_Project"),
           tags$hr(),
           shinyDirButton("SE_Dir_Project", SE_Name_WE_Project, SE_Name_WE_Project),
-          verbatimTextOutput("SE_Dir_Project"),
+          uiOutput("SE_Project_New_Path"),
           uiOutput("SE_Project_New_Name"),
           uiOutput("SE_Project_New_Manager"),
           uiOutput("SE_Project_New_Institute"),
@@ -45,16 +41,16 @@ shinyUI(
         menuItem("Data Environment",
           tags$hr(),
           shinyDirButton("SE_Dir_Climate", SE_Name_DE_Climate, SE_Name_DE_Climate),
-          textOutput("SE_Dir_Climate"),
+          verbatimTextOutput("SE_Dir_Climate"),
                  
           shinyDirButton("SE_Dir_Link", SE_Name_DE_Link, SE_Name_DE_Link),
-          textOutput("SE_Dir_Link"),
+          verbatimTextOutput("SE_Dir_Link"),
                  
           shinyDirButton("SE_Dir_GIS", SE_Name_DE_GIS, SE_Name_DE_GIS),
-          textOutput("SE_Dir_GIS"),
+          verbatimTextOutput("SE_Dir_GIS"),
                  
           shinyDirButton("SE_Dir_Species", SE_Name_DE_Species, SE_Name_DE_Species),
-          textOutput("SE_Dir_Species"),
+          verbatimTextOutput("SE_Dir_Species"),
           tags$hr(),
           fileInput("SE_speciesinfo", SE_Name_DE_Species_Index,
                     accept = c(
@@ -188,33 +184,32 @@ shinyUI(
 
 				  sidebarLayout(
 				    sidebarPanel(width = 3, Fluid = TRUE,
-				      tags$hr(),
+#				      tags$hr(),
 				      uiOutput("SE_Dir_Project_SDM"),
 				      uiOutput("SE_Dir_Project_SDM_Species"),
-              uiOutput("SE_Dir_Project_SDM_Species_Model"),
+                      uiOutput("SE_Dir_Project_SDM_Species_Model"),
+                      br(),
 				      tags$hr(),
-				    
 				      uiOutput("SE_Dir_Project_IS"),
+				      br(),
 				      tags$hr(),
-				    
 				      uiOutput("SE_Dir_Project_VH"),
-				    tags$hr()	
+#				      tags$hr()	
 				    ),
 				    
 				    mainPanel(
 				      tabsetPanel(
 				        tabPanel(SE_Name_Dir_Project_SDM,
-				          tags$hr(),
-                  textOutput("SE_Dir_Project_SDM_Species_Model_Output"),
-#                  tags$hr()
+				            tags$hr(),
+                            textOutput("SE_Dir_Project_SDM_Species_Model_Output"),
 				        ),
 				        tabPanel(SE_Name_Dir_Project_IS,
-                  tags$hr(),
-                  textOutput("SE_Dir_Project_IS_Output"),				                 
+                            tags$hr(),
+                            textOutput("SE_Dir_Project_IS_Output"),				                 
 				        ),
 				        tabPanel(SE_Name_Dir_Project_VH,
-                  tags$hr(),
-                  textOutput("SE_Dir_Project_VH_Output"),				                 
+                            tags$hr(),
+                            textOutput("SE_Dir_Project_VH_Output"),				                 
 				        )
 				      )
 				    )

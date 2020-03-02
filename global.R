@@ -57,6 +57,9 @@ G_FILE_specieslocation <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(
 G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
 G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
 
+
+Project_working <- read.csv(file.path(isolate(G$SE_Dir_Project), "Project_Information.csv"), header = T, sep = ",")
+
 G$SDM_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")
 G$SDM_AO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")
 G$IS_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
