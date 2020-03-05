@@ -5,6 +5,7 @@ SE_Name_System_institute,0,National Institute of Ecology        since 2020,국립�
 SE_Name,0,Project Information,프로젝트 정보
 SE_Name_WE,0,Working Environment,작업환경
 SE_Name_WE_Project,0,Working Project,작업프로젝트
+SE_Name_WE_Project_Action,0,Save a Project Information,프로젝트정보 저장
 SE_Name_Dir_Project_SDM,0,Sensitive Species,개별(민감)종
 SE_Name_Dir_Project_IS,0,Invasive Species,외래종
 SE_Name_Dir_Project_VH,0,Vulnerable Habitat,취약서식지

@@ -59,6 +59,12 @@ G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "
 
 
 Project_working <- read.csv(file.path(isolate(G$SE_Dir_Project), "Project_Information.csv"), header = T, sep = ",")
+Project_New_Path <- as.character(Project_working[1,5])
+Project_New_Name <- as.character(Project_working[1,1])
+Project_New_Manager <- as.character(Project_working[1,2])  
+Project_New_Institute <- as.character(Project_working[1,3])
+Project_New_Date <- as.character(Project_working[1,4])
+Project_New_Description <- as.character(Project_working[1,6])
 
 G$SDM_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")
 G$SDM_AO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")

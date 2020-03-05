@@ -58,57 +58,89 @@ shinyServer(function(input, output) {
 	})
 
 	observeEvent(input$SE_Dir_Project, {
-	  volumes <- getVolumes()
-	  shinyDirChoose(input, 'SE_Dir_Project', roots = volumes)
+	  volumes <<- getVolumes()
+	  shinyDirChoose(input, 'SE_Dir_Project', roots = getVolumes())
 	  G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
-	  output$SE_Dir_Project_Path <- renderText({G$SE_Dir_Project})
-	  path <- G$SE_Dir_Project
-	  cat(G$SE_Dir_Project)
-	  file <- file.path(path, "Project_Information.csv")
-	  cat(file)
-#	  Project_working <- read.csv(file, header = T, sep = ",")
-	  Project_New_Name <<- as.character(Project_working[1,1])
-	  Project_New_Manager <<- as.character(Project_working[2,1])
-	  Project_New_Institute <<- as.character(Project_working[3,1])
-	  Project_New_Date <<- as.character(Project_working[4,1])
-	  Project_New_Path <<- as.character(Project_working[5,1])
-	  Project_New_Description <<- as.character(Project_working[6,1])
 	})
-
-	output$SE_Project_New_Path <- renderUI({
-	    Project_New_Path <- as.character(Project_working[1,5])
-	    textInput("Project_New_Path", "Path",
-	              value = Project_New_Path)
-	})
-		
+	
+	output$SE_Project_New_Path <- renderText({G$SE_Dir_Project})
+	
 	output$SE_Project_New_Name <- renderUI({
-	  Project_New_Name <- as.character(Project_working[1,1])
-	  textInput("Project_New_Name", "Name",
-	            value = Project_New_Name)
+	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
+	    if (length(destfile) == 0 | !file.exists(destfile)) {
+	        Project_New_Name <- "Set a new project name" 
+	    } else {
+	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_New_Name <- as.character(Project_working[1,"Name"])
+	    }
+	    textInput("Project_New_Name", "Name",
+	              value = Project_New_Name)
 	})
 	
 	output$SE_Project_New_Manager <- renderUI({
-	  Project_New_Manager <- as.character(Project_working[1,2])  
-	  textInput("Project_New_Manager", "Manager",
-	            value = Project_New_Manager)
+	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
+	    if (length(destfile) == 0 | !file.exists(destfile)) {
+	        Project_New_Manager <- "Set a new project manager" 
+	    } else {
+	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_New_Manager <- as.character(Project_working[1,"Manager"])
+	    }
+	    textInput("Project_New_Manager", "Manager",
+	              value = Project_New_Manager)
 	})
 	
 	output$SE_Project_New_Institute <- renderUI({
-	  Project_New_Institute <- as.character(Project_working[1,3])
-	  textInput("Project_New_Institute", "Institute",
-	            value = Project_New_Institute)
+	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
+	    if (length(destfile) == 0 | !file.exists(destfile)) {
+	        Project_New_Institute <- "Set a new project institute" 
+	    } else {
+	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_New_Institute <- as.character(Project_working[1,"Institute"])
+	    }
+	    textInput("Project_New_Institute", "Institute",
+	              value = Project_New_Institute)
 	})
 	
 	output$SE_Project_New_Date <- renderUI({
-	  Project_New_Date <- as.character(Project_working[1,4])
-	  textInput("Project_New_Date", "Date",
-	            value = Project_New_Date)
+	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
+	    if (length(destfile) == 0 | !file.exists(destfile)) {
+	        Project_New_Date <- "Set a new project date" 
+	    } else {
+	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_New_Date <- as.character(Project_working[1,"Date"])
+	    }
+	    textInput("Project_New_Date", "Date",
+	              value = Project_New_Date)
 	})
 
 	output$SE_Project_New_Description <- renderUI({
-	  Project_New_Description <- as.character(Project_working[1,6])
-	  textInput("Project_New_Description", "Description",
-	            value = Project_New_Description)
+	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
+	    if (length(destfile) == 0 | !file.exists(destfile)) {
+	        Project_New_Description <- "Set a new project description" 
+	    } else {
+	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_New_Description <- as.character(Project_working[1,"Description"])
+	    }
+	    textInput("Project_New_Description", "Description",
+	              value = Project_New_Description)
+	})
+	
+	observeEvent(input$SE_Dir_Project_Action, {
+	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
+	    if (!file.exists(destfile)) {
+	        Project_working <- setNames(data.frame(matrix(ncol = 6, nrow = 1)), c("Name", "Manager", "Institute", "Date", "Path", "Description"))
+	    }
+	    Project_working["Name"] <- input$Project_New_Name
+	    Project_working["Manager"] <- input$Project_New_Manager
+	    Project_working["Institute"] <- input$Project_New_Institute
+	    Project_working["Date"] <- input$Project_New_Date
+	    Project_working["Path"] <- G$SE_Dir_Project
+	    Project_working["Description"] <- input$Project_New_Description
+	    write.csv(Project_working, file = file.path(G$SE_Dir_Project, "Project_Information.csv"))
+	    showModal(modalDialog(
+	        title = "Message",
+	        "information is updated and saved!"
+	    ))
 	})
 
 	output$SE_Dir_Project_SDM <- renderUI({
@@ -200,10 +232,16 @@ shinyServer(function(input, output) {
 		output$SE_Dir_Species <- renderText({G$SE_Dir_Species})
 	})
   
-	observeEvent(input$SE_speciesindex, {
-		G$SE_speciesindex <<- input$SE_speciesindex$name
-		G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
-		output$SE_speciesindex <- renderText({G$SE_speciesindex})
+#	observeEvent(input$SE_speciesindex, {
+#		G$SE_speciesindex <<- input$SE_speciesindex$name
+#		G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
+#		output$SE_speciesindex <- renderText({G$SE_speciesindex})
+#	})
+	
+	observeEvent(input$SE_speciesinfo, {
+#	    G$SE_speciesindex <<- input$SE_speciesindex$name
+#	    G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
+	    output$SE_speciesindex <- renderText({input$SE_speciesinfo})
 	})
   
 	observeEvent(input$SE_specieslocation, {
