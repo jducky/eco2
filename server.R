@@ -842,14 +842,13 @@ shinyServer(function(input, output) {
 	      
 	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--"))
 
-	        SDM_variables <- setNames(data.frame(matrix(ncol = 2, nrow = 53)), c("Variables", "Value"))
-    
-	        SDM_variables[1, "Variables"] <- "input$SDM_MO_Climate_model"
-	        SDM_variables[1, "Value"] <- as.character(input$SDM_MO_Climate_model)
-	        SDM_variables[2, "Variables"] <- "input$SDM_MO_Climate_scenario"
-	        SDM_variables[2, "Value"] <- as.character(input$SDM_MO_Climate_scenario)
-#	        SDM_variables[3, "Variables"] <- "input$SDM_MO_Protect_year"
-#	        SDM_variables[3, "Value"] <- input$SDM_MO_Protect_year
+#	        SDM_variables <- setNames(data.frame(matrix(ncol = 2, nrow = 53)), c("Variables", "Value"))
+	        SDM_variables <- setNames(data.frame(matrix(ncol = 3, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Protect_year"))
+	            
+	        SDM_variables[1:length(input$SDM_MO_Climate_model), "input$SDM_MO_Climate_model"] <- input$SDM_MO_Climate_model
+	        SDM_variables[1:length(input$SDM_MO_Climate_scenario), "input$SDM_MO_Climate_scenario"] <- input$SDM_MO_Climate_scenario
+	        SDM_variables[1:length(input$SDM_MO_Protect_year), "input$SDM_MO_Protect_year"] <- input$SDM_MO_Protect_year
+	        
 #	        SDM_variables[4, "Variables"] <- "input$SDM_SP_Info_rows_selected"
 #	        SDM_variables[4, "Value"] <- input$SDM_SP_Info_rows_selected
 #	        SDM_variables[5, "Variables"] <- "slist"
@@ -865,7 +864,7 @@ shinyServer(function(input, output) {
 #	        SDM_variables[10, "Variables"] <- "G$SE_speciesindex"
 #	        SDM_variables[10, "Value"] <- G$SE_speciesindex	      
 	      
-	      
+	        SDM_variables[is.na(SDM_variables)] <- ""
           write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--")))
 	      
 	      #####
