@@ -9,7 +9,7 @@ shinyUI(
     skin = "blue",
     dashboardHeader(title = "MOTIVE Ecosystem"),
     dashboardSidebar(
-      width = 400,
+      width = 350,
       sidebarMenu(
         menuItem("Finished Projects", 
           tags$hr(),                 
@@ -31,6 +31,7 @@ shinyUI(
           tags$hr(),
           shinyDirButton("SE_Dir_Project", SE_Name_WE_Project, SE_Name_WE_Project),
           verbatimTextOutput("SE_Project_New_Path"),
+          uiOutput("SE_Project_New_Info"),
           uiOutput("SE_Project_New_Name"),
           uiOutput("SE_Project_New_Manager"),
           uiOutput("SE_Project_New_Institute"),
@@ -54,21 +55,8 @@ shinyUI(
           shinyDirButton("SE_Dir_Species", SE_Name_DE_Species, SE_Name_DE_Species),
           verbatimTextOutput("SE_Dir_Species"),
           tags$hr(),
-          fileInput("SE_speciesinfo", SE_Name_DE_Species_Index,
-                    accept = c(
-                    "text/csv",
-                    "text/comma-separated-values,text/plain",
-                    ".csv")
-          ),
-          textOutput("SE_speciesindex"),
-          tags$hr(),                         
-          fileInput("SE_speciesdata1", SE_Name_DE_Species_Location,
-                    accept = c(
-                    "text/csv",
-                    "text/comma-separated-values,text/plain",
-                    ".csv")
-          ), 
-          textOutput("SE_specieslocation"),
+          uiOutput("SE_speciesindex"),
+          uiOutput("SE_specieslocation"),
           tags$hr()
         )
       )
@@ -202,16 +190,17 @@ shinyUI(
 				    mainPanel(
 				      tabsetPanel(
 				        tabPanel(SE_Name_Dir_Project_SDM,
+				            br(),
 				            tags$hr(),
-                            textOutput("SE_Dir_Project_SDM_Species_Model_Output"),
+                            textOutput("SE_Dir_Project_SDM_Species_Model_Output")
 				        ),
 				        tabPanel(SE_Name_Dir_Project_IS,
                             tags$hr(),
-                            textOutput("SE_Dir_Project_IS_Output"),				                 
+                            textOutput("SE_Dir_Project_IS_Output")				                 
 				        ),
 				        tabPanel(SE_Name_Dir_Project_VH,
                             tags$hr(),
-                            textOutput("SE_Dir_Project_VH_Output"),				                 
+                            textOutput("SE_Dir_Project_VH_Output")				                 
 				        )
 				      )
 				    )

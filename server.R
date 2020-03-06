@@ -6,8 +6,9 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Link <- renderText({G$SE_Dir_Link})
 	output$SE_Dir_GIS <- renderText({G$SE_Dir_GIS})
 	output$SE_Dir_Species <- renderText({G$SE_Dir_Species})
-	output$SE_speciesindex <- renderText({G$SE_speciesindex})
-	output$SE_specieslocation <- renderText({G$SE_specieslocation})
+#	output$SE_speciesindex <- renderText({G$SE_speciesindex})
+#	output$SE_specieslocation <- renderText({G$SE_specieslocation})
+
   
 #	onclick("kor_link_top", SE$Language <<- "Korean")
 #	onclick("eng_link_top", SE$Language <<- "English")
@@ -65,6 +66,7 @@ shinyServer(function(input, output) {
 	
 	output$SE_Project_New_Path <- renderText({G$SE_Dir_Project})
 	
+	
 	output$SE_Project_New_Name <- renderUI({
 	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
@@ -109,7 +111,7 @@ shinyServer(function(input, output) {
 	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Date <- as.character(Project_working[1,"Date"])
 	    }
-	    textInput("Project_New_Date", "Date",
+	    dateInput("Project_New_Date", "Date",
 	              value = Project_New_Date)
 	})
 
@@ -231,28 +233,27 @@ shinyServer(function(input, output) {
 		G$SE_Dir_Species <<- parseDirPath(volumes, input$SE_Dir_Species)
 		output$SE_Dir_Species <- renderText({G$SE_Dir_Species})
 	})
-  
-#	observeEvent(input$SE_speciesindex, {
-#		G$SE_speciesindex <<- input$SE_speciesindex$name
-#		G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
-#		output$SE_speciesindex <- renderText({G$SE_speciesindex})
-#	})
 	
-	observeEvent(input$SE_speciesinfo, {
-#	    G$SE_speciesindex <<- input$SE_speciesindex$name
-#	    G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
-	    output$SE_speciesindex <- renderText({input$SE_speciesinfo})
-	})
-  
-	observeEvent(input$SE_specieslocation, {
-		G$SE_specieslocation <<- input$SE_specieslocation$name
-		G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, G$SE_specieslocation), header = T, sep = ",")
-		output$SE_specieslocation <- renderText({G$SE_specieslocation})
+	output$SE_speciesindex <- renderUI({
+	    selectInput('SE_speciesindex','Select a Species Index .csv File', selected = G_SE_speciesindex, choice = list.files(G$SE_Dir_Species))
 	})
 	
+	output$SE_specieslocation <- renderUI({
+	    selectInput('SE_specieslocation','Select a Species Location .csv File', selected = G_SE_specieslocation, choice = list.files(G$SE_Dir_Species))
+	})
 
-	output$SP_Info <- DT::renderDataTable(G_FILE_speciesinfo, server = TRUE)
-	
+	output$SP_Info <- DT::renderDataTable ({
+	    if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
+	        G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
+	        G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
+	    }
+	    G_SE_speciesindex <- input$SE_speciesindex
+	    G_SE_specieslocation <- input$SE_specieslocation
+	    G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	    G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	    DT::datatable(G_FILE_speciesinfo)
+	})
+	    
 	output$SP_Summary <- renderPrint({
 		rs <- input$SP_Info_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs) > 0) {
@@ -374,7 +375,19 @@ shinyServer(function(input, output) {
 		setView(lng = 128.00, lat = 36.00, zoom = 7)
 	})
 	
-	output$SDM_SP_Info <- DT::renderDataTable(G_FILE_speciesinfo, server = TRUE)    
+#	output$SDM_SP_Info <- DT::renderDataTable(G_FILE_speciesinfo, server = TRUE)
+	
+	output$SDM_SP_Info <- DT::renderDataTable ({
+	    if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
+	        G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
+	        G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
+	    }
+	    G_SE_speciesindex <- input$SE_speciesindex
+	    G_SE_specieslocation <- input$SE_specieslocation
+	    G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	    G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	    DT::datatable(G_FILE_speciesinfo)
+	})
 	
 	output$SDM_SP_Selection <- renderPrint({
 		s_id <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$ID)
@@ -824,6 +837,38 @@ shinyServer(function(input, output) {
 	      }
 	      
 	      write.csv(Eval_data, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_ALL_eval.csv", sep = "", collapse = "--")))
+	      
+	      #####
+	      
+	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--"))
+
+	        SDM_variables <- setNames(data.frame(matrix(ncol = 2, nrow = 53)), c("Variables", "Value"))
+    
+	        SDM_variables[1, "Variables"] <- "input$SDM_MO_Climate_model"
+	        SDM_variables[1, "Value"] <- as.character(input$SDM_MO_Climate_model)
+	        SDM_variables[2, "Variables"] <- "input$SDM_MO_Climate_scenario"
+	        SDM_variables[2, "Value"] <- as.character(input$SDM_MO_Climate_scenario)
+#	        SDM_variables[3, "Variables"] <- "input$SDM_MO_Protect_year"
+#	        SDM_variables[3, "Value"] <- input$SDM_MO_Protect_year
+#	        SDM_variables[4, "Variables"] <- "input$SDM_SP_Info_rows_selected"
+#	        SDM_variables[4, "Value"] <- input$SDM_SP_Info_rows_selected
+#	        SDM_variables[5, "Variables"] <- "slist"
+#	        SDM_variables[5, "Value"] <- slist
+#	        SDM_variables[6, "Variables"] <- "G$SE_Dir_Species"
+#	        SDM_variables[6, "Value"] <- G$SE_Dir_Species
+#	        SDM_variables[7, "Variables"] <- "G$SE_Dir_Climate"
+#	        SDM_variables[7, "Value"] <- G$SE_Dir_Climate
+#	        SDM_variables[8, "Variables"] <- "PATH_ENV_INPUT"
+#	        SDM_variables[8, "Value"] <- PATH_ENV_INPUT
+#	        SDM_variables[9, "Variables"] <- "G$SDM_MO_Dir_Folder"
+#	        SDM_variables[9, "Value"] <- G$SDM_MO_Dir_Folder
+#	        SDM_variables[10, "Variables"] <- "G$SE_speciesindex"
+#	        SDM_variables[10, "Value"] <- G$SE_speciesindex	      
+	      
+	      
+          write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--")))
+	      
+	      #####
 	      
 	      dir_list <- list.dirs(path = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME), full.names = FALSE, recursive = FALSE)
 	      for (i in dir_list) {

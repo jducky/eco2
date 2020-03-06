@@ -6,6 +6,7 @@ SE_Name,0,Project Information,프로젝트 정보
 SE_Name_WE,0,Working Environment,작업환경
 SE_Name_WE_Project,0,Working Project,작업프로젝트
 SE_Name_WE_Project_Action,0,Save a Project Information,프로젝트정보 저장
+SE_Name_Dir_Project_Ecosystem,0,Introductuction,소개
 SE_Name_Dir_Project_SDM,0,Sensitive Species,개별(민감)종
 SE_Name_Dir_Project_IS,0,Invasive Species,외래종
 SE_Name_Dir_Project_VH,0,Vulnerable Habitat,취약서식지
@@ -62,7 +63,7 @@ SDM_Name_Model_Out_Probability,0,Probability Map,확률지도
 SDM_Name_Model_Out_Prediction,0,Predicted Map,예측지도
 SDM_Name_CD_Variables,0,Climate Variables,기후변수
 SDM_Name_CD_Variables_list,1,SDM_Variables_list,SDM_Variables_list
-SDM_Name_CD_Variables_selected,0,bio01.tif bio02.tif bio03.tif bio12.tif bio13.tif bio14.tif ,bio01.tif bio02.tif bio03.tif bio12.tif bio13.tif bio14.tif 
+SDM_Name_CD_Variables_selected,0,bio01 bio02 bio03 bio12 bio13 bio14,bio01 bio02 bio03 bio12 bio13 bio14 
 SDM_Name_CD_Models,0,Climate Models,기후모델
 SDM_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
 SDM_Name_CD_Models_selected,0,KMA,KMA
