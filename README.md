@@ -8,9 +8,8 @@
 4. https://github.com/dharmascw/MOTIVE_Ecosystem 에서 전체 파일들을 Zip으로 나의 작업공간에 다운받는다.
 5. Zip 파일을 푼다.
 6. R(R3.6.1)프로그램을 실행하여 install_shiny.R을 실행한다. (
-   : ecosystem을 실행하기 위해서는 먼저 shiny와 biomod2(lava package 필요) package가 설치되어야 한다.
-   >source(""해당폴더"/install_shiny.R") : 해당 zip 파일위치와 이름 그리고 설치될 lib 위치를 설정한다.
-   
+   : ecosystem을 실행하기 위해서는 먼저 shiny와 SDMTools package가 설치되어야 한다.
+   >source(""해당폴더"/install_shiny.R")
    R(R3.6.1)프로그램을 종료한다.
 7. 사용자환경 파일을 이용하여 원하는 환경을 설정한다.
    System_Environment.txt: 언어, 작업공간, 데이터 위치. 종정보, 옵션파일들을 지정한다.

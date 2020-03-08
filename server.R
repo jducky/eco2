@@ -524,14 +524,14 @@ shinyServer(function(input, output) {
 	    BIOMOD_DataSplit <- input$BIOMOD_DataSplit
 	    BIOMOD_Yweights <- NULL #input$BIOMOD_Yweights
 	    BIOMOD_VarImport <- input$BIOMOD_VarImport
-	    BIOMOD_models.eval.meth <- input$BIOMOD_models.eval.meth
+	    BIOMOD_models.eval.meth <- c("TSS", "KAPPA") # # input$BIOMOD_models.eval.meth # c("ROC", "TSS", "KAPPA") # 
 	    BIOMOD_SaveObj <- input$BIOMOD_SaveObj
 	    BIOMOD_rescal.all.models <- input$BIOMOD_rescal.all.models
 	    BIOMOD_do.full.models <- input$BIOMOD_do.full.models
 	    
 	    # Defining projection Options using default options.
 	    BIOMOD_selected.models = input$BIOMOD_selected.models
-	    BIOMOD_binary.meth = input$BIOMOD_binary.meth
+	    BIOMOD_binary.meth = c("TSS", "KAPPA") # input$BIOMOD_binary.meth # c("ROC", "TSS", "KAPPA") # 
 	    BIOMOD_compress = input$BIOMOD_compress
 	    BIOMOD_build.clamping.mask = input$BIOMOD_build.clamping.mask
 	    BIOMOD_output.format = input$BIOMOD_output.format
@@ -551,7 +551,7 @@ shinyServer(function(input, output) {
 	    EM_committee.averaging <- input$EM_committee.averaging
 	    EM_prob.mean.weight <- input$EM_prob.mean.weight
 	    EM_prob.mean.weight.decay <- input$EM_prob.mean.weight.decay
-	    EM_VarImport <- NULL # input$EM_VarImport
+	    EM_VarImport <- input$EM_VarImport
 	    ##### End Setting variables ==================================
 	    #####=========================================================
 	    
@@ -707,7 +707,8 @@ shinyServer(function(input, output) {
 	                                                    prob.median = EM_prob.median,
 	                                                    committee.averaging = EM_committee.averaging,
 	                                                    prob.mean.weight = EM_prob.mean.weight,
-	                                                    prob.mean.weight.decay = EM_prob.mean.weight.decay)
+	                                                    prob.mean.weight.decay = EM_prob.mean.weight.decay,
+	                                                    VarImport = EM_VarImport)
 	              
 	              # get evaluation scores
 	              myBiomodEMEval <- get_evaluations(myBiomodEM)
@@ -843,26 +844,64 @@ shinyServer(function(input, output) {
 	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--"))
 
 #	        SDM_variables <- setNames(data.frame(matrix(ncol = 2, nrow = 53)), c("Variables", "Value"))
-	        SDM_variables <- setNames(data.frame(matrix(ncol = 3, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Protect_year"))
+	        SDM_variables <- setNames(data.frame(matrix(ncol = 44, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Protect_year", "input$SDM_MO_Variables", "input$BIOMOD_eval.resp.var", 
+	                                                                              "input$BIOMOD_eval.expl.var", "input$BIOMOD_eval.resp.xy", "input$BIOMOD_PA.nb.rep", "input$BIOMOD_PA.nb.absences", "input$BIOMOD_PA.strategy",
+	                                                                              "input$BIOMOD_PA.dist.min", "input$BIOMOD_PA.dist.max", "input$BIOMOD_PA.sre.quant", "input$BIOMOD_PA.table", "input$BIOMOD_na.rm",
+	                                                                              "input$SDM_MO_SDM_model", "input$BIOMOD_NbRunEval", "input$BIOMOD_DataSplit", "input$BIOMOD_Yweights", "input$BIOMOD_VarImport",
+	                                                                              "input$BIOMOD_models.eval.meth", "input$BIOMOD_SaveObj", "input$BIOMOD_rescal.all.models", "input$BIOMOD_do.full.models",
+	                                                                              "input$BIOMOD_selected.models", "input$BIOMOD_binary.meth", "input$BIOMOD_compress", "input$BIOMOD_build.clamping.mask", "input$BIOMOD_output.format",
+	                                                                              "input$BIOMOD_do.stack", "input$EM_chosen.models", "input$EM_em.by", "input$EM_eval.metric", "input$EM_eval.metric.quality.threshold",
+	                                                                              "input$EM_models.eval.meth", "input$EM_prob.mean", "input$EM_prob.cv", "input$EM_prob.ci", "input$EM_prob.ci.alpha",
+	                                                                              "input$EM_prob.median", "input$EM_committee.averaging", "input$EM_prob.mean.weight", "input$EM_prob.mean.weight.decay", "input$EM_VarImport"
+	                                                                              ))
 	            
 	        SDM_variables[1:length(input$SDM_MO_Climate_model), "input$SDM_MO_Climate_model"] <- input$SDM_MO_Climate_model
 	        SDM_variables[1:length(input$SDM_MO_Climate_scenario), "input$SDM_MO_Climate_scenario"] <- input$SDM_MO_Climate_scenario
 	        SDM_variables[1:length(input$SDM_MO_Protect_year), "input$SDM_MO_Protect_year"] <- input$SDM_MO_Protect_year
-	        
-#	        SDM_variables[4, "Variables"] <- "input$SDM_SP_Info_rows_selected"
-#	        SDM_variables[4, "Value"] <- input$SDM_SP_Info_rows_selected
-#	        SDM_variables[5, "Variables"] <- "slist"
-#	        SDM_variables[5, "Value"] <- slist
-#	        SDM_variables[6, "Variables"] <- "G$SE_Dir_Species"
-#	        SDM_variables[6, "Value"] <- G$SE_Dir_Species
-#	        SDM_variables[7, "Variables"] <- "G$SE_Dir_Climate"
-#	        SDM_variables[7, "Value"] <- G$SE_Dir_Climate
-#	        SDM_variables[8, "Variables"] <- "PATH_ENV_INPUT"
-#	        SDM_variables[8, "Value"] <- PATH_ENV_INPUT
-#	        SDM_variables[9, "Variables"] <- "G$SDM_MO_Dir_Folder"
-#	        SDM_variables[9, "Value"] <- G$SDM_MO_Dir_Folder
-#	        SDM_variables[10, "Variables"] <- "G$SE_speciesindex"
-#	        SDM_variables[10, "Value"] <- G$SE_speciesindex	      
+	        SDM_variables[1:length(input$SDM_MO_Variables), "input$SDM_MO_Variables"] <- input$SDM_MO_Variables
+          SDM_variables[1:1, "input$BIOMOD_eval.resp.var"] <- "NULL"
+          SDM_variables[1:1, "input$BIOMOD_eval.expl.var"] <- "NULL"
+          SDM_variables[1:1, "input$BIOMOD_eval.resp.xy"] <- "NULL"
+          SDM_variables[1:length(input$BIOMOD_PA.nb.rep), "input$BIOMOD_PA.nb.rep"] <- input$BIOMOD_PA.nb.rep
+          SDM_variables[1:length(input$BIOMOD_PA.nb.absences), "input$BIOMOD_PA.nb.absences"] <- input$BIOMOD_PA.nb.absences
+          SDM_variables[1:length(input$BIOMOD_PA.strategy), "input$BIOMOD_PA.strategy"] <- input$BIOMOD_PA.strategy
+          SDM_variables[1:length(input$BIOMOD_PA.dist.min), "input$BIOMOD_PA.dist.min"] <- input$BIOMOD_PA.dist[1]
+          SDM_variables[1:length(input$BIOMOD_PA.dist.max), "input$BIOMOD_PA.dist.max"] <- input$BIOMOD_PA.dist[2]
+          SDM_variables[1:length(input$BIOMOD_PA.sre.quant), "input$BIOMOD_PA.sre.quant"] <-  input$BIOMOD_PA.sre.quant
+          SDM_variables[1:1, "input$BIOMOD_PA.table"] <- "NULL"
+          SDM_variables[1:length(input$BIOMOD_na.rm), "input$BIOMOD_na.rm"] <- input$BIOMOD_na.rm
+          
+          SDM_variables[1:length(input$SDM_MO_SDM_model), "input$SDM_MO_SDM_model"] <- input$SDM_MO_SDM_model
+          SDM_variables[1:length(input$BIOMOD_NbRunEval), "input$BIOMOD_NbRunEval"] <- input$BIOMOD_NbRunEval
+          SDM_variables[1:length(input$BIOMOD_DataSplit), "input$BIOMOD_DataSplit"] <- input$BIOMOD_DataSplit
+          SDM_variables[1:1, "input$BIOMOD_Yweights"] <- "NULL"
+          SDM_variables[1:length(input$BIOMOD_VarImport), "input$BIOMOD_VarImport"] <- input$BIOMOD_VarImport
+          SDM_variables[1:length(input$BIOMOD_models.eval.meth), "input$BIOMOD_models.eval.meth"] <- input$BIOMOD_models.eval.meth
+          SDM_variables[1:length(input$BIOMOD_SaveObj), "input$BIOMOD_SaveObj"] <- input$BIOMOD_SaveObj
+          SDM_variables[1:length(input$BIOMOD_rescal.all.models), "input$BIOMOD_rescal.all.models"] <- input$BIOMOD_rescal.all.models
+          SDM_variables[1:length(input$BIOMOD_do.full.models), "input$BIOMOD_do.full.models"] <- input$BIOMOD_do.full.models
+          SDM_variables[1:length(input$BIOMOD_selected.models), "input$BIOMOD_selected.models"] <- input$BIOMOD_selected.models
+	          
+          SDM_variables[1:length(input$BIOMOD_binary.meth), "input$BIOMOD_binary.meth"] <- input$BIOMOD_binary.meth
+          SDM_variables[1:length(input$BIOMOD_compress), "input$BIOMOD_compress"] <- input$BIOMOD_compress
+          SDM_variables[1:length(input$BIOMOD_build.clamping.mask), "input$BIOMOD_build.clamping.mask"] <- input$BIOMOD_build.clamping.mask
+          SDM_variables[1:length(input$BIOMOD_output.format), "input$BIOMOD_output.format"] <- input$BIOMOD_output.format
+          SDM_variables[1:length(input$BIOMOD_do.stack), "input$BIOMOD_do.stack"] <- input$BIOMOD_do.stack
+          SDM_variables[1:length(input$EM_chosen.models), "input$EM_chosen.models"] <- input$EM_chosen.models
+          SDM_variables[1:length(input$EM_em.by), "input$EM_em.by"] <- input$EM_em.by
+          SDM_variables[1:length(input$EM_eval.metric), "input$EM_eval.metric"] <- input$EM_eval.metric
+          SDM_variables[1:1, "input$EM_eval.metric.quality.threshold"] <- "NULL"
+          SDM_variables[1:length(input$EM_models.eval.meth), "input$EM_models.eval.meth"] <- input$EM_models.eval.meth
+	          
+          SDM_variables[1:length(input$EM_prob.mean), "input$EM_prob.mean"] <- input$EM_prob.mean
+          SDM_variables[1:length(input$EM_prob.cv), "input$EM_prob.cv"] <- input$EM_prob.cv
+          SDM_variables[1:length(input$EM_prob.ci), "input$EM_prob.ci"] <- input$EM_prob.ci
+          SDM_variables[1:length(input$EM_prob.ci.alpha), "input$EM_prob.ci.alpha"] <- input$EM_prob.ci.alpha
+          SDM_variables[1:length(input$EM_prob.median), "input$EM_prob.median"] <- input$EM_prob.median
+          SDM_variables[1:length(input$EM_committee.averaging), "input$EM_committee.averaging"] <- input$EM_committee.averaging
+          SDM_variables[1:length(input$EM_prob.mean.weight), "input$EM_prob.mean.weight"] <- input$EM_prob.mean.weight
+          SDM_variables[1:length(input$EM_prob.mean.weight.decay), "input$EM_prob.mean.weight.decay"] <- input$EM_prob.mean.weight.decay
+          SDM_variables[1:length(input$EM_VarImport), "input$EM_VarImport"] <- input$EM_VarImport
 	      
 	        SDM_variables[is.na(SDM_variables)] <- ""
           write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--")))
@@ -886,7 +925,7 @@ shinyServer(function(input, output) {
 	    #####========================================================
 	    
 	    #####========================================================
-	    #####============ End Models Rinning ========================
+	    #####============ End Models Running ========================
 	    #####========================================================        
 	  })        
 	})

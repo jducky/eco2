@@ -63,7 +63,7 @@ SDM_Name_Model_Out_Probability,0,Probability Map,확률지도
 SDM_Name_Model_Out_Prediction,0,Predicted Map,예측지도
 SDM_Name_CD_Variables,0,Climate Variables,기후변수
 SDM_Name_CD_Variables_list,1,SDM_Variables_list,SDM_Variables_list
-SDM_Name_CD_Variables_selected,0,"""bio01"" ""bio02"" ""bio03"" ""bio12"" ""bio13"" ""bio14""","bio01 ""bio02"" ""bio03"" ""bio12"" ""bio13"" ""bio14"""
+SDM_Name_CD_Variables_selected,1,SDM_Variables_selected,SDM_Variables_selected
 SDM_Name_CD_Models,0,Climate Models,기후모델
 SDM_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
 SDM_Name_CD_Models_selected,0,KMA,KMA
