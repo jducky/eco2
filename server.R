@@ -170,6 +170,32 @@ shinyServer(function(input, output) {
 	              choices = c(Dir_Project_SDM_Species_Model_list),
 	              selected = Dir_Project_SDM_Species_Model_selected
 	  )
+#	  destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste(SPECIES_NAME, "_eval.csv", sep = "")), sep = "", collapse = "--"))
+	  
+#	  destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model, paste(as.name(paste(input$Dir_Project_SDM_Species, "_SDM_variables.csv", sep = "")), sep = "", collapse = "--"))
+#	  destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model, as.name(paste(input$Dir_Project_SDM_Species, "_SDM_variables.csv", sep = "")))
+#	  if (!file.exists(destfile))
+#	      return
+
+	  destfile <- "D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv"
+	  	  
+	  SDM_variables_lists <<- read.csv(destfile, header = T, sep = ",")
+	  SDM_variables_lists[is.na(SDM_variables_lists)] = ""
+	  
+	  SDM_Name_CD_Models_selected <<- as.character(SDM_variables_lists[,"SDM_MO_Climate_model"][SDM_variables_lists[,"SDM_MO_Climate_model"] != ""])
+#	  SDM_Name_CD_Scenarios_selected <<- as.character(SDM_variables_lists[,"input.SDM_MO_Climate_scenario"][SDM_variables_lists[,"input.SDM_MO_Climate_scenario"] != ""])
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
 	})
 	
 	output$SE_Dir_Project_SDM_Species_Model_Output <- renderPrint({
@@ -524,18 +550,18 @@ shinyServer(function(input, output) {
 	    BIOMOD_DataSplit <- input$BIOMOD_DataSplit
 	    BIOMOD_Yweights <- NULL #input$BIOMOD_Yweights
 	    BIOMOD_VarImport <- input$BIOMOD_VarImport
-	    BIOMOD_models.eval.meth <- c("TSS", "KAPPA") # # input$BIOMOD_models.eval.meth # c("ROC", "TSS", "KAPPA") # 
+	    BIOMOD_models.eval.meth <<- input$BIOMOD_models.eval.meth # c("ROC", "TSS", "KAPPA") # 
 	    BIOMOD_SaveObj <- input$BIOMOD_SaveObj
 	    BIOMOD_rescal.all.models <- input$BIOMOD_rescal.all.models
 	    BIOMOD_do.full.models <- input$BIOMOD_do.full.models
 	    
 	    # Defining projection Options using default options.
-	    BIOMOD_selected.models = input$BIOMOD_selected.models
-	    BIOMOD_binary.meth = c("TSS", "KAPPA") # input$BIOMOD_binary.meth # c("ROC", "TSS", "KAPPA") # 
-	    BIOMOD_compress = input$BIOMOD_compress
-	    BIOMOD_build.clamping.mask = input$BIOMOD_build.clamping.mask
-	    BIOMOD_output.format = input$BIOMOD_output.format
-	    BIOMOD_do.stack = input$BIOMOD_do.stack
+	    BIOMOD_selected.models <- input$BIOMOD_selected.models
+	    BIOMOD_binary.meth <<- input$BIOMOD_binary.meth # c("ROC", "TSS", "KAPPA") # 
+	    BIOMOD_compress <- input$BIOMOD_compress
+	    BIOMOD_build.clamping.mask <- input$BIOMOD_build.clamping.mask
+	    BIOMOD_output.format <- input$BIOMOD_output.format
+	    BIOMOD_do.stack <- input$BIOMOD_do.stack
 	    
 	    # Defining ensemble modelling Options using default options.
 	    EM_chosen.models <- input$EM_chosen.models
@@ -843,8 +869,7 @@ shinyServer(function(input, output) {
 	      
 	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--"))
 
-#	        SDM_variables <- setNames(data.frame(matrix(ncol = 2, nrow = 53)), c("Variables", "Value"))
-	        SDM_variables <- setNames(data.frame(matrix(ncol = 44, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Protect_year", "input$SDM_MO_Variables", "input$BIOMOD_eval.resp.var", 
+          SDM_variables <- setNames(data.frame(matrix(ncol = 44, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Protect_year", "input$SDM_MO_Variables", "input$BIOMOD_eval.resp.var", 
 	                                                                              "input$BIOMOD_eval.expl.var", "input$BIOMOD_eval.resp.xy", "input$BIOMOD_PA.nb.rep", "input$BIOMOD_PA.nb.absences", "input$BIOMOD_PA.strategy",
 	                                                                              "input$BIOMOD_PA.dist.min", "input$BIOMOD_PA.dist.max", "input$BIOMOD_PA.sre.quant", "input$BIOMOD_PA.table", "input$BIOMOD_na.rm",
 	                                                                              "input$SDM_MO_SDM_model", "input$BIOMOD_NbRunEval", "input$BIOMOD_DataSplit", "input$BIOMOD_Yweights", "input$BIOMOD_VarImport",
@@ -855,10 +880,10 @@ shinyServer(function(input, output) {
 	                                                                              "input$EM_prob.median", "input$EM_committee.averaging", "input$EM_prob.mean.weight", "input$EM_prob.mean.weight.decay", "input$EM_VarImport"
 	                                                                              ))
 	            
-	        SDM_variables[1:length(input$SDM_MO_Climate_model), "input$SDM_MO_Climate_model"] <- input$SDM_MO_Climate_model
-	        SDM_variables[1:length(input$SDM_MO_Climate_scenario), "input$SDM_MO_Climate_scenario"] <- input$SDM_MO_Climate_scenario
-	        SDM_variables[1:length(input$SDM_MO_Protect_year), "input$SDM_MO_Protect_year"] <- input$SDM_MO_Protect_year
-	        SDM_variables[1:length(input$SDM_MO_Variables), "input$SDM_MO_Variables"] <- input$SDM_MO_Variables
+          SDM_variables[1:length(input$SDM_MO_Climate_model), "input$SDM_MO_Climate_model"] <- input$SDM_MO_Climate_model
+          SDM_variables[1:length(input$SDM_MO_Climate_scenario), "input$SDM_MO_Climate_scenario"] <- input$SDM_MO_Climate_scenario
+          SDM_variables[1:length(input$SDM_MO_Protect_year), "input$SDM_MO_Protect_year"] <- input$SDM_MO_Protect_year
+          SDM_variables[1:length(input$SDM_MO_Variables), "input$SDM_MO_Variables"] <- input$SDM_MO_Variables
           SDM_variables[1:1, "input$BIOMOD_eval.resp.var"] <- "NULL"
           SDM_variables[1:1, "input$BIOMOD_eval.expl.var"] <- "NULL"
           SDM_variables[1:1, "input$BIOMOD_eval.resp.xy"] <- "NULL"
