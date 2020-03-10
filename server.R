@@ -170,36 +170,31 @@ shinyServer(function(input, output) {
 	              choices = c(Dir_Project_SDM_Species_Model_list),
 	              selected = Dir_Project_SDM_Species_Model_selected
 	  )
-#	  destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste(SPECIES_NAME, "_eval.csv", sep = "")), sep = "", collapse = "--"))
-	  
-#	  destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model, paste(as.name(paste(input$Dir_Project_SDM_Species, "_SDM_variables.csv", sep = "")), sep = "", collapse = "--"))
-#	  destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model, as.name(paste(input$Dir_Project_SDM_Species, "_SDM_variables.csv", sep = "")))
-#	  if (!file.exists(destfile))
-#	      return
-
-	  destfile <- "D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv"
-	  	  
-	  SDM_variables_lists <<- read.csv(destfile, header = T, sep = ",")
-	  SDM_variables_lists[is.na(SDM_variables_lists)] = ""
-	  
-	  SDM_Name_CD_Models_selected <<- as.character(SDM_variables_lists[,"SDM_MO_Climate_model"][SDM_variables_lists[,"SDM_MO_Climate_model"] != ""])
-#	  SDM_Name_CD_Scenarios_selected <<- as.character(SDM_variables_lists[,"input.SDM_MO_Climate_scenario"][SDM_variables_lists[,"input.SDM_MO_Climate_scenario"] != ""])
-	  
-	  
-	  
-	  
-	  
-	  
-	  
-	  
-	  
-	  
-	  
-	  
 	})
 	
+	output$SE_Dir_Project_SDM_Species_Model_Options <- renderTable({
+	    
+	    destfile <- "D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv"
+	    
+	    SDM_variables_lists <<- read.csv(destfile, header = T, sep = ",")
+	    SDM_variables_lists[is.na(SDM_variables_lists)] = ""
+	    
+	    SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
+	    rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)[1]
+	    SDM_variables_lists_T
+	    
+	    
+	    t(SDM_variables_lists[1:10,])
+	    
+#	    SDM_variables_lists[1:10,-1]
+	    
+#	    read.csv("D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv", header = T, sep = ",")	    
+	    
+	    
+	    })
+	
 	output$SE_Dir_Project_SDM_Species_Model_Output <- renderPrint({
-	  Dir_Project_SDM_Species_Model_list <- list.files(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model), pattern=NULL, all.files=FALSE, full.names=FALSE)
+      Dir_Project_SDM_Species_Model_list <- list.files(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model), pattern=NULL, all.files=FALSE, full.names=FALSE)
 	  cat(as.character(Dir_Project_SDM_Species_Model_list))
 	})
 	

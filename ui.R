@@ -190,7 +190,8 @@ shinyUI(
 				    mainPanel(
 				      tabsetPanel(
 				        tabPanel(SE_Name_Dir_Project_SDM,
-				            br(),
+				            tags$hr(),
+				            tableOutput("SE_Dir_Project_SDM_Species_Model_Options"),
 				            tags$hr(),
                             textOutput("SE_Dir_Project_SDM_Species_Model_Output")
 				        ),
