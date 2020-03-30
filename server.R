@@ -180,18 +180,18 @@ shinyServer(function(input, output) {
 	    SDM_variables_lists[is.na(SDM_variables_lists)] = ""
 	    
 	    SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
-	    rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)[1]
-	    SDM_variables_lists_T
+	    rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
+	    SDM_variables_lists_T[-1,]
 	    
 	    
-	    t(SDM_variables_lists[1:10,])
+#	    t(SDM_variables_lists[1:10,])
 	    
 #	    SDM_variables_lists[1:10,-1]
 	    
 #	    read.csv("D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv", header = T, sep = ",")	    
 	    
 	    
-	    })
+	    }, rownames = TRUE, colnames = FALSE)
 	
 	output$SE_Dir_Project_SDM_Species_Model_Output <- renderPrint({
       Dir_Project_SDM_Species_Model_list <- list.files(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model), pattern=NULL, all.files=FALSE, full.names=FALSE)
