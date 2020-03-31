@@ -174,7 +174,7 @@ shinyServer(function(input, output) {
 	
 	output$SE_Dir_Project_SDM_Species_Model_Options <- renderTable({
 	    
-	    destfile <- "D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv"
+	    destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model, paste(input$Dir_Project_SDM_Species, "_", input$Dir_Project_SDM_Species_Model, "_variables.csv", sep = ""))
 	    
 	    SDM_variables_lists <<- read.csv(destfile, header = T, sep = ",")
 	    SDM_variables_lists[is.na(SDM_variables_lists)] = ""
@@ -182,15 +182,7 @@ shinyServer(function(input, output) {
 	    SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
 	    rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
 	    SDM_variables_lists_T[-1,]
-	    
-	    
-#	    t(SDM_variables_lists[1:10,])
-	    
-#	    SDM_variables_lists[1:10,-1]
-	    
-#	    read.csv("D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv", header = T, sep = ",")	    
-	    
-	    
+
 	    }, rownames = TRUE, colnames = FALSE)
 	
 	output$SE_Dir_Project_SDM_Species_Model_Output <- renderPrint({
@@ -207,7 +199,20 @@ shinyServer(function(input, output) {
 	  )
 	})
 	
-	output$SE_Dir_Project_IS_Output <- renderPrint({
+	output$SE_Dir_Project_IS_Model_Options <- renderTable({
+	    
+	    destfile <- "D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv"
+	    
+	    SDM_variables_lists <<- read.csv(destfile, header = T, sep = ",")
+	    SDM_variables_lists[is.na(SDM_variables_lists)] = ""
+	    
+	    SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
+	    rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
+	    SDM_variables_lists_T[-1,]
+	    
+	}, rownames = TRUE, colnames = FALSE)
+	
+	output$SE_Dir_Project_IS_Model_Output <- renderPrint({
 	  Dir_Project_IS_list <- list.files(path = file.path(G$SE_Dir_Project, "Invasive_Species", input$Dir_Project_IS), pattern=NULL, all.files=FALSE, full.names=FALSE)
 	  cat(as.character(Dir_Project_IS_list))
 	})
@@ -221,7 +226,20 @@ shinyServer(function(input, output) {
 	  )
 	})
 	
-	output$SE_Dir_Project_VH_Output <- renderPrint({
+	output$SE_Dir_Project_VH_Model_Options <- renderTable({
+	    
+	    destfile <- "D:/MOTIVE_projects/proj11/Species_Distribution/test2/세뿔투구꽃/BIOMOD2/세뿔투구꽃_SDM_variables.csv"
+	    
+	    SDM_variables_lists <<- read.csv(destfile, header = T, sep = ",")
+	    SDM_variables_lists[is.na(SDM_variables_lists)] = ""
+	    
+	    SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
+	    rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
+	    SDM_variables_lists_T[-1,]
+	    
+	}, rownames = TRUE, colnames = FALSE)
+	
+	output$SE_Dir_Project_VH_Model_Output <- renderPrint({
 	  Dir_Project_VH_list <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern=NULL, all.files=FALSE, full.names=FALSE)
 	  cat(as.character(Dir_Project_VH_list))
 	})
@@ -482,7 +500,7 @@ shinyServer(function(input, output) {
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  dlist <- input$SDM_MO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	  clist <- input$SDM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  ylist <- input$SDM_MO_Protect_year  # c("2000", "2050") # c("2000", "2050", "2070")
+	  ylist <- input$SDM_MO_Project_year  # c("2000", "2050") # c("2000", "2050", "2070")
 	  slist <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$ID) #c("S251") # input$SDM_MO_Species  # c("S251") # c("S015", "S134", "S145")
 	  
 	  n <- 0
@@ -862,9 +880,9 @@ shinyServer(function(input, output) {
 	      
 	      #####
 	      
-	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--"))
+	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_BIOMOD2_variables.csv", sep = "", collapse = "--"))
 
-          SDM_variables <- setNames(data.frame(matrix(ncol = 44, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Protect_year", "input$SDM_MO_Variables", "input$BIOMOD_eval.resp.var", 
+          SDM_variables <- setNames(data.frame(matrix(ncol = 44, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Project_year", "input$SDM_MO_Variables", "input$BIOMOD_eval.resp.var", 
 	                                                                              "input$BIOMOD_eval.expl.var", "input$BIOMOD_eval.resp.xy", "input$BIOMOD_PA.nb.rep", "input$BIOMOD_PA.nb.absences", "input$BIOMOD_PA.strategy",
 	                                                                              "input$BIOMOD_PA.dist.min", "input$BIOMOD_PA.dist.max", "input$BIOMOD_PA.sre.quant", "input$BIOMOD_PA.table", "input$BIOMOD_na.rm",
 	                                                                              "input$SDM_MO_SDM_model", "input$BIOMOD_NbRunEval", "input$BIOMOD_DataSplit", "input$BIOMOD_Yweights", "input$BIOMOD_VarImport",
@@ -877,7 +895,7 @@ shinyServer(function(input, output) {
 	            
           SDM_variables[1:length(input$SDM_MO_Climate_model), "input$SDM_MO_Climate_model"] <- input$SDM_MO_Climate_model
           SDM_variables[1:length(input$SDM_MO_Climate_scenario), "input$SDM_MO_Climate_scenario"] <- input$SDM_MO_Climate_scenario
-          SDM_variables[1:length(input$SDM_MO_Protect_year), "input$SDM_MO_Protect_year"] <- input$SDM_MO_Protect_year
+          SDM_variables[1:length(input$SDM_MO_Project_year), "input$SDM_MO_Project_year"] <- input$SDM_MO_Project_year
           SDM_variables[1:length(input$SDM_MO_Variables), "input$SDM_MO_Variables"] <- input$SDM_MO_Variables
           SDM_variables[1:1, "input$BIOMOD_eval.resp.var"] <- "NULL"
           SDM_variables[1:1, "input$BIOMOD_eval.expl.var"] <- "NULL"
@@ -924,7 +942,7 @@ shinyServer(function(input, output) {
           SDM_variables[1:length(input$EM_VarImport), "input$EM_VarImport"] <- input$EM_VarImport
 	      
 	        SDM_variables[is.na(SDM_variables)] <- ""
-          write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_SDM_variables.csv", sep = "", collapse = "--")))
+          write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_BIOMOD2_variables.csv", sep = "", collapse = "--")))
 	      
 	      #####
 	      
@@ -1220,7 +1238,7 @@ shinyServer(function(input, output) {
 	    DM_dispSteps <- input$DM_MO_DM_dispSteps
 	    DM_barrier <- "" #"barrier"
 	    DM_barrierType <- input$DM_MO_DM_barrierType
-      DM_dispKernel <- G$DM_MO_DM_dispKernel
+        DM_dispKernel <- G$DM_MO_DM_dispKernel
 	    DM_iniMatAge <- input$DM_MO_DM_iniMatAge
 	    DM_propaguleProd <- G$DM_MO_DM_propaguleProd
 	    DM_lddFreq <- input$DM_MO_DM_lddFreq
@@ -1237,6 +1255,7 @@ shinyServer(function(input, output) {
 	    #####============ Rinning models ============================
 	    #####========================================================
 	    CUR_PATH <- getwd()
+
 	    for (s in slist) {
 	      n <- n + 1
 	      # creating Migclim output path
@@ -1338,6 +1357,37 @@ shinyServer(function(input, output) {
             } # End Model loop m
 	        } # End climate change Scenarios loop c
 	      } # End climate data loop d
+	      
+	      #####
+	      
+	      destfile <- file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM", paste(s, "_MIGCLIM_variables.csv", sep = "", collapse = "--"))
+	      
+	      DM_variables <- setNames(data.frame(matrix(ncol = 13, nrow = 30)), c("input$DM_MO_Climate_model", "input$DM_MO_Climate_scenario", "input$DM_MO_Project_year", "input$DM_MO_SDM_model", "input$DM_MO_DM_dispSteps", 
+	                                                                            "input$DM_MO_Barrier", "input$DM_MO_DM_barrierType", "input$DM_MO_DM_dispKernel", "input$DM_MO_DM_iniMatAge", "input$DM_MO_DM_propaguleProd",
+	                                                                            "input$DM_MO_DM_lddFreq", "input$DM_MO_SDM_lddDist", "input$DM_MO_DM_replicateNb"
+	      ))
+	      
+	      DM_variables[1:length(input$DM_MO_Climate_model), "input$DM_MO_Climate_model"] <- input$DM_MO_Climate_model
+	      DM_variables[1:length(input$DM_MO_Climate_scenario), "input$DM_MO_Climate_scenario"] <- input$DM_MO_Climate_scenario
+	      DM_variables[1:length(input$DM_MO_Project_year), "input$DM_MO_Project_year"] <- input$DM_MO_Project_year
+	      DM_variables[1:length(input$DM_MO_SDM_model), "input$DM_MO_SDM_model"] <- input$DM_MO_SDM_model
+	      DM_variables[1:length(input$DM_MO_DM_dispSteps), "input$DM_MO_DM_dispSteps"] <- input$DM_MO_DM_dispSteps
+	      DM_variables[1:length(input$DM_MO_Barrier), "input$DM_MO_Barrier"] <- input$DM_MO_Barrier
+	      DM_variables[1:length(input$DM_MO_DM_barrierType), "input$DM_MO_DM_barrierType"] <- input$DM_MO_DM_barrierType
+	      DM_variables[1:length(input$DM_MO_DM_dispKernel), "input$DM_MO_DM_dispKernel"] <- input$DM_MO_DM_dispKernel
+	      DM_variables[1:length(input$DM_MO_DM_iniMatAge), "input$DM_MO_DM_iniMatAge"] <- input$DM_MO_DM_iniMatAge
+	      DM_variables[1:length(input$DM_MO_DM_propaguleProd), "input$DM_MO_DM_propaguleProd"] <-  input$DM_MO_DM_propaguleProd
+	      DM_variables[1:length(input$DM_MO_DM_lddFreq), "input$DM_MO_DM_lddFreq"] <- input$DM_MO_DM_lddFreq
+	      DM_variables[1:length(input$DM_MO_SDM_lddDist), "input$DM_MO_SDM_lddDist"] <- input$DM_MO_SDM_lddDist
+	      DM_variables[1:length(input$DM_MO_DM_replicateNb), "input$DM_MO_DM_replicateNb"] <- input$DM_MO_DM_replicateNb
+
+	      
+	      DM_variables[is.na(DM_variables)] <- ""
+	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "MIGCLIM", paste(SPECIES_NAME, "_MIGCLIM_variables.csv", sep = "", collapse = "--")))
+	      
+	      #####
+	      
+	      
 	    } # End Speices loop s
 	    setwd(CUR_PATH)
 	    

@@ -190,18 +190,40 @@ shinyUI(
 				    mainPanel(
 				      tabsetPanel(
 				        tabPanel(SE_Name_Dir_Project_SDM,
-				            tags$hr(),
-				            tableOutput("SE_Dir_Project_SDM_Species_Model_Options"),
-				            tags$hr(),
-                            textOutput("SE_Dir_Project_SDM_Species_Model_Output")
+				            tabsetPanel(
+				                tabPanel(SE_Name_Dir_Project_SDM_OPTION,
+				                    tags$hr(),
+				                    tableOutput("SE_Dir_Project_SDM_Species_Model_Options")
+				                ),
+				                tabPanel(SE_Name_Dir_Project_SDM_OUTPUT,
+				                    tags$hr(),
+                                    textOutput("SE_Dir_Project_SDM_Species_Model_Output")
+				                )
+				            )
 				        ),
 				        tabPanel(SE_Name_Dir_Project_IS,
-                            tags$hr(),
-                            textOutput("SE_Dir_Project_IS_Output")				                 
+				            tabsetPanel(
+				                tabPanel(SE_Name_Dir_Project_IS_OPTION,
+				                        tags$hr(),
+				                        tableOutput("SE_Dir_Project_IS_Species_Model_Options")
+				                ),
+				                tabPanel(SE_Name_Dir_Project_IS_OUTPUT,
+				                        tags$hr(),
+				                        textOutput("SE_Dir_Project_IS_Species_Model_Output")
+				                )
+				            )
 				        ),
 				        tabPanel(SE_Name_Dir_Project_VH,
-                            tags$hr(),
-                            textOutput("SE_Dir_Project_VH_Output")				                 
+				            tabsetPanel(
+				                tabPanel(SE_Name_Dir_Project_VH_OPTION,
+				                        tags$hr(),
+				                        tableOutput("SE_Dir_Project_VH_Species_Model_Options")
+				                ),
+				                tabPanel(SE_Name_Dir_Project_VH_OUTPUT,
+				                        tags$hr(),
+				                        textOutput("SE_Dir_Project_VH_Species_Model_Output")
+				                )
+				            )
 				        )
 				      )
 				    )
@@ -361,7 +383,7 @@ shinyUI(
 										selected = SDM_Name_CD_Scenarios_selected),
 
 									# Input: Checkbox if file has header ----
-									checkboxGroupInput("SDM_MO_Protect_year", SDM_Name_CD_Year,
+									checkboxGroupInput("SDM_MO_Project_year", SDM_Name_CD_Year,
 										choices = c(SDM_Name_CD_Year_list),
 										selected = SDM_Name_CD_Year_selected)
 								)	
