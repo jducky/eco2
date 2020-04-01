@@ -1227,7 +1227,7 @@ shinyServer(function(input, output) {
 	    
 	    # setting Paths
 #	    PATH_PROJECT   <- G$SE_Dir_Project
-	    PATH_MODEL_OUTPUT <- G$DM_SDM_Dir_Folder # file.path(PATH_PROJECT, "Species_Distribution")
+	    PATH_MODEL_OUTPUT <- G$DM_AO_Dir_Folder # file.path(PATH_PROJECT, "Species_Distribution")
 	    setwd(PATH_MODEL_OUTPUT)
 	    
 	    # Defining Model options.
@@ -1372,139 +1372,23 @@ shinyServer(function(input, output) {
 	      DM_variables[1:length(input$DM_MO_Project_year), "input$DM_MO_Project_year"] <- input$DM_MO_Project_year
 	      DM_variables[1:length(input$DM_MO_SDM_model), "input$DM_MO_SDM_model"] <- input$DM_MO_SDM_model
 	      DM_variables[1:length(input$DM_MO_DM_dispSteps), "input$DM_MO_DM_dispSteps"] <- input$DM_MO_DM_dispSteps
+	      if (length(input$DM_MO_Barrier) > 0) {
 	      DM_variables[1:length(input$DM_MO_Barrier), "input$DM_MO_Barrier"] <- input$DM_MO_Barrier
+	      } else {
+	          DM_variables[1:length(input$DM_MO_Barrier), "input$DM_MO_Barrier"] <- NULL
+	      }
 	      DM_variables[1:length(input$DM_MO_DM_barrierType), "input$DM_MO_DM_barrierType"] <- input$DM_MO_DM_barrierType
-	      DM_variables[1:length(input$DM_MO_DM_dispKernel), "input$DM_MO_DM_dispKernel"] <- input$DM_MO_DM_dispKernel
+	      DM_variables[1:length(G$DM_MO_DM_dispKernel), "input$DM_MO_DM_dispKernel"] <- G$DM_MO_DM_dispKernel
 	      DM_variables[1:length(input$DM_MO_DM_iniMatAge), "input$DM_MO_DM_iniMatAge"] <- input$DM_MO_DM_iniMatAge
-	      DM_variables[1:length(input$DM_MO_DM_propaguleProd), "input$DM_MO_DM_propaguleProd"] <-  input$DM_MO_DM_propaguleProd
+	      DM_variables[1:length(G$DM_MO_DM_propaguleProd), "input$DM_MO_DM_propaguleProd"] <- G$DM_MO_DM_propaguleProd
 	      DM_variables[1:length(input$DM_MO_DM_lddFreq), "input$DM_MO_DM_lddFreq"] <- input$DM_MO_DM_lddFreq
 	      DM_variables[1:length(input$DM_MO_SDM_lddDist), "input$DM_MO_SDM_lddDist"] <- input$DM_MO_SDM_lddDist
 	      DM_variables[1:length(input$DM_MO_DM_replicateNb), "input$DM_MO_DM_replicateNb"] <- input$DM_MO_DM_replicateNb
 
-	      
 	      DM_variables[is.na(DM_variables)] <- ""
-	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "MIGCLIM", paste(SPECIES_NAME, "_MIGCLIM_variables.csv", sep = "", collapse = "--")))
+	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM", paste(s, "_MIGCLIM_variables.csv", sep = "", collapse = "--")))
 	      
 	      #####
-	      
-	      
-	    } # End Speices loop s
-	    setwd(CUR_PATH)
-	    
-	    #####========================================================
-	    #####============ End Models Run ========================
-	    #####========================================================        
-	  })        
-	})
-	
-	observeEvent(input$DM_MO_Action_run_old, {
-	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  dlist <- input$DM_MO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$DM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  ylist <- input$DM_MO_Project_year  # c("2000", "2050") # c("2000", "2050", "2070")
-	  slist <- input$DM_MO_Species
-	  mlist <- input$DM_MO_SDM_model
-	  
-	  n <- 0
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  #		ly <- length(ylist)
-	  ls <- length(slist)
-	  lm <- length(mlist)
-	  tl <- ld * lc * lm * ls
-	  
-	  withProgress(message = 'Runing DM model.........', value = 0, {
-	    
-	    ##############################################################
-	    ### Species Dispersal Modeling
-	    ### MIGCLIM
-	    ###
-	    ### by Changwan Seo
-	    ##############################################################
-	    
-	    #####=========================================================
-	    ##### Setting variables ======================================
-	    
-	    # setting Paths
-	    PATH_PROJECT   <- G$SE_Dir_Project
-	    PATH_MODEL_OUTPUT  <- file.path(PATH_PROJECT, "Species_Distribution")
-	    setwd(PATH_MODEL_OUTPUT)
-	    
-	    # Defining Model options.
-	    #      DM_iniDist <- "iniDist.tif"
-	    #      DM_hsMap <- "hsMap.tif"
-	    #      DM_rcThreshold <- cutoffvalue_S002
-	    DM_envChgSteps <- input$DM_MO_DM_envChgSteps
-	    DM_dispSteps <- input$DM_MO_DM_dispSteps
-	    DM_barrier <- "" #"barrier"
-	    DM_barrierType <- input$DM_MO_DM_barrierType
-	    DM_dispKernel <- G$DM_MO_DM_dispKernel
-	    DM_iniMatAge <- input$DM_MO_DM_iniMatAge
-	    DM_propaguleProd <- G$DM_MO_DM_propaguleProd
-	    DM_lddFreq <- input$DM_MO_DM_lddFreq
-	    DM_lddMinDist <- input$DM_MO_SDM_lddDist[1]
-	    DM_lddMaxDist <- input$DM_MO_SDM_lddDist[2]
-	    DM_replicateNb <- input$DM_MO_DM_replicateNb
-	    #	  	DM_simulName <- "S002_migHR4510L"
-	    DM_overWrite <- input$DM_MO_DM_overWrite
-	    DM_testMode <- input$DM_MO_DM_testMode
-	    DM_fullOutput <- input$DM_MO_DM_fullOutput
-	    DM_keepTempFiles <- input$DM_MO_DM_keepTempFiles
-	    
-	    #####========================================================
-	    #####============ Rinning models ============================
-	    #####========================================================
-	    CUR_PATH <- getwd()
-	    for (s in slist) {
-	      n <- n + 1
-	      # creating Migclim output path
-	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM"))) {
-	        cat(paste("MIGCLIM exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
-	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM"))) {
-	        cat(paste("MIGCLIM exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
-	      } else {
-	        cat(paste("MIGCLIM does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
-	        dir.create(file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM"))
-	      }   
-	      
-	      # Setting working path
-	      org_path <- file.path(PATH_MODEL_OUTPUT, s, "BIOMOD2")
-	      target_path <- file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM")
-	      setwd(target_path)
-	      
-	      ### Projection on current and future environemental conditions
-	      # Projecting loop
-	      for (d in dlist) {
-	        for (c in clist) {
-	          for (m in mlist) {
-	            incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c))
-	            o_file <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
-	            sr_list <- ""
-	            sr_list <- c(sr_list, file.path(org_path, o_file))
-	            for (i in 1:length(ylist)) {
-	              o_file <- paste("PROJ_", d, "_", c, "_", ylist[i], "_", s, "_", sub("\\_by.*", "", m), ".tif", sep = "")
-	              sr_list <- c(sr_list, file.path(org_path, o_file))
-	            }
-	            sr_list <- grep(s, sr_list, value = TRUE)
-	            sr_stack <- stack(sr_list)
-	            df <- as.data.frame(sr_stack, xy=TRUE)
-	            df[is.na(df)] <- 0
-	            DM_iniDist <- df[,1:3]
-	            nc <- length(ylist) + 3
-	            DM_hsMap <- df[,4:nc]
-	            DM_simulName <- paste("DM_", d, "_", c, "_", s, "_", m, sep = "")
-	            destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", s, "BIOMOD2", paste(as.name(paste(s, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
-	            all_eval <- read.csv(destfile)
-	            DM_rcThreshold <- as.integer(all_eval[all_eval$Prediction==m,]$Cutoff)
-	            # Running MIGCLIM
-	            MigClim.migrate(iniDist = DM_iniDist, hsMap = DM_hsMap, rcThreshold = DM_rcThreshold , envChgSteps = DM_envChgSteps, dispSteps = DM_dispSteps, 
-	                            barrier = DM_barrier, barrierType = DM_barrierType, dispKernel = DM_dispKernel, 
-	                            iniMatAge = DM_iniMatAge, propaguleProd = DM_propaguleProd, lddFreq = DM_lddFreq, lddMinDist = DM_lddMinDist, lddMaxDist = DM_lddMaxDist, replicateNb = DM_replicateNb, 
-	                            simulName = DM_simulName, overWrite = DM_overWrite, testMode = DM_testMode, fullOutput = DM_fullOutput, keepTempFiles = DM_keepTempFiles)
-	          } # End Model loop m
-	        } # End climate change Scenarios loop c
-	      } # End climate data loop d
 	    } # End Speices loop s
 	    setwd(CUR_PATH)
 	    
@@ -1750,6 +1634,8 @@ shinyServer(function(input, output) {
 			}
 		  }
 		}
+	    
+		    
 		})
 		##### End GAP analyzing =========================================      
 	})
