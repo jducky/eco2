@@ -2313,7 +2313,7 @@ shinyServer(function(input, output) {
 									img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
 									sr_list <- c(sr_list, img)
 								}
-								save_path <- isolate(G$IS_VA_Dir_Folder)
+								save_path <- G$IS_AO_Dir_Folder
 								sr_list <- grep("PRED", sr_list, value = TRUE)
 								sr_stack <- stack(sr_list)
 								sr_raster <- overlay(sr_stack, fun=sum)

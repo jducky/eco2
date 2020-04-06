@@ -901,13 +901,13 @@ shinyUI(
 					tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 3, Fluid = TRUE,
-              shinyDirButton("IS_MO_Dir_Folder", IS_Name_MO_Dir, IS_Name_MO_Dir),
-              verbatimTextOutput("IS_MO_Dir_Folder", placeholder = TRUE),
-              tags$hr(),
+                            shinyDirButton("IS_MO_Dir_Folder", IS_Name_MO_Dir, IS_Name_MO_Dir),
+                            verbatimTextOutput("IS_MO_Dir_Folder", placeholder = TRUE),
+                            tags$hr(),
 							uiOutput("IS_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                      
-                radioButtons("IS_CA_Dispersal_type", IS_Name_DM_Models,
+                            radioButtons("IS_CA_Dispersal_type", IS_Name_DM_Models,
 								choices = c(IS_Name_DM_Models_list),
 								selected = IS_Name_DM_Models_selected),
 	
@@ -934,10 +934,10 @@ shinyUI(
 							actionButton("IS_VA_Action_Analysis", label = IS_Name_Action),
 							tags$hr(),
 							br(),
-							checkboxGroupInput("IS_VA_Admin", IS_Name_Admin,
-                choices = c(IS_Name_Admin_list),
-                selected = IS_Name_Admin_selected),
-              actionButton("IS_VA_Action_Admin", label = IS_Name_Action_Admin)
+						checkboxGroupInput("IS_VA_Admin", IS_Name_Admin,
+                                    choices = c(IS_Name_Admin_list),
+                                    selected = IS_Name_Admin_selected),
+                        actionButton("IS_VA_Action_Admin", label = IS_Name_Action_Admin)
 						)
 					)
 				),
