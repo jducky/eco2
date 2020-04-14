@@ -346,7 +346,7 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Summary <- renderPrint({
-		r <- raster(file.path("C:/Projects/2019_DATA/4. forest fire, landslide/forest fire/S251", "barrier11.tif"))
+		r <- raster(file.path("C:/Projects/2019_DATA/4. forest fire, landslide/forest fire/S251", "barrier11.grd"))
 		summary(r)
 	})
 	
@@ -379,14 +379,14 @@ shinyServer(function(input, output) {
 	})   
 	
 	output$CD_Summary <- renderPrint({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".grd", sep = ""))
 		r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		summary(r)
 	})
 	
 	output$CD_Histogram <- renderPlot({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".grd", sep = ""))
 		x <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		hist(x, # breaks = bins, 
@@ -397,7 +397,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$CD_Map <- renderLeaflet({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".grd", sep = ""))
 		r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
@@ -717,12 +717,12 @@ shinyServer(function(input, output) {
 	            for (i in mlist) {
 	              proj <- all_proj[[i]]
 	              proj[proj > 1000] <- 1000
-	              writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	              writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	              for (j in BIOMOD_binary.meth) {
 	                if (!is.na(myBiomodModelEval[j, "Cutoff", strapplyc(i, "Full_(.*)", simplify = TRUE), "Full", "PA1"])) {
 	                  cutoffvalue <- as.integer(myBiomodModelEval[j, "Cutoff", strapplyc(i, "Full_(.*)", simplify = TRUE), "Full", "PA1"])
 	                  pred <- BinaryTransformation(proj, cutoffvalue)
-	                  writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2",paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, "_by", j, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                  writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2",paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, "_by", j, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                }
 	              }  
 	            }  
@@ -765,12 +765,12 @@ shinyServer(function(input, output) {
 	              for (i in emlist) {
 	                proj <- EM_all_proj[[i]]
 	                proj[proj > 1000] <- 1000
-	                writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                for (j in EM_models.eval.meth) {
 	                  if (!is.na(eval(parse(text = as.name(paste("myBiomodEMEval$", i))))[j, "Cutoff"])) {
 	                    cutoffvalue <- as.integer(eval(parse(text = as.name(paste("myBiomodEMEval$", i))))[j, "Cutoff"])
 	                    pred <- BinaryTransformation(proj, cutoffvalue)
-	                    writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                    writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                  }
 	                }
 	              }
@@ -1073,7 +1073,7 @@ shinyServer(function(input, output) {
 	output$SDM_OU_Probability_map <- renderLeaflet({
 	
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
-		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, ".tif", sep = "")
+		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, ".grd", sep = "")
 		r <- raster(file.path(dir_path, Map))
 	
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
@@ -1093,14 +1093,14 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_PROJ_Summary <- renderPrint({
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
-		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, ".tif", sep = "")
+		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, ".grd", sep = "")
 		r <- raster(file.path(dir_path, Map))
 		summary(r)
 	})
 	
 	output$SDM_OU_PROJ_Histogram <- renderPlot({
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
-		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, ".tif", sep = "")
+		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, ".grd", sep = "")
 		x <- raster(file.path(dir_path, Map))
 	
 		hist(x, # breaks = bins, 
@@ -1112,7 +1112,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_Predicted_map <- renderLeaflet({
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
-		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, ".tif", sep = "")
+		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, ".grd", sep = "")
 		r <- raster(file.path(dir_path, Map))
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
@@ -1131,14 +1131,14 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_PRED_Summary <- renderPrint({
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
-		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, ".tif", sep = "")
+		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, ".grd", sep = "")
 		r <- raster(file.path(dir_path, Map))
 		summary(r)
 	})
 	
 	output$SDM_OU_PRED_Histogram <- renderPlot({
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
-		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, ".tif", sep = "")
+		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, ".grd", sep = "")
 		x <- raster(file.path(dir_path, Map))
 	
 		hist(x, # breaks = bins, 
@@ -1231,8 +1231,8 @@ shinyServer(function(input, output) {
 	    setwd(PATH_MODEL_OUTPUT)
 	    
 	    # Defining Model options.
-#      DM_iniDist <- "iniDist.tif"
-#      DM_hsMap <- "hsMap.tif"
+#      DM_iniDist <- "iniDist.grd"
+#      DM_hsMap <- "hsMap.grd"
 #      DM_rcThreshold <- cutoffvalue_S002
 	    DM_envChgSteps <- input$DM_MO_DM_envChgSteps
 	    DM_dispSteps <- input$DM_MO_DM_dispSteps
@@ -1280,7 +1280,7 @@ shinyServer(function(input, output) {
 	          for (m in mlist) {
 	            for (y in ylist[-1]) {
 	              incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", y))
-	              o_file <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+	              o_file <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 	              
 	              file_path <- file.path(org_path, o_file)
 	              if (!file.exists(file_path)){
@@ -1296,7 +1296,7 @@ shinyServer(function(input, output) {
 	              ny <- grep(y, ylist)
 	              
 	              for (i in 1:ny) {
-	                o_file <- paste("PROJ_", d, "_", c, "_", ylist[i], "_", s, "_", sub("\\_by.*", "", m), ".tif", sep = "")
+	                o_file <- paste("PROJ_", d, "_", c, "_", ylist[i], "_", s, "_", sub("\\_by.*", "", m), ".grd", sep = "")
 	                
 	                file_path <- file.path(org_path, o_file)
 	                if (!file.exists(file_path)){
@@ -1314,7 +1314,7 @@ shinyServer(function(input, output) {
 	              if (chk_file) {
 	              
                 for (i in 1:ny) {
-                  o_file <- paste("PROJ_", d, "_", c, "_", ylist[i], "_", s, "_", sub("\\_by.*", "", m), ".tif", sep = "")
+                  o_file <- paste("PROJ_", d, "_", c, "_", ylist[i], "_", s, "_", sub("\\_by.*", "", m), ".grd", sep = "")
                   sr_list <- c(sr_list, file.path(org_path, o_file))
                 }
 	              sr_list <- grep(s, sr_list, value = TRUE)
@@ -1340,7 +1340,7 @@ shinyServer(function(input, output) {
 	                              iniMatAge = DM_iniMatAge, propaguleProd = DM_propaguleProd, lddFreq = DM_lddFreq, lddMinDist = DM_lddMinDist, lddMaxDist = DM_lddMaxDist, replicateNb = DM_replicateNb, 
 	                              simulName = DM_simulName, overWrite = DM_overWrite, testMode = DM_testMode, fullOutput = DM_fullOutput, keepTempFiles = DM_keepTempFiles)
 	              
-	              pred_file <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+	              pred_file <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 	              pred_cur <- raster(file.path(org_path, pred_file))
 	              path <- file.path(target_path, DM_simulName)
 	              r_asc <- read.asc(file.path(path, list.files(path)[grep(".asc", list.files(path))][1]))
@@ -1350,7 +1350,7 @@ shinyServer(function(input, output) {
 	              r_dm[r_dm == 30000] <- 0
 	              r_dm[is.na(pred_cur)] <- NA
 	              r_dm <- extractByMask(r_dm, msk=pred_cur, spatial=TRUE)
-	              writeRaster(r_dm, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	              writeRaster(r_dm, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	              }
 	              }
 	            } # End year loop y
@@ -1494,19 +1494,19 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          if (ly > 0) {
 	            if (ly == 1 && ylist[1] == "2000") {
-	              Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+	              Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 	              if (file.exists(file.path(dir_path, Map1))) {
 	                R_Map1 <- raster(file.path(dir_path, Map1))
 	                plot(R_Map1, main = Map1)
 	              }
 	            } else if (ly > 1 && ylist[1] == "2000") {
-	              Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+	              Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 	              if (file.exists(file.path(dir_path, Map1))) {
 	                R_Map1 <- raster(file.path(dir_path, Map1))
 	                plot(R_Map1, main = Map1)
 	              }
 	              for (y in 2:ly) {
-	                Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".tif", sep = "")
+	                Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
 	                if (file.exists(file.path(dir_path, Map2))) {
 	                  R_Map2 <- raster(file.path(dir_path, Map2))
 	                  plot(R_Map2, main = Map2)
@@ -1514,7 +1514,7 @@ shinyServer(function(input, output) {
 	              }
 	            } else {
 	              for (y in 1:ly) {
-	                Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".tif", sep = "")
+	                Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
 	                if (file.exists(file.path(dir_path, Map2))) {
 	                  R_Map2 <- raster(file.path(dir_path, Map2))
 	                  plot(R_Map2, main = Map2)
@@ -1592,11 +1592,11 @@ shinyServer(function(input, output) {
 					for (m in mlist) {
 						if (ly > 1) {
 							if (ylist[1] == "2000") {
-								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 								for (y in 2:ly) {
 									incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", ylist[y]))
-									Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".tif", sep = "")
+									Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
 									R_Map2 <- raster(file.path(dir_path, Map2))
 									R_gap <- raster(R_Map1)
 									R_loss <- raster(R_Map1)
@@ -1622,10 +1622,10 @@ shinyServer(function(input, output) {
 									R_stay[R_Map1 == 1 & R_Map2 == 0] <- 0
 									R_stay[R_Map1 == 1 & R_Map2 == 1] <- 1
 									
-									writeRaster(R_gap, file = file.path(dir_path, paste(as.name(paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-									writeRaster(R_loss, file = file.path(dir_path, paste(as.name(paste("LOSS_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-									writeRaster(R_stay, file = file.path(dir_path, paste(as.name(paste("STAY_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-									writeRaster(R_gain, file = file.path(dir_path, paste(as.name(paste("GAIN_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+									writeRaster(R_gap, file = file.path(dir_path, paste(as.name(paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+									writeRaster(R_loss, file = file.path(dir_path, paste(as.name(paste("LOSS_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+									writeRaster(R_stay, file = file.path(dir_path, paste(as.name(paste("STAY_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+									writeRaster(R_gain, file = file.path(dir_path, paste(as.name(paste("GAIN_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								}
 							}
 						}
@@ -1699,7 +1699,7 @@ shinyServer(function(input, output) {
 							if (ly == 1 & ylist[1] == "2000") {
 							  incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", ylist[1]))
 								n_tl <- n_tl + 1
-								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 	
 								T_Area0 <- freq(R_Map1, value = 0)
@@ -1727,7 +1727,7 @@ shinyServer(function(input, output) {
 							} else if (ly > 1 & ylist[1] == "2000") {
 							  incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", ylist[1]))
 								n_tl <- n_tl + 1
-								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 								  
 								T_Area0 <- freq(R_Map1, value = 0)
@@ -1755,7 +1755,7 @@ shinyServer(function(input, output) {
 								for (y in 2:ly) {
 									incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", ylist[y]))
 									n_tl <- n_tl + 1
-									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".tif", sep = "")
+									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
 									R_gap <- raster(file.path(dir_path, Map2))
 									  
 									T_Area0 <- freq(R_gap, value = 0)
@@ -1793,7 +1793,7 @@ shinyServer(function(input, output) {
 								for (y in 1:ly) {
 									incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", y))
 									n_tl <- n_tl + 1
-									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".tif", sep = "")
+									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
 									R_gap <- raster(file.path(dir_path, Map2))
 									
 									T_Area0 <- freq(R_gap, value = 0)
@@ -1938,21 +1938,21 @@ shinyServer(function(input, output) {
 					for (m in mlist) {
 						if (ly > 0) {
 							if (ly == 1 && ylist[1] == "2000") {
-								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 								plot(R_Map1, main = Map1)
 							} else if (ly > 1 && ylist[1] == "2000") {
-								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".tif", sep = "")
+								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 								plot(R_Map1, main = Map1)
 								for (y in 2:ly) {
-									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".tif", sep = "")
+									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
 									R_Map2 <- raster(file.path(dir_path, Map2))
 									plot(R_Map2, main = Map2)
 								}
 							} else {
 								for (y in 1:ly) {
-									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".tif", sep = "")
+									Map2 <- paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
 									R_Map2 <- raster(file.path(dir_path, Map2))
 									plot(R_Map2, main = Map2)
 								}
@@ -2305,85 +2305,89 @@ shinyServer(function(input, output) {
 			for (c in clist) {
 				for (m in mlist) {
 					for (y in ylist) {
-						if (length(ylist) > 1 && ylist[1] == "2000") {
+						if (length(ylist) > 1 ) {    
 							if(y == ylist[1]) {
 								incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
 								for (s in slist) {
 									dir_path <- file.path(G$IS_MI_Dir_Folder, s, input$IS_CA_Dispersal_type)
-									img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+									img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 									sr_list <- c(sr_list, img)
 								}
-#								save_path <- G$IS_MO_Dir_Folder
-								save_path <- "D:/MOTIVE_projects/proj11/Invasive_Species/test4_BIOMOD2"
+								save_path <- G$IS_MO_Dir_Folder
 								sr_list <- grep("PRED", sr_list, value = TRUE)
 								sr_stack <- stack(sr_list)
 								sr_raster <- overlay(sr_stack, fun=sum)
 								sr_raster1 <- sr_raster
-								writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("IS_SR_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+								writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("IS_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								vi1_raster <- sr_raster
 								vi1_raster[] <- 0
 								vi2_raster <- sr_raster
 								vi2_raster[] <- 0
 								vi3_raster <- sr_raster
 								vi3_raster[] <- 0
-								writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("IS_VI1_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-								writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("IS_VI2_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-								writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("IS_VI3_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-								sr_list <- ""
-								loss_list <- ""
-								stay_list <- ""
-								gain_list <- ""
-							} else {					  
+								writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("IS_VI1_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("IS_VI2_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("IS_VI3_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								sr_list <- NULL
+							} else {
+							    incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
 								for (s in slist) {
-									dir_path <- file.path(G$IS_MO_Dir_Folder, s, input$IS_CA_Dispersal_type)
-									img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+									dir_path <- file.path(G$IS_MI_Dir_Folder, s, input$IS_CA_Dispersal_type)
+									img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 									sr_list <- c(sr_list, img)
-									img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+									img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 									loss_list <- c(loss_list, img)
-									img <- file.path(dir_path, paste("STAY_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+									img <- file.path(dir_path, paste("STAY_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 									stay_list <- c(stay_list, img)
-									img <- file.path(dir_path, paste("GAIN_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+									img <- file.path(dir_path, paste("GAIN_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 									gain_list <- c(gain_list, img)
 								}
-								save_path <- isolate(G$IS_VA_Dir_Folder)
+								save_path <- G$IS_MO_Dir_Folder
 								sr_list <- grep("PRED", sr_list, value = TRUE)
 								sr_stack <- stack(sr_list)
 								sr_raster <- overlay(sr_stack, fun=sum)
 								sr_raster2 <- sr_raster
 								losssr_raster <- sr_raster2 - sr_raster1
-								writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("IS_SR_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-								writeRaster(losssr_raster, file = file.path(save_path, paste(as.name(paste("IS_VI1_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+								writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("IS_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(losssr_raster, file = file.path(save_path, paste(as.name(paste("IS_VI1_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								
 								loss_list <- grep("LOSS", loss_list, value = TRUE)
 								loss_stack <- stack(loss_list)
 								loss_raster <- overlay(loss_stack, fun=sum)
-								writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("IS_LOSS_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+								writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("IS_LOSS_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								
 								stay_list <- grep("STAY", stay_list, value = TRUE)
 								stay_stack <- stack(stay_list)
 								stay_raster <- overlay(stay_stack, fun=sum)
-								writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("IS_STAY_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+								writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("IS_STAY_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								
 								gain_list <- grep("GAIN", gain_list, value = TRUE)
 								gain_stack <- stack(gain_list)
 								gain_raster <- overlay(gain_stack, fun=sum)
-								writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("IS_GAIN_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+								writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("IS_GAIN_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								
 								vi2_raster <- sr_raster
 								vi2_raster <- loss_raster / sr_raster1
 								vi2_raster[sr_raster1 == 0] <- 0
-								writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("IS_VI2_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+								writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("IS_VI2_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")),overwrite = TRUE)
+								
 								vi3_raster <- sr_raster
 								vi3_raster <- (1 - (loss_raster / sr_raster1)) + (gain_raster / (length(slist) - sr_raster1))
 								vi3_raster[sr_raster1 == 0] <- 0
-								writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("IS_VI3_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+								writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("IS_VI3_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								
-								sr_list <- ""
-								loss_list <- ""
-								stay_list <- ""
-								gain_list <- ""
+								sr_list <- NULL
+								loss_list <- NULL
+								stay_list <- NULL
+								gain_list <- NULL
 							}				    
-						} 
+						}
+					    else {
+					        showModal(modalDialog(
+					            title = "Message",
+					            "Please select projection years more than one!"
+					        ))
+					    }
 					}
 				}
 			}
@@ -2416,42 +2420,51 @@ shinyServer(function(input, output) {
 
 	  withProgress(message = paste("Grouping by ", input$IS_VA_Admin), value = 0, {
 	    
-	    dir_path <- G$IS_VA_Dir_Folder
+	    dir_path <- G$IS_MO_Dir_Folder
 	    
 	    for (a in alist) {
 	      
 	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
 	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+#	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	      poly <- readOGR(dsn=dir_path, layer=a)
 	      df <- read.dbf(file.path(dir_path, paste(a, ".dbf", sep = "")))
 	    
 	    for (d in dlist) {
 	      for (c in clist) {
 	        for (m in mlist) {
 	          for (y in ylist) {
-	            if (length(ylist) > 1 && ylist[1] == "2000") {
+	            if (length(ylist) > 1) {
 	              if(y == ylist[1]) {
 	                incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
-                  img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".tif", sep = ""))
-                  r <- raster(img)
-                  df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
-                  #write to a data frame
-                  df1 <- data.frame(df1)
-                  df1[is.na(df1)] <- 0
-                  df <- cbind(df, df1[-1])
+                    img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+                    r <- raster(img)
+                    df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
+                    #write to a data frame
+                    df1 <- data.frame(df1[-1])
+                    colnames(df1) <- c(paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, sep = ""))
+                    df1[is.na(df1)] <- 0
+                    df <- cbind(df, df1)
 	              } else {
 	                for (v in vlist) {
 	                  incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
-	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".tif", sep = ""))
+	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
 	                  r <- raster(img)
 	                  df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
 	                  #write to a data frame
 	                  df1 <- data.frame(df1[-1])
+	                  colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
 	                  df1[is.na(df1)] <- 0
 	                  df <- cbind(df, df1)
 	                }
 	              }
-	            } 
+	            }
+	            else {
+	                showModal(modalDialog(
+	                    title = "Message",
+	                    "Please select projection years more than one!"
+	                ))
+	            }  
 	          }
 	        }
 	      }
@@ -2465,11 +2478,92 @@ shinyServer(function(input, output) {
 	  })
 	})
 	
+	observeEvent(input$IS_VA_Action_Admin_OLD, {
+	    
+	    # setting Climate change scenarios, Future time, Species and current environmental path
+	    alist <- input$IS_VA_Admin
+	    dlist <- input$IS_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	    clist <- input$IS_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	    #	  dtlist <- input$IS_CA_Dispersal_type
+	    mlist <- input$IS_CA_SDM_model # c("PA1_Full_GLM_byROC")
+	    ylist <- input$IS_CA_Project_year
+	    slist <- input$IS_CA_Species
+	    vlist <- c("IS_SR", "IS_LOSS", "IS_STAY", "IS_GAIN", "IS_VI1", "IS_VI2", "IS_VI3") # c("IS_SR") # 
+	    
+	    n <- 0
+	    la <- length(alist)
+	    ls <- length(slist)
+	    ld <- length(dlist)
+	    lc <- length(clist)
+	    lm <- length(mlist)
+	    ly <- length(ylist)
+	    lv <- length(vlist)
+	    
+	    tl <- la * ld * lc * lm * ly * lv
+	    
+	    withProgress(message = paste("Grouping by ", input$IS_VA_Admin), value = 0, {
+	        
+	        dir_path <- G$IS_MO_Dir_Folder
+	        
+	        for (a in alist) {
+	            
+	            dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	            file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	            #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	            poly <- readOGR(dsn=dir_path, layer=a)
+	            df <- read.dbf(file.path(dir_path, paste(a, ".dbf", sep = "")))
+	            
+	            for (d in dlist) {
+	                for (c in clist) {
+	                    for (m in mlist) {
+	                        for (y in ylist) {
+	                            if (length(ylist) > 1) {
+	                                if(y == ylist[1]) {
+	                                    incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
+	                                    img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+	                                    r <- raster(img)
+	                                    df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
+	                                    #write to a data frame
+	                                    df1 <- data.frame(df1)
+	                                    df1[is.na(df1)] <- 0
+	                                    df <- cbind(df, df1[-1])
+	                                } else {
+	                                    for (v in vlist) {
+	                                        incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
+	                                        img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+	                                        r <- raster(img)
+	                                        df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
+	                                        #write to a data frame
+	                                        df1 <- data.frame(df1[-1])
+	                                        df1[is.na(df1)] <- 0
+	                                        df <- cbind(df, df1)
+	                                    }
+	                                }
+	                            }
+	                            else {
+	                                showModal(modalDialog(
+	                                    title = "Message",
+	                                    "Please select projection years more than one!"
+	                                ))
+	                            }  
+	                        }
+	                    }
+	                }
+	            }
+	            
+	            #write to a CSV file
+	            write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	            write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	        }
+	        
+	    })
+	})	
+	
 	observeEvent(input$IS_AO_MI_Dir_Folder, {
 	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-	  shinyDirChoose(input, 'IS_MI_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$IS_MI_MI_Dir_Folder <<- parseDirPath(volumes, input$IS_MI_MI_Dir_Folder)
-	  output$IS_MI_MI_Dir_Folder <- renderText({G$IS_MI_MI_Dir_Folder})
+	  shinyDirChoose(input, 'IS_AO_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
+	  G$IS_AO_MI_Dir_Folder <<- parseDirPath(volumes, input$IS_AO_MI_Dir_Folder)
+	  output$IS_AO_MI_Dir_Folder <- renderText({G$IS_AO_MI_Dir_Folder})
 	})
 
 	observeEvent(input$IS_AO_MO_Dir_Folder, {
@@ -2503,7 +2597,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SD_Map <- renderLeaflet({
 	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_Dispersal_type)
-	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".tif", sep = "")
+	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".grd", sep = "")
 	  r <- raster(file.path(dir_path, Map))
 	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
@@ -2522,14 +2616,14 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SD_Summary <- renderPrint({
 	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
-	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".tif", sep = "")
+	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".grd", sep = "")
 	  r <- raster(file.path(dir_path, Map))
 	  summary(r)
 	})
 	
 	output$IS_AO_SD_Histogram <- renderPlot({
 	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
-	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".tif", sep = "")
+	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".grd", sep = "")
 	  x <- raster(file.path(dir_path, Map))
 	  
 	  hist(x, # breaks = bins, 
@@ -2573,9 +2667,9 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$IS_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$IS_AO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$IS_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -2601,11 +2695,73 @@ shinyServer(function(input, output) {
 	    setView(lng = 128.00, lat = 36.00, zoom = 7)
 	})
 
+  output$IS_AO_SR_Map_OLD <- renderLeaflet({
+      
+      # setting Climate change scenarios, Future time, Species and current environmental path
+      #    slist <- input$IS_AO_Species
+      olist <- c("IS_SR")  # input$IS_AO_Output_option1
+      dlist <- input$IS_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+      clist <- input$IS_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+      mlist <- input$IS_AO_SDM_model # c("PA1_Full_GLM_byROC")
+      ylist <- input$IS_AO_Project_year
+      #	dtlist <- input$SS_AO_Dispersal_type
+      
+      #    ls <- length(slist)
+      lo <- length(olist)
+      ld <- length(dlist)
+      lc <- length(clist)
+      lm <- length(mlist)
+      ly <- length(ylist)
+      
+      tl <- lo * ld * lc * lm * ly
+      nc <- 2
+      if (tl <  2) {
+          nr <- round(tl / nc) + 1
+      } else {
+          nr <- round((tl + 0.1) / nc)
+      }
+      
+      #    par(mfrow = c(nr,nc), cex.main = 1.2)
+      
+      for (o in olist) {
+          for (d in dlist) {
+              for (c in clist) {
+                  for (m in mlist) {
+                      for (y in ylist) {
+                          if (ly > 0) {
+                              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+                              #                R_Map1 <- raster(file.path(isolate(G$IS_AO_Dir_Folder), Map1))
+                              r <- raster(file.path(isolate(G$IS_AO_MO_Dir_Folder), Map1))
+                              #                plot(R_Map1, main = Map1)
+                          }
+                      }
+                  }
+              }
+          }
+      }
+      
+      crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+      
+      pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+                          na.color = "transparent")
+      
+      leaflet() %>%
+          addTiles(
+              urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+              attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+          ) %>%        
+          
+          addRasterImage(r, colors = pal, opacity = 0.8) %>%
+          addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+          
+          setView(lng = 128.00, lat = 36.00, zoom = 7)
+  })  
+  
 
 	output$IS_AO_SR_SIDO_Map <- renderLeaflet({
 	
-	  poly <- readOGR(file.path(isolate(G$IS_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("IS_SR_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -2651,7 +2807,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SR_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("IS_SR_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
 	  
@@ -2665,8 +2821,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SR_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$IS_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("IS_SR_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -2711,7 +2867,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SR_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  IS_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  IS_Name_SD_selected <- IS_Name_SD_list[1]
 	  
@@ -2726,7 +2882,7 @@ shinyServer(function(input, output) {
 #	  df <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_", input$IS_VA_Admin, ".csv", sep = "")))
 #	  df <- read.dbf(file.path(isolate(G$SE_Dir_GIS), paste("O_SGG", ".dbf", sep = "")))
 #	  df[df[, 2] == "gun",]
-	  df <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$IS_AO_SR_SGG_UI), ]
 #	  names(df) <- c(names(x[-1]))
     X_NAME <- names(df[8])
@@ -2775,10 +2931,16 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$IS_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$IS_AO_Dir_Folder), Map1))
-	              #                plot(R_Map1, main = Map1)
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+	              Map2 <- file.path(G$IS_AO_MO_Dir_Folder, Map1)
+	              if (file.exists(Map2)) {
+	                r <- raster(Map2)
+	              } else {
+	                showModal(modalDialog(
+	                    title = "Message",
+	                    "The selected file doesn't exist"
+	                ))  
+	              }
 	            }
 	          }
 	        }
@@ -2806,8 +2968,8 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SI_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$IS_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -2853,7 +3015,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SI_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
 	  
@@ -2868,8 +3030,8 @@ shinyServer(function(input, output) {
 	#	geom_text(aes(label = Vulnerability_Area_Loss_Ratio), size = 3, hjust = 0.5, vjust = 3) + 
 	
 	output$IS_AO_SI_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$IS_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -2914,7 +3076,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SI_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  IS_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  IS_Name_SD_selected <- IS_Name_SD_list[1]
 	  
@@ -2926,7 +3088,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SI_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$IS_AO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$IS_AO_SI_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
@@ -3012,7 +3174,7 @@ shinyServer(function(input, output) {
 	                incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
 	                for (s in slist) {
 	                  dir_path <- file.path(G$VH_MO_Dir_Folder, s, input$VH_CA_Dispersal_type)
-	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  sr_list <- c(sr_list, img)
 	                }
 	                save_path <- isolate(G$VH_VA_Dir_Folder)
@@ -3020,16 +3182,16 @@ shinyServer(function(input, output) {
 	                sr_stack <- stack(sr_list)
 	                sr_raster <- overlay(sr_stack, fun=sum)
 	                sr_raster1 <- sr_raster
-	                writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                vi1_raster <- sr_raster
 	                vi1_raster[] <- 0
 	                vi2_raster <- sr_raster
 	                vi2_raster[] <- 0
 	                vi3_raster <- sr_raster
 	                vi3_raster[] <- 0
-	                writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-	                writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-	                writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                sr_list <- ""
 	                loss_list <- ""
 	                stay_list <- ""
@@ -3037,13 +3199,13 @@ shinyServer(function(input, output) {
 	              } else {					  
 	                for (s in slist) {
 	                  dir_path <- file.path(isolate(G$SE_Dir_Project), "Species_Distribution", s, "BIOMOD2")
-	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  sr_list <- c(sr_list, img)
-	                  img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+	                  img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  loss_list <- c(loss_list, img)
-	                  img <- file.path(dir_path, paste("STAY_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+	                  img <- file.path(dir_path, paste("STAY_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  stay_list <- c(stay_list, img)
-	                  img <- file.path(dir_path, paste("GAIN_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".tif", sep = ""))
+	                  img <- file.path(dir_path, paste("GAIN_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  gain_list <- c(gain_list, img)
 	                }
 	                save_path <- isolate(G$VH_VA_Dir_Folder)
@@ -3052,30 +3214,30 @@ shinyServer(function(input, output) {
 	                sr_raster <- overlay(sr_stack, fun=sum)
 	                sr_raster2 <- sr_raster
 	                losssr_raster <- sr_raster2 - sr_raster1
-	                writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
-	                writeRaster(losssr_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                writeRaster(losssr_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                
 	                loss_list <- grep("LOSS", loss_list, value = TRUE)
 	                loss_stack <- stack(loss_list)
 	                loss_raster <- overlay(loss_stack, fun=sum)
-	                writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("VH_LOSS_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("VH_LOSS_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                
 	                stay_list <- grep("STAY", stay_list, value = TRUE)
 	                stay_stack <- stack(stay_list)
 	                stay_raster <- overlay(stay_stack, fun=sum)
-	                writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("VH_STAY_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("VH_STAY_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                
 	                gain_list <- grep("GAIN", gain_list, value = TRUE)
 	                gain_stack <- stack(gain_list)
 	                gain_raster <- overlay(gain_stack, fun=sum)
-	                writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("VH_GAIN_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("VH_GAIN_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                
 	                vi2_raster <- sr_raster
 	                vi2_raster <- loss_raster / sr_raster1
-	                writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                vi3_raster <- sr_raster
 	                vi3_raster <- (1 - (loss_raster / sr_raster1)) + (gain_raster / (length(slist) - sr_raster1))
-	                writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, ".tif", sep = "")), sep = "", collapse = "--")), format = "GTiff", overwrite = TRUE)
+	                writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                
 	                sr_list <- ""
 	                loss_list <- ""
@@ -3130,7 +3292,7 @@ shinyServer(function(input, output) {
 	              if (length(ylist) > 1 && ylist[1] == "2000") {
 	                if(y == ylist[1]) {
 	                  incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
-	                  img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".tif", sep = ""))
+	                  img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
 	                  r <- raster(img)
 	                  df1 <- extract(r, poly, fun = max, na.rm = FALSE, df = TRUE)
 	                  #write to a data frame
@@ -3140,7 +3302,7 @@ shinyServer(function(input, output) {
 	                } else {
 	                  for (v in vlist) {
 	                    incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
-	                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".tif", sep = ""))
+	                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
 	                    r <- raster(img)
 	                    df1 <- extract(r, poly, fun = max, na.rm = FALSE, df=TRUE)
 	                    #write to a data frame
@@ -3233,7 +3395,7 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
@@ -3616,7 +3778,7 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
@@ -3999,7 +4161,7 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
@@ -4382,7 +4544,7 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
@@ -4765,7 +4927,7 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
@@ -5148,7 +5310,7 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
@@ -5531,7 +5693,7 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".tif", sep = "")
+	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
 	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
