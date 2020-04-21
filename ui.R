@@ -1095,8 +1095,8 @@ shinyUI(
 					tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 2, Fluid = TRUE,
-						  shinyDirButton("VH_MO_Dir_Folder", VH_Name_MO_Dir, VH_Name_MO_Dir),
-						  verbatimTextOutput("VH_MO_Dir_Folder", placeholder = TRUE),
+						  shinyDirButton("VH_MI_Dir_Folder", VH_Name_MO_Dir, VH_Name_MO_Dir),
+						  verbatimTextOutput("VH_AO_MI_Dir_Folder", placeholder = TRUE),
 						  tags$hr(),
 							uiOutput("VH_CA_Species")
 						),
@@ -1123,8 +1123,8 @@ shinyUI(
 						sidebarPanel(width = 4,
 						             uiOutput("VH_CA_SDM_model"),
 						             tags$hr(),
-						             shinyDirButton("VH_VA_Dir_Folder", VH_Name_Dir, VH_Name_Dir),
-						             verbatimTextOutput("VH_VA_Dir_Folder", placeholder = TRUE),
+						             shinyDirButton("VH_MO_Dir_Folder", VH_Name_Dir, VH_Name_Dir),
+						             verbatimTextOutput("VH_AO_MO_Dir_Folder", placeholder = TRUE),
 						             actionButton("VH_VA_Action_Analysis", label = VH_Name_Action),
 						             tags$hr(),
 						             br(),
