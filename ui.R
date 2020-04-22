@@ -1096,7 +1096,7 @@ shinyUI(
 					fluidRow(
 						sidebarPanel(width = 2, Fluid = TRUE,
 						  shinyDirButton("VH_MI_Dir_Folder", VH_Name_MO_Dir, VH_Name_MO_Dir),
-						  verbatimTextOutput("VH_AO_MI_Dir_Folder", placeholder = TRUE),
+						  verbatimTextOutput("VH_MI_Dir_Folder", placeholder = TRUE),
 						  tags$hr(),
 							uiOutput("VH_CA_Species")
 						),
@@ -1124,7 +1124,7 @@ shinyUI(
 						             uiOutput("VH_CA_SDM_model"),
 						             tags$hr(),
 						             shinyDirButton("VH_MO_Dir_Folder", VH_Name_Dir, VH_Name_Dir),
-						             verbatimTextOutput("VH_AO_MO_Dir_Folder", placeholder = TRUE),
+						             verbatimTextOutput("VH_MO_Dir_Folder", placeholder = TRUE),
 						             actionButton("VH_VA_Action_Analysis", label = VH_Name_Action),
 						             tags$hr(),
 						             br(),
@@ -1142,21 +1142,21 @@ shinyUI(
                     sidebarLayout(
                       sidebarPanel(width = 3, Fluid = TRUE,
                                    
-                                   shinyDirButton("VH_MI_Dir_Folder", VH_Name_MO_Dir, VH_Name_MO_Dir),
-                                   verbatimTextOutput("VH_MI_Dir_Folder", placeholder = TRUE),
+                                   shinyDirButton("VH_AO_MI_Dir_Folder", VH_Name_MO_Dir, VH_Name_MO_Dir),
+                                   verbatimTextOutput("VH_AO_MI_Dir_Folder", placeholder = TRUE),
                                    tags$hr(),
 
-                                    shinyDirButton("VH_AO_Dir_Folder", VH_Name_Out_Dir, VH_Name_Out_Dir),
-                                    verbatimTextOutput("VH_AO_Dir_Folder", placeholder = TRUE),
+                                    shinyDirButton("VH_AO_MO_Dir_Folder", VH_Name_Out_Dir, VH_Name_Out_Dir),
+                                    verbatimTextOutput("VH_AO_MO_Dir_Folder", placeholder = TRUE),
                                     tags$hr(),  
                                    
                                    uiOutput("VH_AO_Species"),
                                    tags$hr(),
                                    uiOutput("VH_AO_SDM_model"),
                                    
-#                                  radioButtons("VH_AO_Dispersal_type", VH_Name_DM_Models,
-#                                                      choices = c(VH_Name_DM_Models_list),
-#                                                      selected = VH_Name_DM_Models_selected),
+                                  radioButtons("VH_AO_Dispersal_type", VH_Name_DM_Models,
+                                                      choices = c(VH_Name_DM_Models_list),
+                                                      selected = VH_Name_DM_Models_selected),
                                    
                                    # Input: Checkbox if file has header ----
                                   radioButtons("VH_AO_Climate_model", VH_Name_CD_Models,
@@ -1177,6 +1177,18 @@ shinyUI(
                       # Main panel for displaying outputs ----
                       mainPanel(
                         tabsetPanel(
+                            tabPanel(VH_Name_Out_Species, 
+                                     tags$head(
+                                         # Include our custom CSS
+                                         includeCSS("styles.css"),
+                                         includeScript("gomap.js")
+                                     ),
+                                     tags$hr(),
+                                     column(6, leafletOutput("VH_AO_SD_Map", width = "800", height = "650")),
+                                     tags$hr(),
+                                     column(10, verbatimTextOutput("VH_AO_SD_Summary")),
+                                     column(10, plotOutput("VH_AO_SD_Histogram"))
+                            ),
                           tabPanel(VH_Name_Out_SR,
                             tabsetPanel(
                               tabPanel(VH_Name_Out_Map,

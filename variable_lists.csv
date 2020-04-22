@@ -234,6 +234,7 @@ IS_Name_AO_Dir,0,Output Folder,외래종평가 결과폴더
 VH_Name,0,Vulnerable Habitat,취약서식지
 VH_Name_Analysis,0,Change Analysis,영향 및 취약성평가
 VH_Name_Out,0,Model Outputs,평가결과
+VH_Name_Out_Species,0,Species Distribution,생물종 분포
 VH_Name_Out_Dir,0,Habitat Assessment Output Folder,평가결과 디렉토리
 VH_Name_Out_SR,0,Species Richness,생물종 풍부도
 VH_Name_Out_SL,0,Species Loss,생물종 소실

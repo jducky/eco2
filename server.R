@@ -234,20 +234,20 @@ shinyServer(function(input, output) {
 	  )
 	})
 	
-	output$SE_Dir_Project_VH_Model_Options <- renderTable({
+	output$SE_Dir_Project_VH_Species_Model_Options <- renderTable({
 	    
 	    destfile <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH, "VulnerableHabitat_Options.csv")
 	    
 	    VH_Options_lists <<- read.csv(destfile, header = T, sep = ",")
 	    VH_Options_lists[is.na(VH_Options_lists)] = ""
 	    
-	    SDM_variables_lists_T <- data.frame(t(VH_Options_lists))
+	    VH_Options_lists_T <- data.frame(t(VH_Options_lists))
 	    rownames(VH_Options_lists_T) <- colnames(VH_Options_lists)
 	    VH_Options_lists_T[-1,]
 	    
 	}, rownames = TRUE, colnames = FALSE)
 	
-	output$SE_Dir_Project_VH_Model_Output <- renderPrint({
+	output$SE_Dir_Project_VH_Species_Model_Output <- renderPrint({
 	  Dir_Project_VH_list_csv <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern="\\.csv$", all.files=FALSE, full.names=FALSE)
 	  Dir_Project_VH_list_dbf <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern="\\.dbf$", all.files=FALSE, full.names=FALSE)
 	  Dir_Project_VH_list_grd <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern="\\.grd$", all.files=FALSE, full.names=FALSE)
@@ -374,8 +374,8 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Map <- renderLeaflet({	
-	  r_asc <- read.asc(file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = "")))
-    r <- raster(r_asc)
+	    r_asc <- read.asc(file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = "")))
+        r <- raster(r_asc)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 							na.color = "transparent")
@@ -392,16 +392,16 @@ shinyServer(function(input, output) {
 	})   
 	
 	output$CD_Summary <- renderPrint({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".grd", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
 		r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		summary(r)
 	})
 	
 	output$CD_Histogram <- renderPlot({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".grd", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
 		x <- raster(file)
-		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+		crs(x) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		hist(x, # breaks = bins, 
 			col="orange",
 			border="brown",
@@ -410,7 +410,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$CD_Map <- renderLeaflet({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".grd", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
 		r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
@@ -988,6 +988,8 @@ shinyServer(function(input, output) {
 	  output$SDM_AO_Dir_Folder <- renderText({G$SDM_AO_Dir_Folder})
 	  G$DM_SDM_Dir_Folder <<- G$SDM_AO_Dir_Folder
 	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
+	  G$DM_AO_Dir_Folder <<- G$DM_SDM_Dir_Folder
+	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
 	})
 
 	output$SDM_OU_Species <- renderUI({
@@ -2410,7 +2412,7 @@ shinyServer(function(input, output) {
 		    
 #		    destfile <- file.path(G$IS_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
 		    
-		    IS_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 30)), c("input$SDM_Folder", "input$IS_CA_Species", "input$IS_CA_Dispersal_type", "input$IS_CA_Climate_model", "input$IS_CA_Climate_scenario", 
+		    IS_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 100)), c("input$SDM_Folder", "input$IS_CA_Species", "input$IS_CA_Dispersal_type", "input$IS_CA_Climate_model", "input$IS_CA_Climate_scenario", 
 		                                                                         "input$IS_CA_Project_year", "input$IS_CA_SDM_model"
 		    ))
 		    
@@ -2886,16 +2888,10 @@ shinyServer(function(input, output) {
 	        for (m in mlist) {
 	          for (y in ylist) {
 	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              Map2 <- file.path(G$IS_AO_MO_Dir_Folder, Map1)
-	              if (file.exists(Map2)) {
-	                r <- raster(Map2)
-	              } else {
-	                showModal(modalDialog(
-	                    title = "Message",
-	                    "The selected file doesn't exist"
-	                ))  
-	              }
+	                Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+	                #                R_Map1 <- raster(file.path(isolate(G$IS_AO_Dir_Folder), Map1))
+	                r <- raster(file.path(isolate(G$IS_AO_MO_Dir_Folder), Map1))
+	                #                plot(R_Map1, main = Map1)
 	            }
 	          }
 	        }
@@ -3090,7 +3086,9 @@ shinyServer(function(input, output) {
 	observeEvent(input$VH_MO_Dir_Folder, {
 	    volumes <- c(main = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"))
 	  shinyDirChoose(input, 'VH_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$VH_AO_MO_Dir_Folder <<- parseDirPath(volumes, input$VH_MO_Dir_Folder)
+	  G$VH_MO_Dir_Folder <<- parseDirPath(volumes, input$VH_MO_Dir_Folder)
+	  output$VH_MO_Dir_Folder <- renderText({G$VH_MO_Dir_Folder})
+	  G$VH_AO_MO_Dir_Folder <<- G$VH_MO_Dir_Folder
 	  output$VH_AO_MO_Dir_Folder <- renderText({G$VH_AO_MO_Dir_Folder})
 	})
 	
@@ -3204,7 +3202,7 @@ shinyServer(function(input, output) {
 	      
 	      #		    destfile <- file.path(G$VH_MO_Dir_Folder, "VulnerableHabitat_Options.csv")
 	      
-	      VH_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 30)), c("input$SDM_Folder", "input$VH_CA_Species", "input$VH_CA_Dispersal_type", "input$VH_CA_Climate_model", "input$VH_CA_Climate_scenario", 
+	      VH_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 100)), c("input$SDM_Folder", "input$VH_CA_Species", "input$VH_CA_Dispersal_type", "input$VH_CA_Climate_model", "input$VH_CA_Climate_scenario", 
 	                                                                          "input$VH_CA_Project_year", "input$VH_CA_SDM_model"
 	      ))
 	      
@@ -3298,15 +3296,15 @@ shinyServer(function(input, output) {
 	})
 	
 	
-	observeEvent(input$VH_MI_Dir_Folder, {
+	observeEvent(input$VH_AO_MI_Dir_Folder, {
 	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-	  shinyDirChoose(input, 'VH_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$VH_MI_Dir_Folder <<- parseDirPath(volumes, input$VH_MI_Dir_Folder)
-	  output$VH_MI_Dir_Folder <- renderText({G$VH_MI_Dir_Folder})
+	  shinyDirChoose(input, 'VH_AO_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
+	  G$VH_AO_MI_Dir_Folder <<- parseDirPath(volumes, input$VH_AO_MI_Dir_Folder)
+	  output$VH_AO_MI_Dir_Folder <- renderText({G$VH_AO_MI_Dir_Folder})
 	})
 	
 	output$VH_AO_Species <- renderUI({
-		VH_Name_Species_list <- list.dirs(path = G$VH_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
+		VH_Name_Species_list <- list.dirs(path = G$VH_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		VH_Name_Species_selected <- VH_Name_Species_list[1]
 		selectInput("VH_AO_Species", "Select a species",
 			choices = c(VH_Name_Species_list),
@@ -3314,15 +3312,15 @@ shinyServer(function(input, output) {
 		)
 	})
 	
-	observeEvent(input$VH_AO_Dir_Folder, {
+	observeEvent(input$VH_AO_MO_Dir_Folder, {
 	  volumes <- c(main = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"))
-	  shinyDirChoose(input, 'VH_AO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$VH_AO_Dir_Folder <<- parseDirPath(volumes, input$VH_AO_Dir_Folder)
-	  output$VH_AO_Dir_Folder <- renderText({G$VH_AO_Dir_Folder})
+	  shinyDirChoose(input, 'VH_AO_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
+	  G$VH_AO_MO_Dir_Folder <<- parseDirPath(volumes, input$VH_AO_MO_Dir_Folder)
+	  output$VH_AO_MO_Dir_Folder <- renderText({G$VH_AO_MO_Dir_Folder})
 	})
 	
 	output$VH_AO_SDM_model <- renderUI({
-		destfile <- file.path(G$VH_MI_Dir_Folder, input$VH_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$VH_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$VH_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		VH_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
@@ -3332,6 +3330,44 @@ shinyServer(function(input, output) {
 			selected = VH_Name_Models_selected
 		)
 	})
+	
+	output$VH_AO_SD_Map <- renderLeaflet({
+	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, input$VH_AO_Dispersal_type)
+	    Map <- paste("PRED", "_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_Project_year, "_", input$VH_AO_Species, "_", input$VH_AO_SDM_model, ".grd", sep = "")
+	    r <- raster(file.path(dir_path, Map))
+	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	})  
+	
+	output$VH_AO_SD_Summary <- renderPrint({
+	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
+	    Map <- paste("PRED", "_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_Project_year, "_", input$VH_AO_Species, "_", input$VH_AO_SDM_model, ".grd", sep = "")
+	    r <- raster(file.path(dir_path, Map))
+	    summary(r)
+	})
+	
+	output$VH_AO_SD_Histogram <- renderPlot({
+	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
+	    Map <- paste("PRED", "_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_Project_year, "_", input$VH_AO_Species, "_", input$VH_AO_SDM_model, ".grd", sep = "")
+	    x <- raster(file.path(dir_path, Map))
+	    
+	    hist(x, # breaks = bins, 
+	         col="orange",
+	         border="brown",
+	         xlab = "Predicted Value",
+	         main = "Histogram")
+	})	
 
 	output$VH_AO_SR_Map <- renderLeaflet({
 	   
@@ -3368,8 +3404,8 @@ shinyServer(function(input, output) {
 	          for (y in ylist) {
 	            if (ly > 0) {
 	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
+	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -3397,8 +3433,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3444,7 +3480,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -3458,8 +3494,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SR_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3504,7 +3540,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SR_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  VH_Name_SD_selected <- VH_Name_SD_list[1]
 	  
@@ -3516,7 +3552,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$VH_AO_SR_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
@@ -3532,8 +3568,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_NP_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[3])
 	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3579,7 +3615,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_NP_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
 	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -3594,8 +3630,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_BR_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[2])
 	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3641,7 +3677,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_BR_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
 	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -3656,8 +3692,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_DMZ_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[5])
 	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3703,7 +3739,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SR_DMZ_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
 	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 
@@ -3751,8 +3787,8 @@ shinyServer(function(input, output) {
 	          for (y in ylist) {
 	            if (ly > 0) {
 	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
+	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -3780,8 +3816,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3827,7 +3863,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -3841,8 +3877,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SL_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3887,7 +3923,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SL_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  VH_Name_SD_selected <- VH_Name_SD_list[1]
 	  
@@ -3899,7 +3935,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$VH_AO_SL_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
@@ -3915,8 +3951,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_NP_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[3])
 	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -3962,7 +3998,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_NP_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
 	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -3977,8 +4013,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_BR_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[2])
 	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4024,7 +4060,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_BR_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
 	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4039,8 +4075,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_DMZ_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[5])
 	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4086,7 +4122,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SL_DMZ_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
 	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4134,8 +4170,8 @@ shinyServer(function(input, output) {
 	          for (y in ylist) {
 	            if (ly > 0) {
 	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
+	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -4163,8 +4199,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4210,7 +4246,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4224,8 +4260,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SS_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4270,7 +4306,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SS_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  VH_Name_SD_selected <- VH_Name_SD_list[1]
 	  
@@ -4282,7 +4318,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$VH_AO_SS_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
@@ -4298,8 +4334,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_NP_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[3])
 	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4345,7 +4381,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_NP_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
 	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4360,8 +4396,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_BR_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[2])
 	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4407,7 +4443,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_BR_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
 	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4422,8 +4458,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_DMZ_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[5])
 	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4469,7 +4505,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SS_DMZ_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
 	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4517,8 +4553,8 @@ shinyServer(function(input, output) {
 	          for (y in ylist) {
 	            if (ly > 0) {
 	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
+	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -4546,8 +4582,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4593,7 +4629,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4607,8 +4643,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SI_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4653,7 +4689,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SI_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  VH_Name_SD_selected <- VH_Name_SD_list[1]
 	  
@@ -4665,7 +4701,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$VH_AO_SI_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
@@ -4681,8 +4717,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_NP_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[3])
 	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4728,7 +4764,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_NP_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
 	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4743,8 +4779,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_BR_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[2])
 	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4790,7 +4826,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_BR_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
 	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4805,8 +4841,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_DMZ_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[5])
 	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4852,7 +4888,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_SI_DMZ_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
 	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4900,8 +4936,8 @@ shinyServer(function(input, output) {
 	          for (y in ylist) {
 	            if (ly > 0) {
 	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
+	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -4929,8 +4965,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -4976,7 +5012,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -4990,8 +5026,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_VI1_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5036,7 +5072,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_VI1_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  VH_Name_SD_selected <- VH_Name_SD_list[1]
 	  
@@ -5048,7 +5084,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$VH_AO_VI1_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
@@ -5064,8 +5100,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_NP_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[3])
 	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5111,7 +5147,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_NP_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
 	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5126,8 +5162,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_BR_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[2])
 	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5173,7 +5209,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_BR_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
 	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5188,8 +5224,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_DMZ_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[5])
 	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5235,7 +5271,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI1_DMZ_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
 	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5283,8 +5319,8 @@ shinyServer(function(input, output) {
 	          for (y in ylist) {
 	            if (ly > 0) {
 	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
+	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -5312,8 +5348,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5359,7 +5395,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5373,8 +5409,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_VI2_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5419,7 +5455,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_VI2_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  VH_Name_SD_selected <- VH_Name_SD_list[1]
 	  
@@ -5431,7 +5467,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$VH_AO_VI2_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
@@ -5447,8 +5483,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_NP_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[3])
 	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5494,7 +5530,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_NP_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
 	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5509,8 +5545,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_BR_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[2])
 	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5556,7 +5592,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_BR_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
 	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5571,8 +5607,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_DMZ_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[5])
 	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5618,7 +5654,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI2_DMZ_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
 	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5666,8 +5702,8 @@ shinyServer(function(input, output) {
 	          for (y in ylist) {
 	            if (ly > 0) {
 	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_Dir_Folder), Map1))
+	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
+	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
 	              #                plot(R_Map1, main = Map1)
 	            }
 	          }
@@ -5695,8 +5731,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_SIDO_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5742,7 +5778,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_SIDO_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5756,8 +5792,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_VI3_SGG_Map <- renderLeaflet({
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5802,7 +5838,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_VI3_SGG_UI <- renderUI({
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  VH_Name_SD_selected <- VH_Name_SD_list[1]
 	  
@@ -5814,7 +5850,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_SGG_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$VH_AO_VI3_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
@@ -5830,8 +5866,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_NP_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[3])
 	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5877,7 +5913,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_NP_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
 	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5892,8 +5928,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_BR_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[2])
 	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -5939,7 +5975,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_BR_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
 	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
@@ -5954,8 +5990,8 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_DMZ_Map <- renderLeaflet({
 	  
-	  poly <- readOGR(file.path(isolate(G$VH_AO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  poly <- readOGR(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[5])
 	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
@@ -6001,7 +6037,7 @@ shinyServer(function(input, output) {
 	
 	output$VH_AO_VI3_DMZ_Stat <- renderPlot({
 	  
-	  df <- read.csv(file.path(isolate(G$VH_AO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
+	  df <- read.csv(file.path(isolate(G$VH_AO_MO_Dir_Folder), paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
 	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
