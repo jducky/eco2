@@ -170,64 +170,72 @@ shinyUI(
 
 	tabsetPanel(
 		tabPanel(SE_Name,
-      tags$hr(),
-
+      tabsetPanel(
+        tabPanel(SE_Name_Dir_Project_SDM,
+          tags$hr(),
 				  sidebarLayout(
 				    sidebarPanel(width = 3, Fluid = TRUE,
-#				      tags$hr(),
 				      uiOutput("SE_Dir_Project_SDM"),
 				      uiOutput("SE_Dir_Project_SDM_Species"),
-                      uiOutput("SE_Dir_Project_SDM_Species_Model"),
-                      br(),
-				      tags$hr(),
-				      uiOutput("SE_Dir_Project_IS"),
-				      br(),
-				      tags$hr(),
-				      uiOutput("SE_Dir_Project_VH"),
-#				      tags$hr()	
+              uiOutput("SE_Dir_Project_SDM_Species_Model"),
+              br()
 				    ),
-				    
+            mainPanel(
+              tabsetPanel(
+                tabPanel(SE_Name_Dir_Project_SDM_OPTION,
+                  tags$hr(),
+                  tableOutput("SE_Dir_Project_SDM_Species_Model_Options")
+                ),
+                tabPanel(SE_Name_Dir_Project_SDM_OUTPUT,
+                  tags$hr(),
+                  textOutput("SE_Dir_Project_SDM_Species_Model_Output")
+                )
+              )
+            )
+				  )
+        ),
+        tabPanel(SE_Name_Dir_Project_IS,
+          tags$hr(),
+          sidebarLayout(
+            sidebarPanel(width = 3, Fluid = TRUE,                     
+				      uiOutput("SE_Dir_Project_IS"),
+				      br()
+            ),
 				    mainPanel(
-				      tabsetPanel(
-				        tabPanel(SE_Name_Dir_Project_SDM,
-				            tabsetPanel(
-				                tabPanel(SE_Name_Dir_Project_SDM_OPTION,
-				                    tags$hr(),
-				                    tableOutput("SE_Dir_Project_SDM_Species_Model_Options")
-				                ),
-				                tabPanel(SE_Name_Dir_Project_SDM_OUTPUT,
-				                    tags$hr(),
-                                    textOutput("SE_Dir_Project_SDM_Species_Model_Output")
-				                )
-				            )
+				      tabsetPanel(				      
+				        tabPanel(SE_Name_Dir_Project_IS_OPTION,
+				          tags$hr(),
+				          tableOutput("SE_Dir_Project_IS_Species_Model_Options")
 				        ),
-				        tabPanel(SE_Name_Dir_Project_IS,
-				            tabsetPanel(
-				                tabPanel(SE_Name_Dir_Project_IS_OPTION,
-				                        tags$hr(),
-				                        tableOutput("SE_Dir_Project_IS_Species_Model_Options")
-				                ),
-				                tabPanel(SE_Name_Dir_Project_IS_OUTPUT,
-				                        tags$hr(),
-				                        textOutput("SE_Dir_Project_IS_Species_Model_Output")
-				                )
-				            )
-				        ),
-				        tabPanel(SE_Name_Dir_Project_VH,
-				            tabsetPanel(
-				                tabPanel(SE_Name_Dir_Project_VH_OPTION,
-				                        tags$hr(),
-				                        tableOutput("SE_Dir_Project_VH_Species_Model_Options")
-				                ),
-				                tabPanel(SE_Name_Dir_Project_VH_OUTPUT,
-				                        tags$hr(),
-				                        textOutput("SE_Dir_Project_VH_Species_Model_Output")
-				                )
-				            )
+				        tabPanel(SE_Name_Dir_Project_IS_OUTPUT,
+				          tags$hr(),
+				          textOutput("SE_Dir_Project_IS_Species_Model_Output")
 				        )
 				      )
 				    )
-				)
+          )
+        ),
+				tabPanel(SE_Name_Dir_Project_VH,
+				  tags$hr(),
+				  sidebarLayout(
+				    sidebarPanel(width = 3, Fluid = TRUE,    				      
+				      uiOutput("SE_Dir_Project_VH")
+				    ),
+				    mainPanel(
+				      tabsetPanel(
+				        tabPanel(SE_Name_Dir_Project_VH_OPTION,
+				          tags$hr(),
+				          tableOutput("SE_Dir_Project_VH_Species_Model_Options")
+				        ),
+				        tabPanel(SE_Name_Dir_Project_VH_OUTPUT,
+				          tags$hr(),
+                  textOutput("SE_Dir_Project_VH_Species_Model_Output")
+				        )
+				      )
+			  	  )
+			    )
+        )
+      )
 		),       
 
 		tabPanel(SP_Name,
@@ -613,9 +621,10 @@ shinyUI(
 		           tabPanel(DM_Name_Model, fluid = TRUE,
 		             tabsetPanel(
 		               tabPanel(DM_Name_Model_SDM,
+		                  tags$hr(),      
                       fluidRow(
                       sidebarPanel(width = 2, Fluid = TRUE,
-                        shinyDirButton("DM_SDM_Dir_Folder", DM_Name_Dir, DM_Name_Dir),
+                        shinyDirButton("DM_SDM_Dir_Folder", SDM_Name_Dir, SDM_Name_Dir),
                         verbatimTextOutput("DM_SDM_Dir_Folder", placeholder = TRUE),
                         tags$hr(),
                         uiOutput("DM_MO_Species")
@@ -640,6 +649,7 @@ shinyUI(
 		                )
 		              ),
 		              tabPanel(DM_Name_Model_DM,
+		                tags$hr(),
                     fluidRow(
                       sidebarPanel(width = 3,
 #                       uiOutput("DM_MO_DM_envChgSteps"),
@@ -699,7 +709,10 @@ shinyUI(
 		                                   tags$hr(),
 #		                                   shinyDirButton("DM_MO_Dir_Folder", DM_Name_Dir, DM_Name_Dir),
 #		                                   verbatimTextOutput("DM_MO_Dir_Folder", placeholder = TRUE),
-#		                                   tags$hr(),
+#                                       uiOutput("DM_MO_Dir_Folder"),
+                                       textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
+                                                  value = ""),
+		                                   tags$hr(),
 		                                   useShinyalert(),  # Set up shinyalert
 		                                   actionButton("DM_MO_Action_run", label = DM_Name_DM_MO_Action)
 		                      )

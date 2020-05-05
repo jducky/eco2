@@ -140,7 +140,7 @@ DM_Name_CD_Year_out_selected,0,2000,2000
 DM_Name_Display_types,0,Model types,출력결과 모델
 DM_Name_Display_types_list,0,"c(""Species Distribution Model"" = ""SDM"", ""Dispersal Model"" = ""DM"")","c(""종분포모형"" = ""SDM"", ""종확산모형"" = ""DM"")"
 DM_Name_Display_types_selected,0,SDM,SDM
-DM_Name_Dir,0,SDM Output Folder,SDM 평가결과 폴더
+DM_Name_Dir,0,DM Output Folder,DM 평가결과 폴더
 SS_Name,0,Senstive Species,기후변화민감종
 SS_Name_Analysis,0,Impact and Vulnerability Asessment,영향 및 취약성평가
 SS_Name_Out,0,Assessment Result,평가결과

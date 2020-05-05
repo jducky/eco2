@@ -1205,10 +1205,24 @@ shinyServer(function(input, output) {
 	  G$DM_MO_DM_dispKernel <<- c(input$DM_MO_DM_dispKernel1, input$DM_MO_DM_dispKernel2, input$DM_MO_DM_dispKernel3, input$DM_MO_DM_dispKernel4, input$DM_MO_DM_dispKernel5)
 	  str(G$DM_MO_DM_dispKernel)
 	})
-	
+
 	output$DM_MO_DM_propaguleProd <- renderPrint({
 	  G$DM_MO_DM_propaguleProd <<- c(input$DM_MO_DM_propaguleProd1, input$DM_MO_DM_propaguleProd2, input$DM_MO_DM_propaguleProd3, input$DM_MO_DM_propaguleProd4)
 	  str(G$DM_MO_DM_propaguleProd)
+	})
+	
+	observeEvent(input$DM_MO_Dir_Folder, {
+#	  PATH_PROJECT <- G$SE_Dir_Project
+#	  volumes <- c(main = file.path(PATH_PROJECT, "Species_Distribution", G$DM_SDM_Dir_Folder))
+#	  volumes <- c(main = file.path(G$DM_SDM_Dir_Folder))
+#	  shinyDirChoose(input, 'DM_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
+	  textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name" ,
+	            value = "insert DM Model Foler Name")
+	  
+#	  G$DM_MO_Dir_Folder <<- file.path(PATH_PROJECT, "Species_Distribution", G$DM_SDM_Dir_Folder, paste("MIGCLIM_", input$DM_MO_Dir_Folder, sep = ""))
+#	  output$DM_MO_Dir_Folder <- renderText({G$DM_MO_Dir_Folder})
+#	  G$DM_AO_Dir_Folder <<- file.path(PATH_PROJECT, "Species_Distribution")
+#	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
 	})
 	
 	observeEvent(input$DM_MO_Action_run, {
@@ -1241,8 +1255,8 @@ shinyServer(function(input, output) {
 	    ##### Setting variables ======================================
 	    
 	    # setting Paths
-#	    PATH_PROJECT   <- G$SE_Dir_Project
-	    PATH_MODEL_OUTPUT <- G$DM_AO_Dir_Folder # file.path(PATH_PROJECT, "Species_Distribution")
+	    PATH_PROJECT   <- G$SE_Dir_Project
+	    PATH_MODEL_OUTPUT <- G$DM_SDM_Dir_Folder   # file.path(PATH_PROJECT, "Species_Distribution")
 	    setwd(PATH_MODEL_OUTPUT)
 	    
 	    # Defining Model options.
@@ -1274,18 +1288,18 @@ shinyServer(function(input, output) {
 	    for (s in slist) {
 	      n <- n + 1
 	      # creating Migclim output path
-	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM"))) {
+	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))) {
 	        cat(paste("MIGCLIM exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
-	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM"))) {
+	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))) {
 	        cat(paste("MIGCLIM exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
 	      } else {
 	        cat(paste("MIGCLIM does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
-	        dir.create(file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM"))
+	        dir.create(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))
 	      }   
 	      
 	      # Setting working path
 	      org_path <- file.path(PATH_MODEL_OUTPUT, s, "BIOMOD2")
-	      target_path <- file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM")
+	      target_path <- file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""))
 	      setwd(target_path)
 	      
 	      ### Projection on current and future environemental conditions
