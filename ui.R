@@ -534,9 +534,7 @@ shinyUI(
 					tags$hr(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
-              shinyDirButton("SDM_AO_Dir_Folder", SDM_Name_Dir, SDM_Name_Dir),
-              verbatimTextOutput("SDM_AO_Dir_Folder", placeholder = TRUE),
-              tags$hr(),
+						    uiOutput("SDM_AO_Dir_Folder"),
 							uiOutput("SDM_OU_Species"),
 							tags$hr(),
 
@@ -709,8 +707,8 @@ shinyUI(
 		                                   tags$hr(),
 #		                                   shinyDirButton("DM_MO_Dir_Folder", DM_Name_Dir, DM_Name_Dir),
 #		                                   verbatimTextOutput("DM_MO_Dir_Folder", placeholder = TRUE),
-#                                       uiOutput("DM_MO_Dir_Folder"),
-                                       textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
+#                                          uiOutput("DM_MO_Dir_Folder"),
+                                           textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
                                                   value = ""),
 		                                   tags$hr(),
 		                                   useShinyalert(),  # Set up shinyalert
@@ -727,6 +725,8 @@ shinyUI(
 		                      sidebarPanel(width = 3, Fluid = TRUE,
 		                                   shinyDirButton("DM_AO_Dir_Folder", DM_Name_Dir, DM_Name_Dir),
 		                                   verbatimTextOutput("DM_AO_Dir_Folder", placeholder = TRUE),
+		                                   textInput("DM_AO_MO_Dir_Folder_Name", "DM Model Foler Name",
+		                                             value = ""),
 		                                   tags$hr(),
 		                                   
 		                                   uiOutput("DM_OU_Species"),

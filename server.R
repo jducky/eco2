@@ -502,10 +502,10 @@ shinyServer(function(input, output) {
 	  shinyDirChoose(input, 'SDM_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
 	  G$SDM_MO_Dir_Folder <<- parseDirPath(volumes, input$SDM_MO_Dir_Folder)
 	  output$SDM_MO_Dir_Folder <- renderText({G$SDM_MO_Dir_Folder})
-	  G$SDM_AO_Dir_Folder <<- G$SDM_MO_Dir_Folder
-	  output$SDM_AO_Dir_Folder <- renderText({G$SDM_AO_Dir_Folder})
-	  G$DM_SDM_Dir_Folder <<- G$SDM_AO_Dir_Folder
-	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
+#	  G$SDM_AO_Dir_Folder <<- G$SDM_MO_Dir_Folder
+#	  output$SDM_AO_Dir_Folder <- renderText({G$SDM_AO_Dir_Folder})
+#	  G$DM_SDM_Dir_Folder <<- G$SDM_AO_Dir_Folder
+#	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
 	})
 	
 	observeEvent(input$SDM_MO_SDM_run, {
@@ -981,15 +981,25 @@ shinyServer(function(input, output) {
 	  })        
 	})
 	
-	observeEvent(input$SDM_AO_Dir_Folder, {
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-	  shinyDirChoose(input, 'SDM_AO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$SDM_AO_Dir_Folder <<- parseDirPath(volumes, input$SDM_AO_Dir_Folder)
-	  output$SDM_AO_Dir_Folder <- renderText({G$SDM_AO_Dir_Folder})
-	  G$DM_SDM_Dir_Folder <<- G$SDM_AO_Dir_Folder
-	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
-	  G$DM_AO_Dir_Folder <<- G$DM_SDM_Dir_Folder
-	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
+#	observeEvent(input$SDM_AO_Dir_Folder, {
+#	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
+#	  shinyDirChoose(input, 'SDM_AO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
+#	  G$SDM_AO_Dir_Folder <<- parseDirPath(volumes, input$SDM_AO_Dir_Folder)
+#	  output$SDM_AO_Dir_Folder <- renderText({G$SDM_AO_Dir_Folder})
+#	  G$DM_SDM_Dir_Folder <<- G$SDM_AO_Dir_Folder
+#	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
+#	  G$DM_AO_Dir_Folder <<- G$DM_SDM_Dir_Folder
+#	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
+#	})
+	
+	output$SDM_AO_Dir_Folder <- renderUI({
+	    SDM_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	    SDM_AO_Dir_Folder_selected <- SDM_AO_Dir_Folder_list[1]
+	    selectInput("SDM_AO_Dir", "Working Species Distribution Folders",
+	                choices = c(SDM_AO_Dir_Folder_list),
+	                selected = SDM_AO_Dir_Folder_selected
+	    )
+	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
 	})
 
 	output$SDM_OU_Species <- renderUI({
@@ -1212,17 +1222,8 @@ shinyServer(function(input, output) {
 	})
 	
 	observeEvent(input$DM_MO_Dir_Folder, {
-#	  PATH_PROJECT <- G$SE_Dir_Project
-#	  volumes <- c(main = file.path(PATH_PROJECT, "Species_Distribution", G$DM_SDM_Dir_Folder))
-#	  volumes <- c(main = file.path(G$DM_SDM_Dir_Folder))
-#	  shinyDirChoose(input, 'DM_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
 	  textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name" ,
 	            value = "insert DM Model Foler Name")
-	  
-#	  G$DM_MO_Dir_Folder <<- file.path(PATH_PROJECT, "Species_Distribution", G$DM_SDM_Dir_Folder, paste("MIGCLIM_", input$DM_MO_Dir_Folder, sep = ""))
-#	  output$DM_MO_Dir_Folder <- renderText({G$DM_MO_Dir_Folder})
-#	  G$DM_AO_Dir_Folder <<- file.path(PATH_PROJECT, "Species_Distribution")
-#	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
 	})
 	
 	observeEvent(input$DM_MO_Action_run, {
@@ -1434,6 +1435,12 @@ shinyServer(function(input, output) {
 	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
 	})
 	
+#	observeEvent(input$DM_AO_MO_Dir_Folder_Name, {
+#	    textInput("DM_AO_MO_Dir_Folder_Name", "DM Model Foler Name" ,
+#	              value = "insert DM Model Foler Name")
+#	    G$DM_AO_MO_Dir_Folder_Name <<- input$DM_AO_MO_Dir_Folder_Name
+#	})
+	
 	output$DM_OU_Species <- renderUI({
 	  DM_Name_Species_list <- list.dirs(path = G$DM_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	  DM_Name_Species_selected <- DM_Name_Species_list[1]
@@ -1517,7 +1524,11 @@ shinyServer(function(input, output) {
 	  
 	  for (s in slist) {
 	    for (dt in dtlist) {
-	      dir_path <- file.path(G$DM_AO_Dir_Folder, s, dt)
+	        if (dt == "MIGCLIM") {
+	            dir_path <- file.path(G$DM_AO_Dir_Folder, s, paste(dt, "_", input$DM_AO_MO_Dir_Folder_Name, sep = ""))
+	        } else {
+	            dir_path <- file.path(G$DM_AO_Dir_Folder, s, dt)
+	        }
 	    for (d in dlist) {
 	      for (c in clist) {
 	        for (m in mlist) {
