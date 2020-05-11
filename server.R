@@ -1440,7 +1440,7 @@ shinyServer(function(input, output) {
 	      DM_variables[1:length(input$DM_MO_DM_replicateNb), "input$DM_MO_DM_replicateNb"] <- input$DM_MO_DM_replicateNb
 
 	      DM_variables[is.na(DM_variables)] <- ""
-	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM", paste(s, "_MIGCLIM_variables.csv", sep = "", collapse = "--")))
+	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), paste(s, "_MIGCLIM_variables.csv", sep = "", collapse = "--")))
 	      
 	      #####
 	    } # End Speices loop s
