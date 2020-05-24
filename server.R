@@ -502,10 +502,6 @@ shinyServer(function(input, output) {
 	  shinyDirChoose(input, 'SDM_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
 	  G$SDM_MO_Dir_Folder <<- parseDirPath(volumes, input$SDM_MO_Dir_Folder)
 	  output$SDM_MO_Dir_Folder <- renderText({G$SDM_MO_Dir_Folder})
-#	  G$SDM_AO_Dir_Folder <<- G$SDM_MO_Dir_Folder
-#	  output$SDM_AO_Dir_Folder <- renderText({G$SDM_AO_Dir_Folder})
-#	  G$DM_SDM_Dir_Folder <<- G$SDM_AO_Dir_Folder
-#	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
 	})
 	
 	observeEvent(input$SDM_MO_SDM_run, {
@@ -981,16 +977,6 @@ shinyServer(function(input, output) {
 	  })        
 	})
 	
-#	observeEvent(input$SDM_AO_Dir_Folder, {
-#	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-#	  shinyDirChoose(input, 'SDM_AO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-#	  G$SDM_AO_Dir_Folder <<- parseDirPath(volumes, input$SDM_AO_Dir_Folder)
-#	  output$SDM_AO_Dir_Folder <- renderText({G$SDM_AO_Dir_Folder})
-#	  G$DM_SDM_Dir_Folder <<- G$SDM_AO_Dir_Folder
-#	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
-#	  G$DM_AO_Dir_Folder <<- G$DM_SDM_Dir_Folder
-#	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
-#	})
 	
 	output$SDM_AO_Dir_Folder <- renderUI({
 	    SDM_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
@@ -1184,15 +1170,6 @@ shinyServer(function(input, output) {
 			main = "Histogram")
 	})
 	
-
-#	observeEvent(input$DM_SDM_Dir_Folder, {
-#	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-#	  shinyDirChoose(input, 'DM_SDM_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-#	  G$DM_SDM_Dir_Folder <<- parseDirPath(volumes, input$DM_SDM_Dir_Folder)
-#	  output$DM_SDM_Dir_Folder <- renderText({G$DM_SDM_Dir_Folder})
-#	  G$DM_AO_Dir_Folder <<- G$DM_SDM_Dir_Folder
-#	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
-#	})
 	
 	output$DM_SDM_Dir_Folder <- renderUI({
 	  DM_SDM_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
@@ -1201,7 +1178,7 @@ shinyServer(function(input, output) {
 	              choices = c(DM_SDM_Dir_Folder_list),
 	              selected = DM_SDM_Dir_Folder_selected
 	  )
-#	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
+
 	})
 	
 	output$DM_MO_Species <- renderUI({
@@ -1452,18 +1429,6 @@ shinyServer(function(input, output) {
 	  })        
 	})
 	
-#	observeEvent(input$DM_AO_Dir_Folder, {
-#	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-#	  shinyDirChoose(input, 'DM_AO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-#	  G$DM_AO_Dir_Folder <<- parseDirPath(volumes, input$DM_AO_Dir_Folder)
-#	  output$DM_AO_Dir_Folder <- renderText({G$DM_AO_Dir_Folder})
-#	})
-	
-#	observeEvent(input$DM_AO_MO_Dir_Folder_Name, {
-#	    textInput("DM_AO_MO_Dir_Folder_Name", "DM Model Foler Name" ,
-#	              value = "insert DM Model Foler Name")
-#	    G$DM_AO_MO_Dir_Folder_Name <<- input$DM_AO_MO_Dir_Folder_Name
-#	})
 	
 	output$DM_AO_Dir_Folder <- renderUI({
 	  DM_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
@@ -1472,7 +1437,7 @@ shinyServer(function(input, output) {
 	              choices = c(DM_AO_Dir_Folder_list),
 	              selected = DM_AO_Dir_Folder_selected
 	  )
-	  #	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
+	  
 	})
 	
 	output$DM_AO_Model_Name <- renderUI({
@@ -1483,7 +1448,7 @@ shinyServer(function(input, output) {
 	              choices = c(DM_AO_Model_Name_list),
 	              selected = DM_AO_Model_Name_selected
 	  )
-	  #	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
+	 
 	})
 	
 	output$DM_OU_Species <- renderUI({
@@ -1590,14 +1555,6 @@ shinyServer(function(input, output) {
 	  ##### End Plot output =========================================
 	})
 	
-#	observeEvent(input$SS_MO_Dir_Folder, {
-#	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-#	  shinyDirChoose(input, 'SS_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-#	  G$SS_MO_Dir_Folder <<- parseDirPath(volumes, input$SS_MO_Dir_Folder)
-#	  output$SS_MO_Dir_Folder <- renderText({G$SS_MO_Dir_Folder})
-#	  G$SS_AO_Dir_Folder <<- G$SS_MO_Dir_Folder
-#	  output$SS_AO_Dir_Folder <- renderText({G$SS_AO_Dir_Folder})
-#	})
 	
 	output$SS_MO_Dir_Folder <- renderUI({
 	  SS_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
@@ -1606,7 +1563,7 @@ shinyServer(function(input, output) {
 	              choices = c(SS_MO_Dir_Folder_list),
 	              selected = SS_MO_Dir_Folder_selected
 	  )
-	  #	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
+	  
 	})
 	
 	output$SS_MO_Dir_Folder_Name <- renderUI({
@@ -1616,7 +1573,7 @@ shinyServer(function(input, output) {
 	              choices = c(SS_MO_Dir_Folder_Name_list),
 	              selected = SS_MO_Dir_Folder_Name_selected
 	  )
-	  #	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
+	  
 	})
 	
 	output$SS_CA_Species <- renderUI({
@@ -1922,18 +1879,10 @@ shinyServer(function(input, output) {
 #		  }
 		}
 		write.csv(Tab_gap_sum, file = file.path(save_path, paste(input$SS_MO_Dir_Folder, "_Speices_VINDEX.csv", sep = "")))
-#		write.csv(Tab_gap_sum, file = file.path(save_path, paste(dt, "_", ls, "Speices_VINDEX.csv", sep = "")))
-#		write.csv(Tab_gap_sum, file = file.path(file.path(isolate(G$SE_Dir_Project), "Sensitive_Species"), paste("Speices_VINDEX.csv", sep = "", collapse = "--")))
 		})
 		##### End GAP analyzing =========================================    
 	})
 	
-#	observeEvent(input$SS_AO_Dir_Folder, {
-#	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-#	  shinyDirChoose(input, 'SS_AO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-#	  G$SS_AO_Dir_Folder <<- parseDirPath(volumes, input$SS_AO_Dir_Folder)
-#	  output$SS_AO_Dir_Folder <- renderText({G$SS_AO_Dir_Folder})
-#	})
 	
 	output$SS_AO_Dir_Folder <- renderUI({
 	  SS_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
@@ -1942,7 +1891,7 @@ shinyServer(function(input, output) {
 	              choices = c(SS_AO_Dir_Folder_list),
 	              selected = SS_AO_Dir_Folder_selected
 	  )
-	  #	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
+	  
 	})
 	
 	output$SS_AO_Model_Name <- renderUI({
@@ -1952,14 +1901,14 @@ shinyServer(function(input, output) {
 	              choices = c(SS_AO_Model_Name_list),
 	              selected = SS_AO_Model_Name_selected
 	  )
-	  #	    G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_Dir)
+	  
 	})
 	
 	output$SS_AO_Species <- renderUI({
 	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
 		SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		SS_Name_Species_selected <- SS_Name_Species_list[1]
-		checkboxGroupInput("SS_AO_Species", "Select a species",
+		radioButtons("SS_AO_Species", "Select a species",
 			choices = c(SS_Name_Species_list),
 			selected = SS_Name_Species_selected
 		)
@@ -2075,7 +2024,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SS_AO_IV_Table <- DT::renderDataTable({
-		destfile <- file.path(G$SS_AO_Dir_Folder, input$SS_AO_Species, "BIOMOD2", paste(as.name(paste(input$SS_AO_Species, "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species, input$SS_AO_Model_Name_Input, paste(as.name(paste(input$SS_AO_Species, "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
 		vindex <- read.csv(destfile)
 		G_FILE_species_vindex <<- vindex
 		vindex
@@ -2176,7 +2125,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SS_AO_VP_Table <- DT::renderDataTable({
-		destfile <- file.path(G$SS_AO_Dir_Folder, paste(input$SS_AO_Dispersal_type, "_Speices_VINDEX.csv", sep = "")) # , sep = "", collapse = "--")
+		destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, paste(input$SS_AO_Model_Name_Input, "_Speices_VINDEX.csv", sep = "")) # , sep = "", collapse = "--")
 		vindex <- read.csv(destfile)
 		G_FILE_species_vindex <<- vindex
 		vindex
@@ -2343,17 +2292,30 @@ shinyServer(function(input, output) {
 			horiz = F , 
 			inset = c(0.1, 0.1))
 	})
+
 	
-	observeEvent(input$IS_MI_Dir_Folder, {
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-	  shinyDirChoose(input, 'IS_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$IS_MI_Dir_Folder <<- parseDirPath(volumes, input$IS_MI_Dir_Folder)
-	  output$IS_MI_Dir_Folder <- renderText({G$IS_MI_Dir_Folder})
-	  G$IS_AO_MI_Dir_Folder <<- G$IS_MI_Dir_Folder
-	  output$IS_AO_MI_Dir_Folder <- renderText({G$IS_AO_MI_Dir_Folder})
+	output$IS_MI_Dir_Folder <- renderUI({
+	  IS_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	  IS_MI_Dir_Folder_selected <- IS_MI_Dir_Folder_list[1]
+	  selectInput("IS_MI_Dir", "Working Species Distribution Folders",
+	              choices = c(IS_MI_Dir_Folder_list),
+	              selected = IS_MI_Dir_Folder_selected
+	  )
+	 
 	})
 	
+	output$IS_MI_Dir_Folder_Name <- renderUI({
+	  IS_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_MI_Dir, input$IS_CA_Species[1]), full.names = FALSE, recursive = FALSE)
+	  IS_MI_Dir_Folder_Name_selected <- IS_MI_Dir_Folder_Name_list[1]
+	  selectInput("IS_MI_Dir_Folder", "Working SDM Types",
+	              choices = c(IS_MI_Dir_Folder_Name_list),
+	              selected = IS_MI_Dir_Folder_Name_selected
+	  )
+	  
+	})	
+	
 	output$IS_CA_Species <- renderUI({
+	  G$IS_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_MI_Dir)
 		IS_Name_Species_list <- list.dirs(path = G$IS_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		IS_Name_Species_selected <- IS_Name_Species_list[1]
 		checkboxGroupInput("IS_CA_Species", "Select a species",
@@ -2363,6 +2325,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_CA_SDM_model <- renderUI({
+	  G$IS_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_MI_Dir)
 		destfile <- file.path(G$IS_MI_Dir_Folder, input$IS_CA_Species[1], "BIOMOD2", paste(as.name(paste(input$IS_CA_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
@@ -2408,7 +2371,7 @@ shinyServer(function(input, output) {
 		gain_list <- NULL
 		
 		withProgress(message = 'Runing Invasive Species Impact and Vulnerability Analysis.........', value = 0, {
-      
+		G$IS_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_MI_Dir)  
 		for (d in dlist) {
 			for (c in clist) {
 				for (m in mlist) {
@@ -2417,7 +2380,7 @@ shinyServer(function(input, output) {
 							if(y == ylist[1]) {
 								incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
 								for (s in slist) {
-									dir_path <- file.path(G$IS_MI_Dir_Folder, s, input$IS_CA_Dispersal_type)
+									dir_path <- file.path(G$IS_MI_Dir_Folder, s, input$IS_MI_Dir_Folder)
 									img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 									sr_list <- c(sr_list, img)
 								}
@@ -2440,7 +2403,7 @@ shinyServer(function(input, output) {
 							} else {
 							    incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
 								for (s in slist) {
-									dir_path <- file.path(G$IS_MI_Dir_Folder, s, input$IS_CA_Dispersal_type)
+								  dir_path <- file.path(G$IS_MI_Dir_Folder, s, input$IS_MI_Dir_Folder)
 									img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 									sr_list <- c(sr_list, img)
 									img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
@@ -2505,13 +2468,13 @@ shinyServer(function(input, output) {
 		    
 #		    destfile <- file.path(G$IS_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
 		    
-		    IS_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 100)), c("input$SDM_Folder", "input$IS_CA_Species", "input$IS_CA_Dispersal_type", "input$IS_CA_Climate_model", "input$IS_CA_Climate_scenario", 
+		    IS_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 5000)), c("input$SDM_Folder", "input$IS_CA_Species", "input$IS_CA_Dispersal_type", "input$IS_CA_Climate_model", "input$IS_CA_Climate_scenario", 
 		                                                                         "input$IS_CA_Project_year", "input$IS_CA_SDM_model"
 		    ))
 		    
 		    IS_variables[1:length(G$IS_MI_Dir_Folder), "input$SDM_Folder"] <- G$IS_MI_Dir_Folder
 		    IS_variables[1:length(input$IS_CA_Species), "input$IS_CA_Species"] <- input$IS_CA_Species
-		    IS_variables[1:length(input$IS_CA_Dispersal_type), "input$IS_CA_Dispersal_type"] <- input$IS_CA_Dispersal_type
+		    IS_variables[1:length(input$IS_CA_Dispersal_type), "input$IS_CA_Dispersal_type"] <- input$IS_MI_Dir_Folder
 		    IS_variables[1:length(input$IS_CA_Climate_model), "input$IS_CA_Climate_model"] <- input$IS_CA_Climate_model
 		    IS_variables[1:length(input$IS_CA_Climate_scenario), "input$IS_CA_Climate_scenario"] <- input$IS_CA_Climate_scenario
 		    IS_variables[1:length(input$IS_CA_Project_year), "input$IS_CA_Project_year"] <- input$IS_CA_Project_year
@@ -2609,21 +2572,40 @@ shinyServer(function(input, output) {
 	  })
 	})
 	
-	observeEvent(input$IS_AO_MI_Dir_Folder, {
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-	  shinyDirChoose(input, 'IS_AO_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$IS_AO_MI_Dir_Folder <<- parseDirPath(volumes, input$IS_AO_MI_Dir_Folder)
-	  output$IS_AO_MI_Dir_Folder <- renderText({G$IS_AO_MI_Dir_Folder})
-	})
 
-	observeEvent(input$IS_AO_MO_Dir_Folder, {
-		volumes <- c(main = file.path(G$SE_Dir_Project, "Invasive_Species"))
-		shinyDirChoose(input, 'IS_AO_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-		G$IS_AO_MO_Dir_Folder <<- parseDirPath(volumes, input$IS_AO_MO_Dir_Folder)
-		output$IS_AO_MO_Dir_Folder <- renderText({G$IS_AO_MO_Dir_Folder})
+	output$IS_AO_MI_Dir_Folder <- renderUI({
+	  IS_AO_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	  IS_AO_MI_Dir_Folder_selected <- IS_AO_MI_Dir_Folder_list[1]
+	  selectInput("IS_AO_MI_Dir", "Working Species Distribution Folders",
+	              choices = c(IS_AO_MI_Dir_Folder_list),
+	              selected = IS_AO_MI_Dir_Folder_selected
+	  )
+	  
 	})
 	
+	output$IS_AO_MO_Dir_Folder <- renderUI({
+	  IS_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Invasive_Species"), full.names = FALSE, recursive = FALSE)
+	  IS_AO_MO_Dir_Folder_selected <- IS_AO_MO_Dir_Folder_list[1]
+	  selectInput("IS_AO_MO_Dir", "Working Invasive Species Folders",
+	              choices = c(IS_AO_MO_Dir_Folder_list),
+	              selected = IS_AO_MO_Dir_Folder_selected
+	  )
+	  
+	})
+	
+	output$IS_AO_MI_Dir_Folder_Name <- renderUI({
+	  IS_AO_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_AO_MI_Dir, input$IS_AO_Species[1]), full.names = FALSE, recursive = FALSE)
+	  IS_AO_MI_Dir_Folder_Name_selected <- IS_AO_MI_Dir_Folder_Name_list[1]
+	  selectInput("IS_AO_MI_Dir_Folder", "Working SDM Types",
+	              choices = c(IS_AO_MI_Dir_Folder_Name_list),
+	              selected = IS_AO_MI_Dir_Folder_Name_selected
+	  )
+	  
+	})		
+
+	
 	output$IS_AO_Species <- renderUI({
+	  G$IS_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_AO_MI_Dir)
 	  IS_Name_Species_list <- list.dirs(path = G$IS_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	  IS_Name_Species_selected <- IS_Name_Species_list[1]
 	  selectInput("IS_AO_Species", "Select a species",
@@ -2634,6 +2616,7 @@ shinyServer(function(input, output) {
 	
 	
 	output$IS_AO_SDM_model <- renderUI({
+	  G$IS_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_AO_MI_Dir)
 		destfile <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$IS_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
@@ -2646,7 +2629,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SD_Map <- renderLeaflet({
-	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_Dispersal_type)
+	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".grd", sep = "")
 	  r <- raster(file.path(dir_path, Map))
 	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
@@ -2710,7 +2693,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$IS_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -2809,7 +2792,7 @@ shinyServer(function(input, output) {
   
 
 	output$IS_AO_SR_SIDO_Map <- renderLeaflet({
-	
+	  
 	  poly <- readOGR(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("SD", ".shp", sep = "")))
 	  x <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
@@ -2871,6 +2854,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SR_SGG_Map <- renderLeaflet({
+	  
 	  poly <- readOGR(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
 	  x <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
@@ -2917,6 +2901,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SR_SGG_UI <- renderUI({
+	  
 	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  IS_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  IS_Name_SD_selected <- IS_Name_SD_list[1]
@@ -2974,7 +2959,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$IS_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -3074,6 +3059,7 @@ shinyServer(function(input, output) {
 	#	geom_text(aes(label = Vulnerability_Area_Loss_Ratio), size = 3, hjust = 0.5, vjust = 3) + 
 	
 	output$IS_AO_SI_SGG_Map <- renderLeaflet({
+	  
 	  poly <- readOGR(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("SGG", ".shp", sep = "")))
 	  x <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
@@ -3120,6 +3106,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SI_SGG_UI <- renderUI({
+	  
 	  df <- read.csv(file.path(isolate(G$IS_AO_MO_Dir_Folder), paste("IS_SGG", ".csv", sep = "")))
 	  IS_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	  IS_Name_SD_selected <- IS_Name_SD_list[1]
@@ -3146,16 +3133,29 @@ shinyServer(function(input, output) {
 	    labs(title = "시군구 외래종 유입") + labs(x = "시군구") + labs(y = "외래종수")
 	})
 	
-	observeEvent(input$VH_MI_Dir_Folder, {
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-	  shinyDirChoose(input, 'VH_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$VH_MI_Dir_Folder <<- parseDirPath(volumes, input$VH_MI_Dir_Folder)
-	  output$VH_MI_Dir_Folder <- renderText({G$VH_MI_Dir_Folder})
-	  G$VH_AO_MI_Dir_Folder <<- G$VH_MI_Dir_Folder
-	  output$VH_AO_MI_Dir_Folder <- renderText({G$VH_AO_MI_Dir_Folder})
+	
+	output$VH_MI_Dir_Folder <- renderUI({
+	  VH_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	  VH_MI_Dir_Folder_selected <- VH_MI_Dir_Folder_list[1]
+	  selectInput("VH_MI_Dir", "Working Species Distribution Folders",
+	              choices = c(VH_MI_Dir_Folder_list),
+	              selected = VH_MI_Dir_Folder_selected
+	  )
+	  
 	})
 	
+	output$VH_MI_Dir_Folder_Name <- renderUI({
+	  VH_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_MI_Dir, input$VH_CA_Species[1]), full.names = FALSE, recursive = FALSE)
+	  VH_MI_Dir_Folder_Name_selected <- VH_MI_Dir_Folder_Name_list[1]
+	  selectInput("VH_MI_Dir_Folder", "Working SDM Types",
+	              choices = c(VH_MI_Dir_Folder_Name_list),
+	              selected = VH_MI_Dir_Folder_Name_selected
+	  )
+	  
+	})	
+	
 	output$VH_CA_Species <- renderUI({
+	  G$VH_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_MI_Dir)
 		VH_Name_Species_list <- list.dirs(path = G$VH_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		VH_Name_Species_selected <- VH_Name_Species_list[1]
 		checkboxGroupInput("VH_CA_Species", "Select a species",
@@ -3165,6 +3165,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_CA_SDM_model <- renderUI({
+	  G$VH_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_MI_Dir)
 		destfile <- file.path(G$VH_MI_Dir_Folder, input$VH_CA_Species[1], "BIOMOD2", paste(as.name(paste(input$VH_CA_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
@@ -3210,7 +3211,7 @@ shinyServer(function(input, output) {
 	  gain_list <- NULL
 	  
 	  withProgress(message = 'Runing Vulnerable Habitat Impact and Vulnerability Analysis.........', value = 0, {
-	    
+	    G$VH_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_MI_Dir)  
 	    for (d in dlist) {
 	      for (c in clist) {
 	        for (m in mlist) {
@@ -3219,7 +3220,7 @@ shinyServer(function(input, output) {
 	              if(y == ylist[1]) {
 	                incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
 	                for (s in slist) {
-	                  dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_CA_Dispersal_type)
+	                  dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
 	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  sr_list <- c(sr_list, img)
 	                }
@@ -3241,7 +3242,7 @@ shinyServer(function(input, output) {
 	                sr_list <- NULL
 	              } else {					  
 	                for (s in slist) {
-	                  dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_CA_Dispersal_type)
+	                  dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
 	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  sr_list <- c(sr_list, img)
 	                  img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
@@ -3295,13 +3296,13 @@ shinyServer(function(input, output) {
 	      
 	      #		    destfile <- file.path(G$VH_MO_Dir_Folder, "VulnerableHabitat_Options.csv")
 	      
-	      VH_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 100)), c("input$SDM_Folder", "input$VH_CA_Species", "input$VH_CA_Dispersal_type", "input$VH_CA_Climate_model", "input$VH_CA_Climate_scenario", 
+	      VH_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 5000)), c("input$SDM_Folder", "input$VH_CA_Species", "input$VH_CA_Dispersal_type", "input$VH_CA_Climate_model", "input$VH_CA_Climate_scenario", 
 	                                                                          "input$VH_CA_Project_year", "input$VH_CA_SDM_model"
 	      ))
 	      
 	      VH_variables[1:length(G$VH_MI_Dir_Folder), "input$SDM_Folder"] <- G$VH_MI_Dir_Folder
 	      VH_variables[1:length(input$VH_CA_Species), "input$VH_CA_Species"] <- input$VH_CA_Species
-	      VH_variables[1:length(input$VH_CA_Dispersal_type), "input$VH_CA_Dispersal_type"] <- input$VH_CA_Dispersal_type
+	      VH_variables[1:length(input$VH_CA_Dispersal_type), "input$VH_CA_Dispersal_type"] <- input$VH_MI_Dir_Folder
 	      VH_variables[1:length(input$VH_CA_Climate_model), "input$VH_CA_Climate_model"] <- input$VH_CA_Climate_model
 	      VH_variables[1:length(input$VH_CA_Climate_scenario), "input$VH_CA_Climate_scenario"] <- input$VH_CA_Climate_scenario
 	      VH_variables[1:length(input$VH_CA_Project_year), "input$VH_CA_Project_year"] <- input$VH_CA_Project_year
@@ -3339,14 +3340,14 @@ shinyServer(function(input, output) {
 	  
 	  withProgress(message = paste("Grouping by ", input$VH_VA_Habitat), value = 0, {
 	    
-	    dir_path <- isolate(G$VH_VA_Dir_Folder)
+	    dir_path <- G$VH_MO_Dir_Folder
 	    
 	    for (a in alist) {
 	      
 	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
 	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	      poly <- readShapePoly(file.path(isolate(G$SE_Dir_GIS), paste(a, ".shp", sep = "")))
-	      df <- read.dbf(file.path(isolate(G$SE_Dir_GIS), paste(a, ".dbf", sep = "")))
+	      poly <- readShapePoly(file.path(G$SE_Dir_GIS, paste(a, ".shp", sep = "")))
+	      df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
 	      
 	      for (d in dlist) {
 	        for (c in clist) {
@@ -3389,14 +3390,38 @@ shinyServer(function(input, output) {
 	})
 	
 	
-	observeEvent(input$VH_AO_MI_Dir_Folder, {
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Species_Distribution"))
-	  shinyDirChoose(input, 'VH_AO_MI_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$VH_AO_MI_Dir_Folder <<- parseDirPath(volumes, input$VH_AO_MI_Dir_Folder)
-	  output$VH_AO_MI_Dir_Folder <- renderText({G$VH_AO_MI_Dir_Folder})
+	output$VH_AO_MI_Dir_Folder <- renderUI({
+	  VH_AO_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	  VH_AO_MI_Dir_Folder_selected <- VH_AO_MI_Dir_Folder_list[1]
+	  selectInput("VH_AO_MI_Dir", "Working Species Distribution Folders",
+	              choices = c(VH_AO_MI_Dir_Folder_list),
+	              selected = VH_AO_MI_Dir_Folder_selected
+	  )
+	  
 	})
 	
+	output$VH_AO_MO_Dir_Folder <- renderUI({
+	  VH_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"), full.names = FALSE, recursive = FALSE)
+	  VH_AO_MO_Dir_Folder_selected <- VH_AO_MO_Dir_Folder_list[1]
+	  selectInput("VH_AO_MO_Dir", "Working Vulnerable Habitat Folders",
+	              choices = c(VH_AO_MO_Dir_Folder_list),
+	              selected = VH_AO_MO_Dir_Folder_selected
+	  )
+	  
+	})
+	
+	output$VH_AO_MI_Dir_Folder_Name <- renderUI({
+	  VH_AO_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_AO_MI_Dir, input$VH_AO_Species[1]), full.names = FALSE, recursive = FALSE)
+	  VH_AO_MI_Dir_Folder_Name_selected <- VH_AO_MI_Dir_Folder_Name_list[1]
+	  selectInput("VH_AO_MI_Dir_Folder", "Working SDM Types",
+	              choices = c(VH_AO_MI_Dir_Folder_Name_list),
+	              selected = VH_AO_MI_Dir_Folder_Name_selected
+	  )
+	  
+	})		
+	
 	output$VH_AO_Species <- renderUI({
+	  G$VH_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_AO_MI_Dir)
 		VH_Name_Species_list <- list.dirs(path = G$VH_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		VH_Name_Species_selected <- VH_Name_Species_list[1]
 		selectInput("VH_AO_Species", "Select a species",
@@ -3405,14 +3430,9 @@ shinyServer(function(input, output) {
 		)
 	})
 	
-	observeEvent(input$VH_AO_MO_Dir_Folder, {
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"))
-	  shinyDirChoose(input, 'VH_AO_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$VH_AO_MO_Dir_Folder <<- parseDirPath(volumes, input$VH_AO_MO_Dir_Folder)
-	  output$VH_AO_MO_Dir_Folder <- renderText({G$VH_AO_MO_Dir_Folder})
-	})
 	
 	output$VH_AO_SDM_model <- renderUI({
+	  G$VH_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_AO_MI_Dir)
 		destfile <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$VH_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
@@ -3425,7 +3445,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$VH_AO_SD_Map <- renderLeaflet({
-	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, input$VH_AO_Dispersal_type)
+	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, input$VH_AO_MI_Dir_Folder)
 	    Map <- paste("PRED", "_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_Project_year, "_", input$VH_AO_Species, "_", input$VH_AO_SDM_model, ".grd", sep = "")
 	    r <- raster(file.path(dir_path, Map))
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
@@ -3489,7 +3509,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$VH_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -3872,7 +3892,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$VH_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -4255,7 +4275,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$VH_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -4638,7 +4658,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$VH_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -5021,7 +5041,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$VH_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -5404,7 +5424,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$VH_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {
@@ -5787,7 +5807,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  
+	  G$VH_AO_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  for (o in olist) {
 	    for (d in dlist) {
 	      for (c in clist) {

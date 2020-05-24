@@ -622,9 +622,6 @@ shinyUI(
 		                  tags$hr(),      
                       fluidRow(
                       sidebarPanel(width = 3, Fluid = TRUE,
-#                        shinyDirButton("DM_SDM_Dir_Folder", SDM_Name_Dir, SDM_Name_Dir),
-#                        verbatimTextOutput("DM_SDM_Dir_Folder", placeholder = TRUE),
-#                        tags$hr(),
                         uiOutput("DM_SDM_Dir_Folder"),
                         uiOutput("DM_MO_Species")
 		                  ),
@@ -706,10 +703,7 @@ shinyUI(
 		                                   checkboxInput("DM_MO_DM_keepTempFiles", "DM_keepTempFiles", FALSE),
 		                                   br(),
 		                                   tags$hr(),
-#		                                   shinyDirButton("DM_MO_Dir_Folder", DM_Name_Dir, DM_Name_Dir),
-#		                                   verbatimTextOutput("DM_MO_Dir_Folder", placeholder = TRUE),
-#                                          uiOutput("DM_MO_Dir_Folder"),
-                                           textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
+                                       textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
                                                   value = ""),
 		                                   tags$hr(),
 		                                   useShinyalert(),  # Set up shinyalert
@@ -736,10 +730,10 @@ shinyUI(
 		                                   
 		                                   uiOutput("DM_OU_SDM_model"),
 		                                   
-		                                   checkboxGroupInput("DM_OU_Dispersal_type", DM_Name_DM_Models,
-		                                                      choices = c(DM_Name_DM_Models_list),
-		                                                      selected = DM_Name_DM_Models_selected
-		                                   ),
+#		                                   checkboxGroupInput("DM_OU_Dispersal_type", DM_Name_DM_Models,
+#		                                                      choices = c(DM_Name_DM_Models_list),
+#		                                                      selected = DM_Name_DM_Models_selected
+#		                                   ),
 		                                   
 		                                   # Input: Checkbox if file has header ----
 		                                   checkboxGroupInput("DM_OU_Climate_model", DM_Name_CD_Models,
@@ -781,18 +775,12 @@ shinyUI(
                     tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 2, Fluid = TRUE,
-#              shinyDirButton("SS_MO_Dir_Folder", SS_Name_MO_Dir, SS_Name_MO_Dir),
-#              verbatimTextOutput("SS_MO_Dir_Folder", placeholder = TRUE),
-#              tags$hr(),
+
               uiOutput("SS_MO_Dir_Folder"),
               uiOutput("SS_MO_Dir_Folder_Name"),
 							uiOutput("SS_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,             
-#						    radioButtons("SS_CA_Dispersal_type", SS_Name_DM_Models,
-#								choices = c(SS_Name_DM_Models_list),
-#								selected = SS_Name_DM_Models_selected),
-	
 							# Input: Checkbox if file has header ----
 							checkboxGroupInput("SS_CA_Climate_model", SS_Name_CD_Models,
 								choices = c(SS_Name_CD_Models_list),
@@ -822,19 +810,13 @@ shinyUI(
 					tags$hr(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
-#              shinyDirButton("SS_AO_Dir_Folder", SS_Name_AO_Dir, SS_Name_AO_Dir),
-#              verbatimTextOutput("SS_AO_Dir_Folder", placeholder = TRUE),
-#              tags$hr(),
+
               uiOutput("SS_AO_Dir_Folder"),
               uiOutput("SS_AO_Model_Name"),	
 							uiOutput("SS_AO_Species"),
 							tags$hr(),
 	
 							uiOutput("SS_AO_SDM_model"),
-	
-#							radioButtons("SS_AO_Dispersal_type", SS_Name_DM_Models,
-#								choices = c(SS_Name_DM_Models_list),
-#								selected = SS_Name_DM_Models_selected),
                                    
 							# Input: Checkbox if file has header ----
 							checkboxGroupInput("SS_AO_Climate_model", SS_Name_CD_Models,
@@ -891,13 +873,6 @@ shinyUI(
 									  column(6, plotOutput("SS_AO_VP_Plot1")),
 									  column(6, plotOutput("SS_AO_VP_Plot2"))
 									),
-#									fluidRow(
-#									  tags$hr(),
-#									  uiOutput("SS_AO_VP_UI_plot2"),
-#									  tags$hr(),
-#									  column(6, plotOutput("SS_AO_VP_Plot11")),
-#									  column(6, plotOutput("SS_AO_VP_Plot21"))
-#									),
 									fluidRow(
 									  tags$hr(),
 									  uiOutput("SS_AO_VP_UI_plot3"),
@@ -919,16 +894,12 @@ shinyUI(
 					tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 3, Fluid = TRUE,
-                            shinyDirButton("IS_MI_Dir_Folder", IS_Name_MO_Dir, IS_Name_MO_Dir),
-                            verbatimTextOutput("IS_MI_Dir_Folder", placeholder = TRUE),
-                            tags$hr(),
+
+              uiOutput("IS_MI_Dir_Folder"),
+              uiOutput("IS_MI_Dir_Folder_Name"),
 							uiOutput("IS_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                      
-                            radioButtons("IS_CA_Dispersal_type", IS_Name_DM_Models,
-								choices = c(IS_Name_DM_Models_list),
-								selected = IS_Name_DM_Models_selected),
-	
 							# Input: Checkbox if file has header ----
 							checkboxGroupInput("IS_CA_Climate_model", IS_Name_CD_Models,
 								choices = c(IS_Name_CD_Models_list),
@@ -964,20 +935,13 @@ shinyUI(
 					tags$hr(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
-                            shinyDirButton("IS_AO_MI_Dir_Folder", IS_Name_MO_Dir, IS_Name_MO_Dir),
-                            verbatimTextOutput("IS_AO_MI_Dir_Folder", placeholder = TRUE),
-                            tags$hr(),
-							shinyDirButton("IS_AO_MO_Dir_Folder", IS_Name_AO_Dir, IS_Name_AO_Dir),
-							verbatimTextOutput("IS_AO_MO_Dir_Folder", placeholder = TRUE),
-							tags$hr(),
-							#uiOutput("IS_AO_Species"),
+
+							uiOutput("IS_AO_MI_Dir_Folder"),
+              uiOutput("IS_AO_MO_Dir_Folder"),
+							uiOutput("IS_AO_MI_Dir_Folder_Name"),
 							uiOutput("IS_AO_Species"),
 							tags$hr(),
 							uiOutput("IS_AO_SDM_model"),
-	
-              radioButtons("IS_AO_Dispersal_type", IS_Name_DM_Models,
-								choices = c(IS_Name_DM_Models_list),
-								selected = IS_Name_DM_Models_selected),
 	
 							# Input: Checkbox if file has header ----
               radioButtons("IS_AO_Climate_model", IS_Name_CD_Models,
@@ -1113,9 +1077,8 @@ shinyUI(
 					tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 2, Fluid = TRUE,
-						  shinyDirButton("VH_MI_Dir_Folder", VH_Name_MO_Dir, VH_Name_MO_Dir),
-						  verbatimTextOutput("VH_MI_Dir_Folder", placeholder = TRUE),
-						  tags$hr(),
+						  uiOutput("VH_MI_Dir_Folder"),
+						  uiOutput("VH_MI_Dir_Folder_Name"),
 							uiOutput("VH_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                
@@ -1160,21 +1123,12 @@ shinyUI(
                     sidebarLayout(
                       sidebarPanel(width = 3, Fluid = TRUE,
                                    
-                                   shinyDirButton("VH_AO_MI_Dir_Folder", VH_Name_MO_Dir, VH_Name_MO_Dir),
-                                   verbatimTextOutput("VH_AO_MI_Dir_Folder", placeholder = TRUE),
-                                   tags$hr(),
-
-                                    shinyDirButton("VH_AO_MO_Dir_Folder", VH_Name_Out_Dir, VH_Name_Out_Dir),
-                                    verbatimTextOutput("VH_AO_MO_Dir_Folder", placeholder = TRUE),
-                                    tags$hr(),  
-                                   
+                                   uiOutput("VH_AO_MI_Dir_Folder"),
+                                   uiOutput("VH_AO_MO_Dir_Folder"),
+                                   uiOutput("VH_AO_MI_Dir_Folder_Name"),
                                    uiOutput("VH_AO_Species"),
                                    tags$hr(),
                                    uiOutput("VH_AO_SDM_model"),
-                                   
-                                  radioButtons("VH_AO_Dispersal_type", VH_Name_DM_Models,
-                                                      choices = c(VH_Name_DM_Models_list),
-                                                      selected = VH_Name_DM_Models_selected),
                                    
                                    # Input: Checkbox if file has header ----
                                   radioButtons("VH_AO_Climate_model", VH_Name_CD_Models,
