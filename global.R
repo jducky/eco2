@@ -119,6 +119,15 @@ names(DM_Models_list) = as.character(Option_lists[,"DM_Models_name"][Option_list
 LD_Variables_list = as.character(Option_lists[,"LD_Variables_value"][Option_lists[,"LD_Variables_value"] != ""])
 names(LD_Variables_list) = as.character(Option_lists[,"LD_Variables_name"][Option_lists[,"LD_Variables_name"] != ""])
 
+DM_Variables_list = as.character(Option_lists[,"DM_Variables_value"][Option_lists[,"DM_Variables_value"] != ""])
+names(DM_Variables_list) = as.character(Option_lists[,"DM_Variables_name"][Option_lists[,"DM_Variables_name"] != ""])
+
+DM_Variables_Landuse_list = as.character(Option_lists[,"DM_Variables_Landuse_value"][Option_lists[,"DM_Variables_Landuse_value"] != ""])
+names(DM_Variables_Landuse_list) = as.character(Option_lists[,"DM_Variables_Landuse_name"][Option_lists[,"DM_Variables_Landuse_name"] != ""])
+
+DM_Variables_LanduseType_list = as.character(Option_lists[,"DM_Variables_LanduseType_value"][Option_lists[,"DM_Variables_LanduseType_value"] != ""])
+names(DM_Variables_LanduseType_list) = as.character(Option_lists[,"DM_Variables_LanduseType_name"][Option_lists[,"DM_Variables_LanduseType_name"] != ""])
+
 CD_Variables_list = as.character(Option_lists[,"CD_Variables_value"][Option_lists[,"CD_Variables_value"] != ""])
 names(CD_Variables_list) = as.character(Option_lists[,"CD_Variables_name"][Option_lists[,"CD_Variables_name"] != ""])
 

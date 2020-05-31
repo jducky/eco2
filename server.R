@@ -359,13 +359,15 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Summary <- renderPrint({
-		r <- raster(file.path("C:/Projects/2019_DATA/4. forest fire, landslide/forest fire/S251", "barrier11.grd"))
+	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	  r <- raster(file)
+	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		summary(r)
 	})
 	
 	output$LD_Histogram <- renderPlot({
-	  r_asc <- read.asc(file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = "")))
-	  x <- raster(r_asc)
+	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	  x <- raster(file)
 		hist(x, # breaks = bins, 
 			col="orange",
 			border="brown",
@@ -374,8 +376,8 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Map <- renderLeaflet({	
-	    r_asc <- read.asc(file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = "")))
-        r <- raster(r_asc)
+	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+    r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 							na.color = "transparent")
@@ -953,6 +955,8 @@ shinyServer(function(input, output) {
 	        SDM_variables[is.na(SDM_variables)] <- ""
           write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_BIOMOD2_variables.csv", sep = "", collapse = "--")))
 	      
+          write.csv(SPECIES_DATA, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_BIOMOD2_species.csv", sep = "", collapse = "--")))
+          
 	      #####
 	      
 	      dir_list <- list.dirs(path = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME), full.names = FALSE, recursive = FALSE)
@@ -1268,7 +1272,7 @@ shinyServer(function(input, output) {
 	    DM_dispSteps <- input$DM_MO_DM_dispSteps
 	    DM_barrier <- "" #"barrier"
 	    DM_barrierType <- input$DM_MO_DM_barrierType
-        DM_dispKernel <- G$DM_MO_DM_dispKernel
+      DM_dispKernel <- G$DM_MO_DM_dispKernel
 	    DM_iniMatAge <- input$DM_MO_DM_iniMatAge
 	    DM_propaguleProd <- G$DM_MO_DM_propaguleProd
 	    DM_lddFreq <- input$DM_MO_DM_lddFreq
@@ -1313,6 +1317,7 @@ shinyServer(function(input, output) {
 	              o_file_grd <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
 	              o_file_gri <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".gri", sep = "")
 	              file_path_grd <- file.path(org_path, o_file_grd)
+	              file_path_gri <- file.path(org_path, o_file_gri)
 	              if (!file.exists(file_path_grd)){
 	                showModal(modalDialog(
 	                  title = "Error Message",
@@ -1323,7 +1328,7 @@ shinyServer(function(input, output) {
 	              file.copy(file_path_grd, target_path)
 	              file.copy(file_path_gri, target_path)  
 	              sr_list <- ""
-	              sr_list <- c(sr_list, file.path(org_path, o_file))
+	              sr_list <- c(sr_list, file.path(org_path, o_file_grd))
 	              ny <- grep(y, ylist)
 	              
 	              for (i in 1:ny) {
@@ -1455,7 +1460,7 @@ shinyServer(function(input, output) {
 	  G$DM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$DM_AO_Dir)
 	  DM_Name_Species_list <- list.dirs(path = G$DM_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	  DM_Name_Species_selected <- DM_Name_Species_list[1]
-	  checkboxGroupInput("DM_OU_Species", "Select a species",
+	  selectInput("DM_OU_Species", "Select a species",
 	                     choices = c(DM_Name_Species_list),
 	                     selected = DM_Name_Species_selected
 	  )
@@ -1908,7 +1913,7 @@ shinyServer(function(input, output) {
 	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
 		SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		SS_Name_Species_selected <- SS_Name_Species_list[1]
-		radioButtons("SS_AO_Species", "Select a species",
+		selectInput("SS_AO_Species", "Select a species",
 			choices = c(SS_Name_Species_list),
 			selected = SS_Name_Species_selected
 		)

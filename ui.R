@@ -651,10 +651,32 @@ shinyUI(
 #                       uiOutput("DM_MO_DM_envChgSteps"),
                         sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
                           max = 10, value = 10),
+                        tags$hr(),
+                        tags$p("DM_Barrier:"),
                         checkboxGroupInput("DM_MO_Barrier", DM_Name_DM_MO_Barriers,
                           choices = c(DM_Name_DM_MO_Barriers_list),
                           selected = DM_Name_DM_MO_Barriers_selected
                         ),
+                        radioButtons("DM_MO_Barrier_Landuse", DM_Name_DM_MO_Barrier_Landuse,
+                          choices = c(DM_Name_DM_MO_Barrier_Landuse_list),
+                          selected = DM_Name_DM_MO_Barrier_Landuse_selected
+                        ),
+                        checkboxGroupInput("DM_MO_Barrier_LanduseType", DM_Name_DM_MO_Barrier_LanduseType,
+                         choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
+                         selected = DM_Name_DM_MO_Barrier_LanduseType_selected
+                        ),
+                        sliderInput("DM_MO_Barrier_Fire_Cutoff", label = "Cutoff of Fire", min = 0.01, 
+                          max = 1.0, step = 0.01, value = 0.9),
+                        sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
+                          max = 1.0, step = 0.01, value = 0.9),
+                        tags$br(),
+                        sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 0.1, 
+                          max = 1.0, step = 0.1, value = 0.1),
+                        sliderInput("DM_MO_Barrier_Fire_Prop", label = "Proportion of Fire occurence within whole period", min = 0.1, 
+                          max = 1.0, step = 0.1, value = 1.0),
+                        sliderInput("DM_MO_Barrier_Landslide_Prop", label = "Proportion of Landslide occurence within whole period", min = 0.1, 
+                          max = 1.0, step = 0.1, value = 1.0),
+                        tags$br(),
                         radioButtons("DM_MO_DM_barrierType", "DM_barrierType",
                           choices = c("strong" = "strong","weak" = "weak"),
                           selected = "weak")
@@ -937,9 +959,10 @@ shinyUI(
 						sidebarPanel(width = 3, Fluid = TRUE,
 
 							uiOutput("IS_AO_MI_Dir_Folder"),
-              uiOutput("IS_AO_MO_Dir_Folder"),
 							uiOutput("IS_AO_MI_Dir_Folder_Name"),
 							uiOutput("IS_AO_Species"),
+							tags$hr(),
+							uiOutput("IS_AO_MO_Dir_Folder"),
 							tags$hr(),
 							uiOutput("IS_AO_SDM_model"),
 	
@@ -1124,9 +1147,10 @@ shinyUI(
                       sidebarPanel(width = 3, Fluid = TRUE,
                                    
                                    uiOutput("VH_AO_MI_Dir_Folder"),
-                                   uiOutput("VH_AO_MO_Dir_Folder"),
                                    uiOutput("VH_AO_MI_Dir_Folder_Name"),
                                    uiOutput("VH_AO_Species"),
+                                   tags$hr(),
+                                   uiOutput("VH_AO_MO_Dir_Folder"),
                                    tags$hr(),
                                    uiOutput("VH_AO_SDM_model"),
                                    
