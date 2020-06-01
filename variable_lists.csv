@@ -29,6 +29,9 @@ SP_Name_Location,0,Species Location,생물종위치
 LD_Name,0,Link Data,연계자료
 LD_Name_Map,0,Map,지도
 LD_Name_Summary,0,Summary,통계
+LD_Name_Map_Landuse,0,Landuse Barrier Map,토지이용 장애물 지도
+LD_Name_Map_Forestfire,0,Forestfire Barrier Map,산불 장애물 지도
+LD_Name_Map_Landslide,0,Landslide Barrier Map,산사태 장애물 지도
 LD_Name_Variables,0,Link Data,연계자료
 LD_Name_Variables_list,1,LD_Variables_list,LD_Variables_list
 LD_Name_Variables_selected,0,forestfire,forestfire
@@ -100,6 +103,7 @@ SDM_Name_Dir,0,SDM Output Folder,SDM 평가결과 폴더
 DM_Name,0,Dispersal Model,종확산모형
 DM_Name_Model,0,Modeling,모형구동
 DM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
+DM_Name_Model_DM_Barrier,0,Dispersal Model Barrier Option,확산모형 장애물 옵션
 DM_Name_Model_DM,0,Dispersal Model Option,확산모형 옵션
 DM_Name_Model_Out,0,Model Outputs,모형결과
 DM_Name_Out_Plot,0,Species Distribution Change Plot,생물종 분포변화
@@ -111,7 +115,13 @@ DM_Name_DM_MO_Barrier_Landuse_list,1,DM_Variables_Landuse_list,DM_Variables_Land
 DM_Name_DM_MO_Barrier_Landuse_selected,0,Landuse_ssp1,Landuse_ssp1
 DM_Name_DM_MO_Barrier_LanduseType,0,Landuse Type,토지이용 유형
 DM_Name_DM_MO_Barrier_LanduseType_list,1,DM_Variables_LanduseType_list,DM_Variables_LanduseType_list
-DM_Name_DM_MO_Barrier_LanduseType_selected,0,Urban,도시
+DM_Name_DM_MO_Barrier_LanduseType_selected,0,1 ,1 
+DM_Name_DM_MO_Barrier_Forestfire,0,forestfire,forestfire
+DM_Name_DM_MO_Barrier_Landslide,0,landslide,landslide
+DM_Name_Map_Landuse,0,Landuse Barrier Map,토지이용 장애물 지도
+DM_Name_Map_Forestfire,0,Forestfire Barrier Map,산불 장애물 지도
+DM_Name_Map_Landslide,0,Landslide Barrier Map,산사태 장애물 지도
+DM_Name_Map_Total,0,Total Barrier Map,전체 장애물 지도
 DM_Name_DM_MO_Slider,0,Select a dispersal distance,확산거리를 입력하세요
 DM_Name_DM_MO_Action,0,Run,실행
 DM_Name_DM_Models,0,Dispersal Models,확산모델

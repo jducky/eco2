@@ -376,8 +376,8 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Map <- renderLeaflet({	
-	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
-    r <- raster(file)
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+        r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 							na.color = "transparent")
@@ -391,7 +391,81 @@ shinyServer(function(input, output) {
 		addRasterImage(r, colors = pal, opacity = 0.8,) %>%
 		addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
 		setView(lng = 127.00, lat = 36.00, zoom = 7)
-	})   
+	})  
+	
+	
+	output$LD_Map_Landuse <- renderLeaflet({	
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    r <- raster(file)
+	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    
+	    for (k in input$LD_MO_Barrier_LanduseType) {
+	        r[r == as.integer(k)] <- 9999
+	    }	
+	    r[r < 9999] <- 0
+	    r[r == 9999] <- 1
+	    
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	})
+	
+	output$LD_Map_Forestfire <- renderLeaflet({	
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    r <- raster(file)
+	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+
+	    r[r >= input$LD_MO_Barrier_Forestfire_Cutoff] <- 9999
+	    r[r < 9999] <- 0
+	    r[r == 9999] <- 1
+	    r <- as.integer(r)	
+	    
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	})
+	
+	output$LD_Map_Landslide <- renderLeaflet({	
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    r <- raster(file)
+	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    
+	    r[r >= input$LD_MO_Barrier_Landslide_Cutoff] <- 9999
+	    r[r < 9999] <- 0
+	    r[r == 9999] <- 1
+	    r <- as.integer(r)	
+	    
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	})
 	
 	output$CD_Summary <- renderPrint({
 		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
@@ -410,6 +484,7 @@ shinyServer(function(input, output) {
 			xlab = input$CD_Variables,
 			main = "Histogram")
 	})
+   
 	
 	output$CD_Map <- renderLeaflet({
 		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
@@ -1206,6 +1281,130 @@ shinyServer(function(input, output) {
 			choices = c(DM_Name_Models_list),
 			selected = DM_Name_Models_selected
 		)
+	})
+	
+	output$DM_Map_Landuse <- renderLeaflet({
+	    
+	    r_list <- NULL
+	    for (y in input$DM_MO_Project_year) {
+	    
+	        file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, ".asc", sep = ""))
+	        r <- raster(file)
+	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    
+	        for (k in input$DM_MO_Barrier_LanduseType) {
+	            r[r == as.integer(k)] <- 9999
+	        }	
+	        r[r < 9999] <- 0
+	        r[r == 9999] <- 1
+	        r_list <- c(r_list, r)
+	    }
+	    
+	    landuse_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landuse_Prop / 100))
+	    r_stack <- stack(r_list)
+	    rlanduse <- overlay(r_stack, fun=sum)
+	    rlanduse[rlanduse < landuse_prop] <- 0
+	    rlanduse[rlanduse >= landuse_prop] <- 1
+	    
+	    r <- rlanduse
+	    
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	})
+	
+	output$DM_Map_Forestfire <- renderLeaflet({
+	    
+	    r_list <- NULL
+	    for (y in input$DM_MO_Project_year) {
+	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(DM_Name_DM_MO_Barrier_Forestfire, ".asc", sep = ""))
+	        r <- raster(file)
+	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    
+	        r[r >= input$DM_MO_Barrier_Forestfire_Cutoff] <- 9999
+	        r[r < 9999] <- 0
+	        r[r == 9999] <- 1
+	        r <- as.integer(r)
+	        r_list <- c(r_list, r)
+	    }
+	    
+	    forestfire_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Forestfire_Prop / 100))
+	    r_stack <- stack(r_list)
+	    rforestfire <- overlay(r_stack, fun=sum)
+	    rforestfire[rforestfire < forestfire_prop] <- 0
+	    rforestfire[rforestfire >= forestfire_prop] <- 1
+	    
+	    r <- rforestfire
+	    
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	})
+	
+	output$DM_Map_Landslide <- renderLeaflet({	
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    r <- raster(file)
+	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    
+	    r[r >= input$LD_MO_Barrier_Landslide_Cutoff] <- 9999
+	    r[r < 9999] <- 0
+	    r[r == 9999] <- 1
+	    r <- as.integer(r)	
+	    
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	})
+	
+	output$DM_Map_Total <- renderLeaflet({	
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    r <- raster(file)
+	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    
+	    r[r >= input$LD_MO_Barrier_Landslide_Cutoff] <- 9999
+	    r[r < 9999] <- 0
+	    r[r == 9999] <- 1
+	    r <- as.integer(r)	
+	    
+	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	                        na.color = "transparent")
+	    
+	    leaflet() %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%        
+	        
+	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	        setView(lng = 127.00, lat = 36.00, zoom = 7)
 	})
 	
 	output$DM_MO_DM_envChgSteps <- renderUI({

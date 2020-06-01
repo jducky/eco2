@@ -289,11 +289,22 @@ shinyUI(
 					radioButtons("LD_Climate_scenario", LD_Name_Scenarios,
 						choices = LD_Name_Scenarios_list,
 						selected = LD_Name_Scenarios_selected),
-
+					
 					# Input: Checkbox if file has header ----
 					radioButtons("LD_Project_year", LD_Name_Year,
 						choices = LD_Name_Year_list,
-						selected = LD_Name_Year_selected)
+						selected = LD_Name_Year_selected),
+					
+					# Input: Checkbox if file has header ----
+					tags$hr(),
+					checkboxGroupInput("LD_MO_Barrier_LanduseType", DM_Name_DM_MO_Barrier_LanduseType,
+					                   choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
+					                   selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
+					),
+					sliderInput("LD_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Fire", min = 0.01, 
+					            max = 1.0, step = 0.01, value = 0.9),
+					sliderInput("LD_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
+					            max = 1.0, step = 0.01, value = 0.9)
 				),
 
 				# Main panel for displaying outputs ----
@@ -312,6 +323,33 @@ shinyUI(
 							tags$hr(),
 							column(10, verbatimTextOutput("LD_Summary")),
 							column(10, plotOutput("LD_Histogram"))
+						),
+						tabPanel(LD_Name_Map_Landuse, 
+						         tags$head(
+						             # Include our custom CSS
+						             includeCSS("styles.css"),
+						             includeScript("gomap.js")
+						         ),
+						         tags$hr(),
+						         column(6, leafletOutput("LD_Map_Landuse", width = "800", height = "650"))
+						),
+						tabPanel(LD_Name_Map_Forestfire, 
+						         tags$head(
+						             # Include our custom CSS
+						             includeCSS("styles.css"),
+						             includeScript("gomap.js")
+						         ),
+						         tags$hr(),
+						         column(6, leafletOutput("LD_Map_Forestfire", width = "800", height = "650"))
+						),
+						tabPanel(LD_Name_Map_Landslide, 
+						         tags$head(
+						             # Include our custom CSS
+						             includeCSS("styles.css"),
+						             includeScript("gomap.js")
+						         ),
+						         tags$hr(),
+						         column(6, leafletOutput("LD_Map_Landslide", width = "800", height = "650"))
 						)
 					)
 				)
@@ -620,12 +658,12 @@ shinyUI(
 		             tabsetPanel(
 		               tabPanel(DM_Name_Model_SDM,
 		                  tags$hr(),      
-                      fluidRow(
-                      sidebarPanel(width = 3, Fluid = TRUE,
+                        fluidRow(
+                        sidebarPanel(width = 3, Fluid = TRUE,
                         uiOutput("DM_SDM_Dir_Folder"),
                         uiOutput("DM_MO_Species")
 		                  ),
-		                  sidebarPanel(width = 3, Fluid = TRUE,             
+		                sidebarPanel(width = 3, Fluid = TRUE,             
                         # Input: Checkbox if file has header ----
                         checkboxGroupInput("DM_MO_Climate_model", DM_Name_CD_Models,
                           choices = c(DM_Name_CD_Models_list),
@@ -640,14 +678,80 @@ shinyUI(
                           selected = DM_Name_CD_Year_selected)
 		                  ),
 		                  sidebarPanel(width = 3,
-                        uiOutput("DM_MO_SDM_model")
+                            uiOutput("DM_MO_SDM_model")
+		                  )
+		                )
+		              ),
+		              tabPanel(DM_Name_Model_DM_Barrier,
+		                       tags$hr(),
+		                sidebarLayout(
+		                  sidebarPanel(width = 3, Fluid = TRUE,
+		                    radioButtons("DM_MO_Barrier_Landuse", DM_Name_DM_MO_Barrier_Landuse,
+		                                  choices = c(DM_Name_DM_MO_Barrier_Landuse_list),
+		                                  selected = DM_Name_DM_MO_Barrier_Landuse_selected
+		                    ),
+		                    checkboxGroupInput("DM_MO_Barrier_LanduseType", DM_Name_DM_MO_Barrier_LanduseType,
+		                                  choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
+		                                  selected = DM_Name_DM_MO_Barrier_LanduseType_selected
+		                    ),
+		                    sliderInput("DM_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Fire", min = 0.01, 
+		                                  max = 1.0, step = 0.01, value = 0.9),
+		                    sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
+		                                  max = 1.0, step = 0.01, value = 0.9),
+		                    tags$br(),
+		                    sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 10, 
+		                                  max = 100, step = 10, value = 50),
+		                    sliderInput("DM_MO_Barrier_Forestfire_Prop", label = "Proportion of Fire occurence within whole period", min = 10, 
+		                                  max = 100, step = 10, value = 50),
+		                    sliderInput("DM_MO_Barrier_Landslide_Prop", label = "Proportion of Landslide occurence within whole period", min = 10, 
+		                                  max = 100, step = 10, value = 50)
+		                  ),
+		                mainPanel(
+		                  tabsetPanel(
+		                      tabPanel(DM_Name_Map_Landuse, 
+		                               tags$head(
+		                                   # Include our custom CSS
+		                                   includeCSS("styles.css"),
+		                                   includeScript("gomap.js")
+		                               ),
+		                               tags$hr(),
+		                               column(6, leafletOutput("DM_Map_Landuse", width = "800", height = "650"))
+		                      ),
+		                      tabPanel(DM_Name_Map_Forestfire, 
+		                               tags$head(
+		                                   # Include our custom CSS
+		                                   includeCSS("styles.css"),
+		                                   includeScript("gomap.js")
+		                               ),
+		                               tags$hr(),
+		                               column(6, leafletOutput("DM_Map_Forestfire", width = "800", height = "650"))
+		                      ),
+		                      tabPanel(DM_Name_Map_Landslide, 
+		                               tags$head(
+		                                   # Include our custom CSS
+		                                   includeCSS("styles.css"),
+		                                   includeScript("gomap.js")
+		                               ),
+		                               tags$hr(),
+		                               column(6, leafletOutput("DM_Map_Landslide", width = "800", height = "650"))
+		                      ),
+		                      tabPanel(DM_Name_Map_Total, 
+		                               tags$head(
+		                                   # Include our custom CSS
+		                                   includeCSS("styles.css"),
+		                                   includeScript("gomap.js")
+		                               ),
+		                               tags$hr(),
+		                               column(6, leafletOutput("DM_Map_Total", width = "800", height = "650"))
+		                      )
+		                    )
 		                  )
 		                )
 		              ),
 		              tabPanel(DM_Name_Model_DM,
 		                tags$hr(),
-                    fluidRow(
-                      sidebarPanel(width = 3,
+                        fluidRow(
+                        sidebarPanel(width = 3,
 #                       uiOutput("DM_MO_DM_envChgSteps"),
                         sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
                           max = 10, value = 10),
@@ -657,25 +761,6 @@ shinyUI(
                           choices = c(DM_Name_DM_MO_Barriers_list),
                           selected = DM_Name_DM_MO_Barriers_selected
                         ),
-                        radioButtons("DM_MO_Barrier_Landuse", DM_Name_DM_MO_Barrier_Landuse,
-                          choices = c(DM_Name_DM_MO_Barrier_Landuse_list),
-                          selected = DM_Name_DM_MO_Barrier_Landuse_selected
-                        ),
-                        checkboxGroupInput("DM_MO_Barrier_LanduseType", DM_Name_DM_MO_Barrier_LanduseType,
-                         choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
-                         selected = DM_Name_DM_MO_Barrier_LanduseType_selected
-                        ),
-                        sliderInput("DM_MO_Barrier_Fire_Cutoff", label = "Cutoff of Fire", min = 0.01, 
-                          max = 1.0, step = 0.01, value = 0.9),
-                        sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
-                          max = 1.0, step = 0.01, value = 0.9),
-                        tags$br(),
-                        sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 0.1, 
-                          max = 1.0, step = 0.1, value = 0.1),
-                        sliderInput("DM_MO_Barrier_Fire_Prop", label = "Proportion of Fire occurence within whole period", min = 0.1, 
-                          max = 1.0, step = 0.1, value = 1.0),
-                        sliderInput("DM_MO_Barrier_Landslide_Prop", label = "Proportion of Landslide occurence within whole period", min = 0.1, 
-                          max = 1.0, step = 0.1, value = 1.0),
                         tags$br(),
                         radioButtons("DM_MO_DM_barrierType", "DM_barrierType",
                           choices = c("strong" = "strong","weak" = "weak"),
