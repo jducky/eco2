@@ -1,13 +1,16 @@
 
-tpath <- "C:/MOTIVE_Ecosystem/DATA/Climate/KMA/RCP4.5"
+tpath <- "D:/MOTIVE_Ecosystem/DATA/Climate/KMA/RCP4.5"
 c_tif <- raster(file.path(tpath, 2000, paste("bio01", ".tif", sep = "")))
 
-tpath <- "C:/MOTIVE_Ecosystem/DATA/Link/KMA/RCP4.5"
-r_asc <- raster(file.path(tpath, y, paste("landuse_ssp1", ".asc", sep = "")))
-fire_asc <- raster(file.path(tpath, y, paste("forestfire", ".asc", sep = "")))
-slide_asc <- raster(file.path(tpath, y, paste("landslide", ".asc", sep = "")))
+barrier <- as.integer(c_tif)
+barrier[] <- 0
 
-tpath <- "C:/MOTIVE_Ecosystem/DATA/Link/KMA/RCP4.5"
+# tpath <- "D:/MOTIVE_Ecosystem/DATA/Link/KMA/RCP4.5"
+# r_asc <- raster(file.path(tpath, y, paste("landuse_ssp1", ".asc", sep = "")))
+# fire_asc <- raster(file.path(tpath, y, paste("forestfire", ".asc", sep = "")))
+# slide_asc <- raster(file.path(tpath, y, paste("landslide", ".asc", sep = "")))
+
+tpath <- "D:/MOTIVE_Ecosystem/DATA/Link/KMA/RCP4.5"
 ylist <- c("2000", "2010", "2020", "2030", "2040", "2050", "2060", "2070" , "2080")
 klist <- c(1, 5, 6, 7)
 land_prop <- 30
@@ -26,6 +29,7 @@ for (y in ylist) {
 	}	
 	r_y[r_y < 9999] <- 0
 	r_y[r_y == 9999] <- 1
+	r_y <- as.integer(r_y)
 	r_list <- c(r_list, r_y)
 }
 
@@ -33,6 +37,7 @@ r_stack <- stack(r_list)
 rlanduse <- overlay(r_stack, fun=sum)
 rlanduse[rlanduse < landuse_prop] <- 0
 rlanduse[rlanduse >= landuse_prop] <- 1
+res(rlanduse) <- res(barrier)
 
 k <- 0.9
 r_list <- NULL
@@ -49,6 +54,7 @@ r_stack <- stack(r_list)
 rforestfire <- overlay(r_stack, fun=sum)
 rforestfire[rforestfire < forestfire_prop] <- 0
 rforestfire[rforestfire >= forestfire_prop] <- 1
+res(rforestfire) <- res(barrier)
 
 k <- 0.5
 r_list <- NULL
@@ -65,15 +71,29 @@ r_stack <- stack(r_list)
 rlandslide <- overlay(r_stack, fun=sum)
 rlandslide[rlandslide < landslide_prop] <- 0
 rlandslide[rlandslide >= landslide_prop] <- 1
+res(rlandslide) <- res(barrier)
 
-r_stack <- stack(rlanduse, rforestfire, rlandslide)
+
+dm_rlanduse <- merge(rlanduse, barrier, tolerance = 1)
+dm_rforestfire <- merge(rforestfire, barrier, tolerance = 1)
+dm_rlandslide <- merge(rlandslide, barrier, tolerance = 1)
+
+r_stack <- stack(dm_rlanduse, dm_rforestfire, dm_rlandslide)
 rbarrier <- overlay(r_stack, fun=sum)
 rbarrier[rbarrier > 0] <- 1
 
+#crs(rbarrier) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+#dm_barrier <- merge(rbarrier, barrier, tolerance = 1)
 
 
-barrier <- as.integer(c_tif)
-barrier[] <- 0
-crs(rbarrier) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
-dm_barrier <- merge(rbarrier, barrier, tolerance = 1)
+
+
+
+
+
+
+
+
+
+
 

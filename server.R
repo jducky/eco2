@@ -1305,7 +1305,7 @@ shinyServer(function(input, output) {
 	    rlanduse <- overlay(r_stack, fun=sum)
 	    rlanduse[rlanduse < landuse_prop] <- 0
 	    rlanduse[rlanduse >= landuse_prop] <- 1
-	    
+	    G_rlanduse <<- rlanduse
 	    r <- rlanduse
 	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
@@ -1326,7 +1326,7 @@ shinyServer(function(input, output) {
 	    
 	    r_list <- NULL
 	    for (y in input$DM_MO_Project_year) {
-	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(DM_Name_DM_MO_Barrier_Forestfire, ".asc", sep = ""))
+	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, ".asc", sep = ""))
 	        r <- raster(file)
 	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -1342,7 +1342,7 @@ shinyServer(function(input, output) {
 	    rforestfire <- overlay(r_stack, fun=sum)
 	    rforestfire[rforestfire < forestfire_prop] <- 0
 	    rforestfire[rforestfire >= forestfire_prop] <- 1
-	    
+	    G_rforestfire <<- rforestfire
 	    r <- rforestfire
 	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
@@ -1359,15 +1359,28 @@ shinyServer(function(input, output) {
 	        setView(lng = 127.00, lat = 36.00, zoom = 7)
 	})
 	
-	output$DM_Map_Landslide <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
-	    r <- raster(file)
-	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	output$DM_Map_Landslide <- renderLeaflet({
 	    
-	    r[r >= input$LD_MO_Barrier_Landslide_Cutoff] <- 9999
-	    r[r < 9999] <- 0
-	    r[r == 9999] <- 1
-	    r <- as.integer(r)	
+	    r_list <- NULL
+	    for (y in input$DM_MO_Project_year) {
+	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, ".asc", sep = ""))
+	        r <- raster(file)
+	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	        
+	        r[r >= input$DM_MO_Barrier_Landslide_Cutoff] <- 9999
+	        r[r < 9999] <- 0
+	        r[r == 9999] <- 1
+	        r <- as.integer(r)
+	        r_list <- c(r_list, r)
+	    }
+	    
+	    landslide_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landslide_Prop / 100))
+	    r_stack <- stack(r_list)
+	    rlandslide <- overlay(r_stack, fun=sum)
+	    rlandslide[rlandslide < landslide_prop] <- 0
+	    rlandslide[rlandslide >= landslide_prop] <- 1
+	    G_rlandslide <<- rlandslide
+	    r <- rlandslide
 	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 	                        na.color = "transparent")
@@ -1383,15 +1396,108 @@ shinyServer(function(input, output) {
 	        setView(lng = 127.00, lat = 36.00, zoom = 7)
 	})
 	
-	output$DM_Map_Total <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	output$DM_Map_Total <- renderLeaflet({
+	    
+	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_CD_Variables_selected[1])
 	    r <- raster(file)
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    barrier <- as.integer(r)
+	    barrier[] <- 0
+	    barrier <- mask(barrier, r)
 	    
-	    r[r >= input$LD_MO_Barrier_Landslide_Cutoff] <- 9999
-	    r[r < 9999] <- 0
-	    r[r == 9999] <- 1
-	    r <- as.integer(r)	
+	    
+	    dm_rlist <- NULL
+	    for (dm in input$DM_MO_Barrier) {
+	        
+	    if (dm == "Landuse") {
+	        r_list <- NULL
+	        for (y in input$DM_MO_Project_year) {
+	            
+	            file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, ".asc", sep = ""))
+	            r <- raster(file)
+	            crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	            
+	            for (k in input$DM_MO_Barrier_LanduseType) {
+	                r[r == as.integer(k)] <- 9999
+	            }	
+	            r[r < 9999] <- 0
+	            r[r == 9999] <- 1
+	            r_list <- c(r_list, r)
+	        }
+	        
+	        landuse_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landuse_Prop / 100))
+	        r_stack <- stack(r_list)
+	        rlanduse <- overlay(r_stack, fun=sum)
+	        rlanduse[rlanduse < landuse_prop] <- 0
+	        rlanduse[rlanduse >= landuse_prop] <- 1
+	        rrlanduse <<- rlanduse
+	        res(rlanduse) <- res(barrier)
+	        dm_rlanduse <- merge(rlanduse, barrier, tolerance = 0.5)
+	        dm_r <<- dm_rlanduse
+	        dm_rlist <<- c(dm_rlist, "dm_rlanduse")
+	    } 
+	        
+	    if (dm == "Forestfire") {
+	        r_list <- NULL
+	        for (y in input$DM_MO_Project_year) {
+	            file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, ".asc", sep = ""))
+	            r <- raster(file)
+	            crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	            
+	            r[r >= input$DM_MO_Barrier_Forestfire_Cutoff] <- 9999
+	            r[r < 9999] <- 0
+	            r[r == 9999] <- 1
+	            r <- as.integer(r)
+	            r_list <- c(r_list, r)
+	        }
+	        
+	        forestfire_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Forestfire_Prop / 100))
+	        r_stack <- stack(r_list)
+	        rforestfire <- overlay(r_stack, fun=sum)
+	        rforestfire[rforestfire < forestfire_prop] <- 0
+	        rforestfire[rforestfire >= forestfire_prop] <- 1
+	        res(rforestfire) <- res(barrier)
+	        dm_rforestfire <- merge(rforestfire, barrier, tolerance = 1)
+	        dm_r <<- dm_rforestfire
+	        dm_rlist <<- c(dm_rlist, "dm_rforestfire")
+	    } 
+        if (dm == "Landslide") {
+            r_list <- NULL
+            for (y in input$DM_MO_Project_year) {
+                file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, ".asc", sep = ""))
+                r <- raster(file)
+                crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+                
+                r[r >= input$DM_MO_Barrier_Landslide_Cutoff] <- 9999
+                r[r < 9999] <- 0
+                r[r == 9999] <- 1
+                r <- as.integer(r)
+                r_list <- c(r_list, r)
+            }
+            
+            landslide_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landslide_Prop / 100))
+            r_stack <- stack(r_list)
+            rlandslide <- overlay(r_stack, fun=sum)
+            rlandslide[rlandslide < landslide_prop] <- 0
+            rlandslide[rlandslide >= landslide_prop] <- 1
+            res(rlandslide) <- res(barrier)
+            dm_rlandslide <- merge(rlandslide, barrier, tolerance = 1)
+            dm_r <<- dm_rlandslide
+            dm_rlist <<- c(dm_rlist, "dm_rlandslide")
+        }
+	    }
+	    
+	    if (length(dm_rlist) > 1) {    
+	        r_stack <- stack(dm_rlist)
+	        r <- overlay(r_stack, fun=sum)
+	        r[r >= 1] <- 1
+	    } else {
+	        r <- dm_r
+	    }
+	    
+	    
+	    r[r > 0] <- 1
+	    crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 	    
 	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 	                        na.color = "transparent")
