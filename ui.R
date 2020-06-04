@@ -703,7 +703,7 @@ shinyUI(
 		                    sliderInput("DM_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Forestfire", min = 0.01, 
 		                                  max = 1.0, step = 0.01, value = 0.9),
 		                    sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
-		                                  max = 1.0, step = 0.01, value = 0.9),
+		                                  max = 1.0, step = 0.01, value = 0.7),
 		                    tags$br(),
 		                    sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 10, 
 		                                  max = 100, step = 10, value = 50),
