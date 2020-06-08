@@ -23,39 +23,72 @@ shinyServer(function(input, output) {
 #	})
 
 	output$SE_Project <- renderUI({
-	  Project_list <- as.character(Project_info[,1])
-	  Project_selected <- as.character(Project_list[1])
-	  selectInput("Project_Name", "Lists of Projects",
-	               choices = Project_list,
-	               selected = Project_selected
-	  )
+	  if (G_Project_info_CHK) {
+	    Project_list <- as.character(Project_info[,1])
+	    Project_selected <- as.character(Project_list[1])
+	    selectInput("Project_Name", "Lists of Projects",
+	                choices = Project_list,
+	                selected = Project_selected
+	    )
+	  } else {
+	    verbatimTextOutput("Project_Name")
+	  }
 	})
-
-
+	
+	output$Project_Name <- renderPrint({
+	  cat("Information of existing Projects is not available")
+	})
+	
 	output$SE_Project_Info_Manager <- renderPrint({
-	  Project_Info_Manager <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,2])
-	  cat(as.character(Project_Info_Manager))
+	  if (G_Project_info_CHK) {
+	    Project_Info_Manager <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,2])
+	    cat(as.character(Project_Info_Manager))
+	  } else {
+	    cat("")
+	  }
 	})
 	
 	output$SE_Project_Info_Institute <- renderPrint({
-	  Project_Info_Institute <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,3])
-	  cat(as.character(Project_Info_Institute))
+	  if (G_Project_info_CHK) {
+	    Project_Info_Institute <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,3])
+	    cat(as.character(Project_Info_Institute))
+	  } else {
+	    cat("")
+	  }
 	})
 
 	output$SE_Project_Info_Date <- renderPrint({
-	  Project_Info_Date <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,4])
-	  cat(as.character(Project_Info_Date))
+	  if (G_Project_info_CHK) {
+	    Project_Info_Date <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,4])
+	    cat(as.character(Project_Info_Date))
+	  } else {
+	    cat("")
+	  }
 	})
 
 	output$SE_Project_Info_Path <- renderPrint({
-	  Project_Info_Path <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,5])
-	  cat(as.character(Project_Info_Path))
-	  G$SE_Dir_Project <- Project_Info_Path
+	  if (G_Project_info_CHK) {
+	    Project_Info_Path <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,5])
+	    cat(as.character(Project_Info_Path))
+	    G$SE_Dir_Project <- Project_Info_Path
+	    if (!dir.exists(G$SE_Dir_Project)) { 
+	      showModal(modalDialog(
+	        title = "Error Message",
+	        paste(Project_Info_Path, "is not exist.")
+	      ))
+	    }
+	  } else {
+	    cat("")
+	  }
 	})
 	
 	output$SE_Project_Info_Description <- renderPrint({
-	  Project_Info_Description <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,6])
-	  cat(as.character(Project_Info_Description))
+	  if (G_Project_info_CHK) {
+	    Project_Info_Description <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,6])
+	    cat(as.character(Project_Info_Description))
+	  } else {
+	    cat("")
+	  }
 	})
 
 	observeEvent(input$SE_Dir_Project, {
@@ -64,15 +97,28 @@ shinyServer(function(input, output) {
 	  G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
 	})
 	
-	output$SE_Project_New_Path <- renderText({G$SE_Dir_Project})
+#	output$SE_Project_New_Path <- renderText({G$SE_Dir_Project})
 	
+	output$SE_Project_New_Path <- renderUI({
+
+	  if (!dir.exists(G$SE_Dir_Project)) {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste(G$SE_Dir_Project, "is not exist.")
+	    ))
+	  }
+	    verbatimTextOutput("SE_Project_New_Path_Name")
+	  
+	})
+	
+	output$SE_Project_New_Path_Name <- renderText({G$SE_Dir_Project})
 	
 	output$SE_Project_New_Name <- renderUI({
 	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
 	        Project_New_Name <- "Set a new project name" 
 	    } else {
-	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Name <- as.character(Project_working[1,"Name"])
 	    }
 	    textInput("Project_New_Name", "Name",
@@ -84,7 +130,7 @@ shinyServer(function(input, output) {
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
 	        Project_New_Manager <- "Set a new project manager" 
 	    } else {
-	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Manager <- as.character(Project_working[1,"Manager"])
 	    }
 	    textInput("Project_New_Manager", "Manager",
@@ -96,7 +142,7 @@ shinyServer(function(input, output) {
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
 	        Project_New_Institute <- "Set a new project institute" 
 	    } else {
-	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Institute <- as.character(Project_working[1,"Institute"])
 	    }
 	    textInput("Project_New_Institute", "Institute",
@@ -108,7 +154,7 @@ shinyServer(function(input, output) {
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
 	        Project_New_Date <- "Set a new project date" 
 	    } else {
-	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Date <- as.character(Project_working[1,"Date"])
 	    }
 	    dateInput("Project_New_Date", "Date",
@@ -120,7 +166,7 @@ shinyServer(function(input, output) {
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
 	        Project_New_Description <- "Set a new project description" 
 	    } else {
-	        Project_working <<- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
+	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Description <- as.character(Project_working[1,"Description"])
 	    }
 	    textInput("Project_New_Description", "Description",
@@ -175,13 +221,19 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_SDM_Species_Model_Options <- renderTable({
 	    
 	    destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model, paste(input$Dir_Project_SDM_Species, "_", input$Dir_Project_SDM_Species_Model, "_variables.csv", sep = ""))
+	    if (!file.exists(destfile)) { 
+	      showModal(modalDialog(
+	        title = "Error Message",
+	        paste("Species Distribution Option doesn't exist.")
+	      ))
+	    } else {
+	      SDM_variables_lists <- read.csv(destfile, header = T, sep = ",")
+	      SDM_variables_lists[is.na(SDM_variables_lists)] = ""
 	    
-	    SDM_variables_lists <<- read.csv(destfile, header = T, sep = ",")
-	    SDM_variables_lists[is.na(SDM_variables_lists)] = ""
-	    
-	    SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
-	    rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
-	    SDM_variables_lists_T[-1,]
+	      SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
+	      rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
+	      SDM_variables_lists_T[-1,]
+	    }
 
 	    }, rownames = TRUE, colnames = FALSE)
 	
@@ -205,7 +257,7 @@ shinyServer(function(input, output) {
 	    
 	    destfile <- file.path(G$SE_Dir_Project, "Invasive_Species", input$Dir_Project_IS, "InvasiveSpecies_Options.csv")
 	    
-	    IS_Options_lists <<- read.csv(destfile, header = T, sep = ",")
+	    IS_Options_lists <- read.csv(destfile, header = T, sep = ",")
 	    IS_Options_lists[is.na(IS_Options_lists)] = ""
 	    
 	    IS_Options_lists_T <- data.frame(t(IS_Options_lists))
@@ -287,23 +339,21 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SE_speciesindex <- renderUI({
-	    selectInput('SE_speciesindex','Select a Species Index .csv File', selected = G_SE_speciesindex, choice = list.files(G$SE_Dir_Species))
+	    selectInput('SE_speciesindex','Select a Species Index .csv File', selected = G$SE_speciesindex, choice = list.files(G$SE_Dir_Species))
 	})
 	
 	output$SE_specieslocation <- renderUI({
-	    selectInput('SE_specieslocation','Select a Species Location .csv File', selected = G_SE_specieslocation, choice = list.files(G$SE_Dir_Species))
+	    selectInput('SE_specieslocation','Select a Species Location .csv File', selected = G$SE_specieslocation, choice = list.files(G$SE_Dir_Species))
 	})
 
 	output$SP_Info <- DT::renderDataTable ({
-	    if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
-	        G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
-	        G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
-	    }
-	    G_SE_speciesindex <- input$SE_speciesindex
-	    G_SE_specieslocation <- input$SE_specieslocation
-	    G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-	    G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
-	    DT::datatable(G_FILE_speciesinfo)
+	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
+	    G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
+	    G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
+	  }
+	  G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	  G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	  DT::datatable(G_FILE_speciesinfo)
 	})
 	    
 	output$SP_Summary <- renderPrint({
@@ -327,6 +377,7 @@ shinyServer(function(input, output) {
 	})
   
 	output$SP_Map <- renderLeaflet({
+	          
 		rs <- input$SP_Info_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs)) {
 			species_data <- inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[rs, , drop = FALSE], by = "ID")
@@ -335,7 +386,7 @@ shinyServer(function(input, output) {
 					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
-	
+
 			addMarkers(~Longitude, ~Latitude, popup = ~as.character(ID), label = ~as.character(ID)) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
@@ -506,16 +557,14 @@ shinyServer(function(input, output) {
 	
 #	output$SDM_SP_Info <- DT::renderDataTable(G_FILE_speciesinfo, server = TRUE)
 	
-	output$SDM_SP_Info <- DT::renderDataTable ({
-	    if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
-	        G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
-	        G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
-	    }
-	    G_SE_speciesindex <- input$SE_speciesindex
-	    G_SE_specieslocation <- input$SE_specieslocation
-	    G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-	    G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
-	    DT::datatable(G_FILE_speciesinfo)
+	output$SDM_SP_Info <- DT::renderDataTable({
+	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
+	    G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
+	    G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
+	  }
+	  G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	  G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	  DT::datatable(G_FILE_speciesinfo)
 	})
 	
 	output$SDM_SP_Selection <- renderPrint({
@@ -625,9 +674,9 @@ shinyServer(function(input, output) {
 	    NAME_LAT <- "Latitude"
 	    
 	    # setting speices and environmental data
-	    FILE_SPECIES_NAME <- G$SE_speciesindex
-	    FILE_SPECIES_LOCATION <- G$SE_specieslocation
-	    ENV_VARIABLES <<- input$SDM_MO_Variables   # c("bio01.asc", "bio02.asc", "bio03.asc", "bio12.asc", "bio13.asc", "bio14.asc")
+	    FILE_SPECIES_NAME <<- input$SE_speciesindex   # G$SE_speciesindex
+	    FILE_SPECIES_LOCATION <<- input$SE_specieslocation  # G$SE_specieslocation
+	    ENV_VARIABLES <- input$SDM_MO_Variables   # c("bio01.asc", "bio02.asc", "bio03.asc", "bio12.asc", "bio13.asc", "bio14.asc")
 	    
 	    # Defining Models Data Options using default options.
 	    BIOMOD_eval.resp.var <- NULL #input$BIOMOD_eval.resp.var
@@ -685,8 +734,10 @@ shinyServer(function(input, output) {
 	    # creating working a project
 	    
 	    # Loading speices data
-	    DATA_SPECIES_NAME <- read.table(file.path(PATH_SPECIES, FILE_SPECIES_NAME), header = T, sep = ",")
-	    DATA_SPECIES_LOCATION <- read.table(file.path(PATH_SPECIES, FILE_SPECIES_LOCATION), header = T, sep = ",")
+#	    DATA_SPECIES_NAME <- read.table(file.path(PATH_SPECIES, FILE_SPECIES_NAME), header = T, sep = ",")
+#	    DATA_SPECIES_LOCATION <- read.table(file.path(PATH_SPECIES, FILE_SPECIES_LOCATION), header = T, sep = ",")
+	    DATA_SPECIES_NAME <- G_FILE_speciesindex
+	    DATA_SPECIES_LOCATION <- G_FILE_specieslocation
 	    ##### End Path and Data setting =============================
 	    #####=========================================================
 	    
@@ -1306,10 +1357,10 @@ shinyServer(function(input, output) {
 	    
 	    landuse_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landuse_Prop / 100))
 	    r_stack <- stack(r_list)
-	    rlanduse <- overlay(r_stack, fun=sum)
+	    rlanduse <- overlay(r_stack, fun = sum)
 	    rlanduse[rlanduse < landuse_prop] <- 0
 	    rlanduse[rlanduse >= landuse_prop] <- 1
-	    r <- projectRaster(rlanduse, mask)
+	    r <- projectRaster(rlanduse, mask, method = 'ngb')
 	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 	                        na.color = "transparent")
@@ -1346,10 +1397,10 @@ shinyServer(function(input, output) {
 	    
 	    forestfire_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Forestfire_Prop / 100))
 	    r_stack <- stack(r_list)
-	    rforestfire <- overlay(r_stack, fun=sum)
+	    rforestfire <- overlay(r_stack, fun = sum)
 	    rforestfire[rforestfire < forestfire_prop] <- 0
 	    rforestfire[rforestfire >= forestfire_prop] <- 1
-	    r <- projectRaster(rforestfire, mask)
+	    r <- projectRaster(rforestfire, mask, method = 'ngb')
 	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 	                        na.color = "transparent")
@@ -1389,7 +1440,7 @@ shinyServer(function(input, output) {
 	    rlandslide <- overlay(r_stack, fun=sum)
 	    rlandslide[rlandslide < landslide_prop] <- 0
 	    rlandslide[rlandslide >= landslide_prop] <- 1
-	    r <- projectRaster(rlandslide, mask)
+	    r <- projectRaster(rlandslide, mask, method='ngb')
 	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 	                        na.color = "transparent")
@@ -1412,6 +1463,8 @@ shinyServer(function(input, output) {
 	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
 	    dm_rlist <- NULL
+	    if (length(input$DM_MO_Barrier) > 0) {
+	    
 	    for (dm in input$DM_MO_Barrier) {
 	        
 	    if (dm == "Landuse") {
@@ -1432,10 +1485,10 @@ shinyServer(function(input, output) {
 	        
 	        landuse_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landuse_Prop / 100))
 	        r_stack <- stack(r_list)
-	        rlanduse <- overlay(r_stack, fun=sum)
+	        rlanduse <- overlay(r_stack, fun = sum)
 	        rlanduse[rlanduse < landuse_prop] <- 0
 	        rlanduse[rlanduse >= landuse_prop] <- 1
-	        dm_rlanduse <- projectRaster(rlanduse, mask)
+	        dm_rlanduse <- projectRaster(rlanduse, mask, method = 'ngb')
 	        dm_r <- dm_rlanduse
 	        dm_rlist <- c(dm_rlist, dm_rlanduse)
 	    } else if (dm == "Forestfire") {
@@ -1454,10 +1507,10 @@ shinyServer(function(input, output) {
 	        
 	        forestfire_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Forestfire_Prop / 100))
 	        r_stack <- stack(r_list)
-	        rforestfire <- overlay(r_stack, fun=sum)
+	        rforestfire <- overlay(r_stack, fun = sum)
 	        rforestfire[rforestfire < forestfire_prop] <- 0
 	        rforestfire[rforestfire >= forestfire_prop] <- 1
-	        dm_rforestfire <- projectRaster(rforestfire, mask)
+	        dm_rforestfire <- projectRaster(rforestfire, mask, method = 'ngb')
 	        dm_r <- dm_rforestfire
 	        dm_rlist <- c(dm_rlist, dm_rforestfire)
 	    } else {
@@ -1476,46 +1529,48 @@ shinyServer(function(input, output) {
             
             landslide_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landslide_Prop / 100))
             r_stack <- stack(r_list)
-            rlandslide <- overlay(r_stack, fun=sum)
+            rlandslide <- overlay(r_stack, fun = sum)
             rlandslide[rlandslide < landslide_prop] <- 0
             rlandslide[rlandslide >= landslide_prop] <- 1
-            dm_rlandslide <- projectRaster(rlandslide, mask)
+            dm_rlandslide <- projectRaster(rlandslide, mask, method = 'ngb')
             dm_r <- dm_rlandslide
             dm_rlist <- c(dm_rlist, dm_rlandslide)
         }
 	    }
+	    }
 	    
+
 	    if (length(dm_rlist) > 1) {    
 	        r_stack <- stack(dm_rlist)
 	        r <- overlay(r_stack, fun=sum)
 	        r[r >= 1] <- 1
-	        writeRaster(r, filename = "DM_barrier.grd", overwrite = TRUE)
+	        DM_barrier_r <<- r
 	        G_DM_barrier_chk <<- TRUE
 	    } else if (length(dm_rlist) == 1) {
 	        r <- dm_r
-	        writeRaster(r, filename = "DM_barrier.grd", overwrite = TRUE)
+	        DM_barrier_r <<- r
 	        G_DM_barrier_chk <<- TRUE
 	    } else {
-	        mask[] <- 0
+	        mask[!is.na(mask)] <- 0
 	        r <- mask
 	        G_DM_barrier_chk <<- FALSE
 	    }
 	    
 	    
 	    crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 	    
-	    
 	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
-	        addTiles(
-	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	        ) %>%        
-	        
-	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
-	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
-	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+	      addTiles(
+	        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	      ) %>%    
+	    
+	    addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	      addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+	      setView(lng = 127.00, lat = 36.00, zoom = 7)
+
 	})
 	
 	output$DM_MO_DM_envChgSteps <- renderUI({
@@ -1583,15 +1638,18 @@ shinyServer(function(input, output) {
 	    
 	    if (length(input$DM_MO_Barrier) == 0) { 
 	        G_DM_barrier_chk <- FALSE
+	    } else {
+	        G_DM_barrier_chk <- TRUE
 	    }
 	    if (G_DM_barrier_chk) {
-	        DM_barrier <- "DM_barrier"
+	        df <- as.data.frame(DM_barrier_r, xy=TRUE)
+	        df[is.na(df)] <- 0
+	        DM_barrier <- df[,3:3]
 	    } else {
 	        DM_barrier <- ""
 	    }
-#	    DM_barrier <- DM_barrier #"" #"barrier"
 	    DM_barrierType <- input$DM_MO_DM_barrierType
-        DM_dispKernel <- G$DM_MO_DM_dispKernel
+      DM_dispKernel <- G$DM_MO_DM_dispKernel
 	    DM_iniMatAge <- input$DM_MO_DM_iniMatAge
 	    DM_propaguleProd <- G$DM_MO_DM_propaguleProd
 	    DM_lddFreq <- input$DM_MO_DM_lddFreq
@@ -1613,11 +1671,11 @@ shinyServer(function(input, output) {
 	      n <- n + 1
 	      # creating Migclim output path
 	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))) {
-	        cat(paste("MIGCLIM exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
+	        cat(paste(paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
 	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))) {
-	        cat(paste("MIGCLIM exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
+	        cat(paste(paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
 	      } else {
-	        cat(paste("MIGCLIM does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
+	        cat(paste(paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), "does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
 	        dir.create(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))
 	      }   
 	      
@@ -1717,8 +1775,10 @@ shinyServer(function(input, output) {
 	      
 #	      destfile <- file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM", paste(s, "_MIGCLIM_variables.csv", sep = "", collapse = "--"))
 	      
-	      DM_variables <- setNames(data.frame(matrix(ncol = 13, nrow = 30)), c("input$DM_MO_Climate_model", "input$DM_MO_Climate_scenario", "input$DM_MO_Project_year", "input$DM_MO_SDM_model", "input$DM_MO_DM_dispSteps", 
-	                                                                            "input$DM_MO_Barrier", "input$DM_MO_DM_barrierType", "input$DM_MO_DM_dispKernel", "input$DM_MO_DM_iniMatAge", "input$DM_MO_DM_propaguleProd",
+	      DM_variables <- setNames(data.frame(matrix(ncol = 20, nrow = 30)), c("input$DM_MO_Climate_model", "input$DM_MO_Climate_scenario", "input$DM_MO_Project_year", "input$DM_MO_SDM_model", 
+	                                                                            "input$DM_MO_Barrier", "input$DM_MO_DM_barrierType", "input$DM_MO_Barrier_Landuse", "input$DM_MO_Barrier_LanduseType", "input$DM_MO_Barrier_Forestfire_Cutoff",
+	                                                                            "input$DM_MO_Barrier_Landslide_Cutoff", "input$DM_MO_Barrier_Landuse_Prop", "input$DM_MO_Barrier_Forestfire_Prop", "input$DM_MO_Barrier_Landslide_Prop",
+	                                                                            "input$DM_MO_DM_dispSteps", "input$DM_MO_DM_dispKernel", "input$DM_MO_DM_iniMatAge", "input$DM_MO_DM_propaguleProd",
 	                                                                            "input$DM_MO_DM_lddFreq", "input$DM_MO_SDM_lddDist", "input$DM_MO_DM_replicateNb"
 	      ))
 	      
@@ -1726,13 +1786,20 @@ shinyServer(function(input, output) {
 	      DM_variables[1:length(input$DM_MO_Climate_scenario), "input$DM_MO_Climate_scenario"] <- input$DM_MO_Climate_scenario
 	      DM_variables[1:length(input$DM_MO_Project_year), "input$DM_MO_Project_year"] <- input$DM_MO_Project_year
 	      DM_variables[1:length(input$DM_MO_SDM_model), "input$DM_MO_SDM_model"] <- input$DM_MO_SDM_model
-	      DM_variables[1:length(input$DM_MO_DM_dispSteps), "input$DM_MO_DM_dispSteps"] <- input$DM_MO_DM_dispSteps
 	      if (length(input$DM_MO_Barrier) > 0) {
-	      DM_variables[1:length(input$DM_MO_Barrier), "input$DM_MO_Barrier"] <- input$DM_MO_Barrier
+	        DM_variables[1:length(input$DM_MO_Barrier), "input$DM_MO_Barrier"] <- input$DM_MO_Barrier
 	      } else {
-	          DM_variables[1:length(input$DM_MO_Barrier), "input$DM_MO_Barrier"] <- NULL
+	        DM_variables[1:1, "input$DM_MO_Barrier"] <- "NULL"
 	      }
 	      DM_variables[1:length(input$DM_MO_DM_barrierType), "input$DM_MO_DM_barrierType"] <- input$DM_MO_DM_barrierType
+	      DM_variables[1:length(input$DM_MO_Barrier_Landuse), "input$DM_MO_Barrier_Landuse"] <- input$DM_MO_Barrier_Landuse
+	      DM_variables[1:length(input$DM_MO_Barrier_LanduseType), "input$DM_MO_Barrier_LanduseType"] <- input$DM_MO_Barrier_LanduseType
+	      DM_variables[1:1, "input$DM_MO_Barrier_Forestfire_Cutoff"] <- input$DM_MO_Barrier_Forestfire_Cutoff
+	      DM_variables[1:1, "input$DM_MO_Barrier_Landslide_Cutoff"] <- input$DM_MO_Barrier_Landslide_Cutoff
+	      DM_variables[1:1, "input$DM_MO_Barrier_Landuse_Prop"] <- input$DM_MO_Barrier_Landuse_Prop
+	      DM_variables[1:1, "input$DM_MO_Barrier_Forestfire_Prop"] <- input$DM_MO_Barrier_Forestfire_Prop
+	      DM_variables[1:1, "input$DM_MO_Barrier_Landslide_Prop"] <- input$DM_MO_Barrier_Landslide_Prop
+	      DM_variables[1:length(input$DM_MO_DM_dispSteps), "input$DM_MO_DM_dispSteps"] <- input$DM_MO_DM_dispSteps
 	      DM_variables[1:length(G$DM_MO_DM_dispKernel), "input$DM_MO_DM_dispKernel"] <- G$DM_MO_DM_dispKernel
 	      DM_variables[1:length(input$DM_MO_DM_iniMatAge), "input$DM_MO_DM_iniMatAge"] <- input$DM_MO_DM_iniMatAge
 	      DM_variables[1:length(G$DM_MO_DM_propaguleProd), "input$DM_MO_DM_propaguleProd"] <- G$DM_MO_DM_propaguleProd
@@ -1741,7 +1808,7 @@ shinyServer(function(input, output) {
 	      DM_variables[1:length(input$DM_MO_DM_replicateNb), "input$DM_MO_DM_replicateNb"] <- input$DM_MO_DM_replicateNb
 
 	      DM_variables[is.na(DM_variables)] <- ""
-	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), paste(s, "_MIGCLIM_variables.csv", sep = "", collapse = "--")))
+	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), paste(s, "_MIGCLIM_", input$DM_MO_Dir_Folder_Name, "_variables.csv", sep = "", collapse = "--")))
 	      
 	      #####
 	    } # End Speices loop s
@@ -2792,11 +2859,12 @@ shinyServer(function(input, output) {
 		    
 #		    destfile <- file.path(G$IS_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
 		    
-		    IS_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 5000)), c("input$SDM_Folder", "input$IS_CA_Species", "input$IS_CA_Dispersal_type", "input$IS_CA_Climate_model", "input$IS_CA_Climate_scenario", 
+		    IS_variables <- setNames(data.frame(matrix(ncol = 8, nrow = 5000)), c("input$SDM_Folder", "IS_CA_Species_Number", "input$IS_CA_Species", "input$IS_CA_Dispersal_type", "input$IS_CA_Climate_model", "input$IS_CA_Climate_scenario", 
 		                                                                         "input$IS_CA_Project_year", "input$IS_CA_SDM_model"
 		    ))
 		    
 		    IS_variables[1:length(G$IS_MI_Dir_Folder), "input$SDM_Folder"] <- G$IS_MI_Dir_Folder
+		    IS_variables[1:1, "IS_CA_Species_Number"] <- length(input$IS_CA_Species)
 		    IS_variables[1:length(input$IS_CA_Species), "input$IS_CA_Species"] <- input$IS_CA_Species
 		    IS_variables[1:length(input$IS_CA_Dispersal_type), "input$IS_CA_Dispersal_type"] <- input$IS_MI_Dir_Folder
 		    IS_variables[1:length(input$IS_CA_Climate_model), "input$IS_CA_Climate_model"] <- input$IS_CA_Climate_model

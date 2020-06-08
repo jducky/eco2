@@ -30,7 +30,8 @@ shinyUI(
         menuItem("Working Project",
           tags$hr(),
           shinyDirButton("SE_Dir_Project", SE_Name_WE_Project, SE_Name_WE_Project),
-          verbatimTextOutput("SE_Project_New_Path"),
+#          verbatimTextOutput("SE_Project_New_Path"),
+          uiOutput("SE_Project_New_Path"),
           uiOutput("SE_Project_New_Info"),
           uiOutput("SE_Project_New_Name"),
           uiOutput("SE_Project_New_Manager"),
@@ -665,11 +666,11 @@ shinyUI(
 		                  ),
 		                sidebarPanel(width = 3, Fluid = TRUE,             
                         # Input: Checkbox if file has header ----
-                        checkboxGroupInput("DM_MO_Climate_model", DM_Name_CD_Models,
+                        radioButtons("DM_MO_Climate_model", DM_Name_CD_Models,
                           choices = c(DM_Name_CD_Models_list),
                           selected = DM_Name_CD_Models_selected),
                         # Input: Checkbox if file has header ----
-                        checkboxGroupInput("DM_MO_Climate_scenario", DM_Name_CD_Scenarios,
+                        radioButtons("DM_MO_Climate_scenario", DM_Name_CD_Scenarios,
                           choices = c(DM_Name_CD_Scenarios_list),
                           selected = DM_Name_CD_Scenarios_selected),
                         # Input: Checkbox if file has header ----
@@ -686,12 +687,16 @@ shinyUI(
 		                       tags$hr(),
 		                sidebarLayout(
 		                  sidebarPanel(width = 3, Fluid = TRUE,
-		                    tags$hr(),
 		                    tags$p("DM_Barrier:"),
 		                    checkboxGroupInput("DM_MO_Barrier", DM_Name_DM_MO_Barriers,
 		                               choices = c(DM_Name_DM_MO_Barriers_list),
 		                               selected = DM_Name_DM_MO_Barriers_selected
 		                    ),
+		                    radioButtons("DM_MO_DM_barrierType", "DM_barrierType",
+		                                 choices = c("strong" = "strong","weak" = "weak"),
+		                                 selected = "weak"
+		                    ),
+		                    tags$hr(),
 		                    radioButtons("DM_MO_Barrier_Landuse", DM_Name_DM_MO_Barrier_Landuse,
 		                                  choices = c(DM_Name_DM_MO_Barrier_Landuse_list),
 		                                  selected = DM_Name_DM_MO_Barrier_Landuse_selected
@@ -756,17 +761,11 @@ shinyUI(
 		              ),
 		              tabPanel(DM_Name_Model_DM,
 		                tags$hr(),
-                        fluidRow(
-                        sidebarPanel(width = 3,
-#                       uiOutput("DM_MO_DM_envChgSteps"),
-                        sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
-                          max = 10, value = 10),
-                        tags$br(),
-                        radioButtons("DM_MO_DM_barrierType", "DM_barrierType",
-                          choices = c("strong" = "strong","weak" = "weak"),
-                          selected = "weak")
-                      ),
+                    fluidRow(
                       sidebarPanel(width = 3,
+                                       sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
+                                                    max = 10, value = 10),
+                                       tags$hr(),
 		                                   tags$p("DM_dispKernel:"),
 		                                   verbatimTextOutput("DM_MO_DM_dispKernel"),
 		                                   sliderInput("DM_MO_DM_dispKernel1", label = "Dispersal Proportion of 1st Pixel", min = 0.01, 

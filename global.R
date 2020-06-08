@@ -2,8 +2,8 @@
 ##### installing and Loading packages ========================
 # Setting packages and library
 
-packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
-libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
+packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
+libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
 
 # packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
 # libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
@@ -41,36 +41,61 @@ if (length(CHK_libraries) > 0) {
 
 rm(list = ls())
 MOTIVE_DIR <- getwd()
-system_env <- read.csv(file.path(MOTIVE_DIR, "System_Environment.txt"), header = T, sep = "=")
-Project_info <- read.csv(file.path(MOTIVE_DIR, "Project_Information.csv"), header = T, sep = ",")
-
-SE_Language <- as.character(system_env[1,2])
-Input_img <- as.character(system_env[10,2])
-Output_img <- as.character(system_env[11,2])
-
 G <- reactiveValues()
-G$SE_Dir_Project <- as.character(system_env[3,2])
-G$SE_Dir_Climate <- as.character(system_env[4,2])
-G$SE_Dir_Link <- as.character(system_env[5,2])
-G$SE_Dir_GIS <- as.character(system_env[6,2])
-G$SE_Dir_Species <- as.character(system_env[7,2])
-G_SE_Dir_Species <- as.character(system_env[7,2])
-G$SE_speciesindex <- as.character(system_env[8,2])
-G_SE_speciesindex <- as.character(system_env[8,2])
-G$SE_specieslocation <- as.character(system_env[9,2])
-G_SE_specieslocation <- as.character(system_env[9,2])
-G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
-G_FILE_specieslocation <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
-G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
 
-Project_working <- read.csv(file.path(isolate(G$SE_Dir_Project), "Project_Information.csv"), header = T, sep = ",")
-Project_New_Path <- as.character(Project_working[1,5])
-Project_New_Name <- as.character(Project_working[1,1])
-Project_New_Manager <- as.character(Project_working[1,2])  
-Project_New_Institute <- as.character(Project_working[1,3])
-Project_New_Date <- as.character(Project_working[1,4])
-Project_New_Description <- as.character(Project_working[1,6])
+destfile <- file.path(MOTIVE_DIR, "System_Environment.txt")
+if (length(destfile) == 0 | !file.exists(destfile)) {
+  button <- tkmessageBox(title='Message',message='System Environment information is not available. Please create System_Environment.txt and rerun the system again!',type='ok')
+  if(tclvalue(button) == 'ok') {stop('Exit the program!')}
+} else {
+  system_env <- read.csv(destfile, header = T, sep = "=")
+  SE_Language <- as.character(system_env[1,2])
+  G$SE_Dir_Project <- as.character(system_env[3,2])
+  G$SE_Dir_Climate <- as.character(system_env[4,2])
+  G$SE_Dir_Link <- as.character(system_env[5,2])
+  G$SE_Dir_GIS <- as.character(system_env[6,2])
+  G$SE_Dir_Species <- as.character(system_env[7,2])
+  G$SE_speciesindex <- as.character(system_env[8,2])
+  G$SE_specieslocation <- as.character(system_env[9,2])
+  destfile1 <- file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex))
+  destfile2 <- file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation))
+  if (!file.exists(destfile1) | !file.exists(destfile2)) {
+    button <- tkmessageBox(title='Message',message='Species data is not available. Please set species data and rerun the system again!',type='ok')
+    if(tclvalue(button) == 'ok') {stop('Exit the program!')}
+  }
+  G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
+  G_FILE_specieslocation <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
+  G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+  G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+  Input_img <- as.character(system_env[10,2])
+  Output_img <- as.character(system_env[11,2])
+}
+
+
+destfile <- file.path(MOTIVE_DIR, "Project_Information.csv")
+if (length(destfile) == 0 | !file.exists(destfile)) {
+  G_Project_info_CHK <- FALSE
+  button <- tkmessageBox(title='Message',message='Information of Existing Projects is not available. If possible, Please create Project_Information.csv!',type='ok')
+  if(tclvalue(button) == 'ok') {print('good!')}
+} else {
+  G_Project_info_CHK <- TRUE
+  Project_info <- read.csv(destfile, header = T, sep = ",")
+}  
+  
+  
+destfile <- file.path(isolate(G$SE_Dir_Project), "Project_Information.csv")
+if (length(destfile) == 0 | !file.exists(destfile)) {
+  button <- tkmessageBox(title='Message',message='Project_Information is not in your working project',type='ok')
+  if(tclvalue(button) == 'ok') {print('good!')}
+} else {
+  Project_working <- read.csv(destfile, header = T, sep = ",")
+  Project_New_Path <- as.character(Project_working[1,5])
+  Project_New_Name <- as.character(Project_working[1,1])
+  Project_New_Manager <- as.character(Project_working[1,2])  
+  Project_New_Institute <- as.character(Project_working[1,3])
+  Project_New_Date <- as.character(Project_working[1,4])
+  Project_New_Description <- as.character(Project_working[1,6])
+}
 
 G$SDM_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")
 G$SDM_AO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")
@@ -82,11 +107,11 @@ G$IS_AO_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", s
 Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[12,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
 if (SE_Language == "English") {
-    lang <- 3
+    language_position <- 3
 } else if (SE_Language == "Korean"){
-    lang <- 4
+    language_position <- 4
 } else {
-    lang <- 3
+    language_position <- 3
 }
 
 if (SE_Language == "English") {
@@ -155,10 +180,10 @@ names(VH_Group_list) = as.character(Option_lists[,"VH_Group_name"][Option_lists[
 for (v in 1: nrow(Variable_lists)) {
     if(Variable_lists[v,2] == 0) {
         Variable_name <- as.character(Variable_lists[v,1][Variable_lists[v,1] != ""])
-        assign(Variable_name, as.character(Variable_lists[v,lang][Variable_lists[v,lang] != ""]))
+        assign(Variable_name, as.character(Variable_lists[v,language_position][Variable_lists[v,language_position] != ""]))
     } else {
         Variable_name <- as.character(Variable_lists[v,1][Variable_lists[v,1] != ""])
-        assign(Variable_name, get(as.character(Variable_lists[v,lang])))
+        assign(Variable_name, get(as.character(Variable_lists[v,language_position])))
     }
 }
 
