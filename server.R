@@ -211,7 +211,7 @@ shinyServer(function(input, output) {
 	
 	output$SE_Dir_Project_SDM_Species_Model <- renderUI({
 	  Dir_Project_SDM_Species_Model_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species), full.names = FALSE, recursive = FALSE)
-	  Dir_Project_SDM_Species_Model_selected <<- Dir_Project_SDM_Species_Model_list[1]
+	  Dir_Project_SDM_Species_Model_selected <- Dir_Project_SDM_Species_Model_list[1]
 	  selectInput("Dir_Project_SDM_Species_Model", "Select a Model",
 	              choices = c(Dir_Project_SDM_Species_Model_list),
 	              selected = Dir_Project_SDM_Species_Model_selected
@@ -221,20 +221,14 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_SDM_Species_Model_Options <- renderTable({
 	    
 	    destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model, paste(input$Dir_Project_SDM_Species, "_", input$Dir_Project_SDM_Species_Model, "_variables.csv", sep = ""))
-	    if (!file.exists(destfile)) { 
-	      showModal(modalDialog(
-	        title = "Error Message",
-	        paste("Species Distribution Option doesn't exist.")
-	      ))
-	    } else {
-	      SDM_variables_lists <- read.csv(destfile, header = T, sep = ",")
-	      SDM_variables_lists[is.na(SDM_variables_lists)] = ""
-	    
-	      SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
-	      rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
-	      SDM_variables_lists_T[-1,]
-	    }
-
+	    if (file.exists(destfile)) { 
+	        SDM_variables_lists <- read.csv(destfile, header = T, sep = ",")
+	        SDM_variables_lists[is.na(SDM_variables_lists)] = ""
+	        
+	        SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
+	        rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
+	        SDM_variables_lists_T[-1,]
+	    } 
 	    }, rownames = TRUE, colnames = FALSE)
 	
 	output$SE_Dir_Project_SDM_Species_Model_Output <- renderPrint({
@@ -1311,13 +1305,26 @@ shinyServer(function(input, output) {
 
 	})
 	
+	observeEvent(input$DM_MO_Species_sel_all, {
+	    G$DM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$DM_SDM_Dir)
+	    DM_Name_Species_list <- list.dirs(path = G$DM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    G$DM_Name_Species_selected <<- DM_Name_Species_list
+	})
+	
+	observeEvent(input$DM_MO_Species_sel_none, {
+	    G$DM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$DM_SDM_Dir)
+	    DM_Name_Species_list <- list.dirs(path = G$DM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    G$DM_Name_Species_selected <<- DM_Name_Species_list
+	    G$DM_Name_Species_selected <<- ""
+	})
+	
 	output$DM_MO_Species <- renderUI({
-	  G$DM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$DM_SDM_Dir)
+	    G$DM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$DM_SDM_Dir)
 		DM_Name_Species_list <- list.dirs(path = G$DM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		DM_Name_Species_selected <- DM_Name_Species_list[1]
+#		G$DM_Name_Species_selected <<- DM_Name_Species_list[1]
 		checkboxGroupInput("DM_MO_Species", "Select a species",
 			choices = c(DM_Name_Species_list),
-			selected = DM_Name_Species_selected
+			selected = G$DM_Name_Species_selected
 		)
 	})
 	
@@ -1958,28 +1965,42 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SS_MO_Dir_Folder_Name <- renderUI({
-	  SS_MO_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_MO_Dir, input$SS_CA_Species[1]), full.names = FALSE, recursive = FALSE)
-	  SS_MO_Dir_Folder_Name_selected <- SS_MO_Dir_Folder_Name_list[1]
-	  selectInput("SS_MO_Dir_Folder", "Working SDM Types",
-	              choices = c(SS_MO_Dir_Folder_Name_list),
-	              selected = SS_MO_Dir_Folder_Name_selected
-	  )
+	    G$SS_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_MO_Dir)
+	    SS_Name_Species_list <- list.dirs(path = G$SS_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    SS_MO_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_MO_Dir, SS_Name_Species_list[1]), full.names = FALSE, recursive = FALSE)
+	    SS_MO_Dir_Folder_Name_selected <- SS_MO_Dir_Folder_Name_list[1]
+	    selectInput("SS_MO_Dir_Folder", "Working SDM Types",
+	                choices = c(SS_MO_Dir_Folder_Name_list),
+	                selected = SS_MO_Dir_Folder_Name_selected
+	    )
 	  
+	})
+	
+	observeEvent(input$SS_CA_Species_Sel_All, {
+	    G$SS_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_MO_Dir)
+	    SS_Name_Species_list <- list.dirs(path = G$SS_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    G$SS_Name_Species_selected <<- SS_Name_Species_list
+	})
+	
+	observeEvent(input$SS_CA_Species_Sel_None, {
+	    G$SS_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_MO_Dir)
+	    SS_Name_Species_list <- list.dirs(path = G$SS_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    G$SS_Name_Species_selected <<- ""  #SS_Name_Species_list[1]
 	})
 	
 	output$SS_CA_Species <- renderUI({
 	  G$SS_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_MO_Dir)
 	  SS_Name_Species_list <- list.dirs(path = G$SS_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	  SS_Name_Species_selected <- SS_Name_Species_list[1]
 	  checkboxGroupInput("SS_CA_Species", "Select a species",
 	                     choices = c(SS_Name_Species_list),
-	                     selected = SS_Name_Species_selected
+	                     selected = G$SS_Name_Species_selected
 	  )
 	})
 	
 	output$SS_CA_SDM_model <- renderUI({
 	  G$SS_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_MO_Dir)
-	  destfile <- file.path(G$SS_MO_Dir_Folder, input$SS_CA_Species[1], "BIOMOD2", paste(as.name(paste(input$SS_CA_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	  SS_Name_Species_list <- list.dirs(path = G$SS_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	  destfile <- file.path(G$SS_MO_Dir_Folder, SS_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(SS_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	  all_eval <- read.csv(destfile)
 	  G_FILE_species_evaluation <<- all_eval
 	  SS_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
@@ -2767,7 +2788,6 @@ shinyServer(function(input, output) {
 			for (c in clist) {
 				for (m in mlist) {
 					for (y in ylist) {
-						if (length(ylist) > 1 ) {    
 							if(y == ylist[1]) {
 								incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
 								for (s in slist) {
@@ -2843,13 +2863,6 @@ shinyServer(function(input, output) {
 								stay_list <- NULL
 								gain_list <- NULL
 							}				    
-						}
-					    else {
-					        showModal(modalDialog(
-					            title = "Message",
-					            "Please select projection years more than one!"
-					        ))
-					    }
 					}
 				}
 			}

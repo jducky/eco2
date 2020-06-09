@@ -661,26 +661,29 @@ shinyUI(
 		                  tags$hr(),      
                         fluidRow(
                         sidebarPanel(width = 3, Fluid = TRUE,
-                        uiOutput("DM_SDM_Dir_Folder"),
-                        uiOutput("DM_MO_Species")
+                            uiOutput("DM_SDM_Dir_Folder"),
+                            tags$hr(),
+                            actionButton("DM_MO_Species_sel_all", label = "Select All"),
+                            actionButton("DM_MO_Species_sel_none", label = "Unselect All"),
+                            uiOutput("DM_MO_Species")
 		                  ),
 		                sidebarPanel(width = 3, Fluid = TRUE,             
-                        # Input: Checkbox if file has header ----
-                        radioButtons("DM_MO_Climate_model", DM_Name_CD_Models,
-                          choices = c(DM_Name_CD_Models_list),
-                          selected = DM_Name_CD_Models_selected),
-                        # Input: Checkbox if file has header ----
-                        radioButtons("DM_MO_Climate_scenario", DM_Name_CD_Scenarios,
-                          choices = c(DM_Name_CD_Scenarios_list),
-                          selected = DM_Name_CD_Scenarios_selected),
-                        # Input: Checkbox if file has header ----
-                        checkboxGroupInput("DM_MO_Project_year", DM_Name_CD_Year,
-                          choices = c(DM_Name_CD_Year_list),
-                          selected = DM_Name_CD_Year_selected)
-		                  ),
-		                  sidebarPanel(width = 3,
-                            uiOutput("DM_MO_SDM_model")
-		                  )
+                            # Input: Checkbox if file has header ----
+                            radioButtons("DM_MO_Climate_model", DM_Name_CD_Models,
+                                choices = c(DM_Name_CD_Models_list),
+                                selected = DM_Name_CD_Models_selected),
+                            # Input: Checkbox if file has header ----
+                            radioButtons("DM_MO_Climate_scenario", DM_Name_CD_Scenarios,
+                                choices = c(DM_Name_CD_Scenarios_list),
+                                selected = DM_Name_CD_Scenarios_selected),
+                            # Input: Checkbox if file has header ----
+                            checkboxGroupInput("DM_MO_Project_year", DM_Name_CD_Year,
+                                choices = c(DM_Name_CD_Year_list),
+                                selected = DM_Name_CD_Year_selected)
+		                    ),
+		                    sidebarPanel(width = 3,
+                                uiOutput("DM_MO_SDM_model")
+		                    )
 		                )
 		              ),
 		              tabPanel(DM_Name_Model_DM_Barrier,
@@ -881,9 +884,11 @@ shinyUI(
                     tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 2, Fluid = TRUE,
-
-              uiOutput("SS_MO_Dir_Folder"),
-              uiOutput("SS_MO_Dir_Folder_Name"),
+                            uiOutput("SS_MO_Dir_Folder"),
+                            uiOutput("SS_MO_Dir_Folder_Name"),
+						    tags$hr(),
+						    actionButton("SS_CA_Species_Sel_All", label = "Select All"),
+						    actionButton("SS_CA_Species_Sel_None", label = "Select None"),
 							uiOutput("SS_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,             
@@ -1000,9 +1005,11 @@ shinyUI(
 					tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 3, Fluid = TRUE,
-
-              uiOutput("IS_MI_Dir_Folder"),
-              uiOutput("IS_MI_Dir_Folder_Name"),
+                            uiOutput("IS_MI_Dir_Folder"),
+                            uiOutput("IS_MI_Dir_Folder_Name"),
+						    tags$hr(),
+						    actionButton("IS_CA_Species_Sel_All", label = "Select All"),
+						    actionButton("IS_CA_Species_Sel_None", label = "Select None"),
 							uiOutput("IS_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                      
@@ -1184,9 +1191,12 @@ shinyUI(
 					tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 2, Fluid = TRUE,
-						  uiOutput("VH_MI_Dir_Folder"),
-						  uiOutput("VH_MI_Dir_Folder_Name"),
-							uiOutput("VH_CA_Species")
+						    uiOutput("VH_MI_Dir_Folder"),
+						    uiOutput("VH_MI_Dir_Folder_Name"),
+						    tags$hr(),
+						    actionButton("VH_CA_Species_Sel_All", label = "Select All"),
+						    actionButton("VH_CA_Species_Sel_None", label = "Select None"),
+						    uiOutput("VH_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                
 							checkboxGroupInput("VH_CA_Dispersal_type", VH_Name_DM_Models,
