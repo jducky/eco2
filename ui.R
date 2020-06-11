@@ -921,14 +921,12 @@ shinyUI(
 					tags$hr(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
-
-              uiOutput("SS_AO_Dir_Folder"),
-              uiOutput("SS_AO_Model_Name"),	
+                            uiOutput("SS_AO_Dir_Folder"),
+                            uiOutput("SS_AO_Model_Name"),	
 							uiOutput("SS_AO_Species"),
 							tags$hr(),
-	
 							uiOutput("SS_AO_SDM_model"),
-                                   
+							
 							# Input: Checkbox if file has header ----
 							checkboxGroupInput("SS_AO_Climate_model", SS_Name_CD_Models,
 								choices = c(SS_Name_CD_Models_list),
