@@ -252,13 +252,6 @@ shinyUI(
 						column(6, DT::dataTableOutput("SP_Info")),
 						column(6, leafletOutput("SP_Map", width = "500", height = "600"))
 					)
-#					fluidRow(
-#						tags$hr(),
-#						column(6, 
-#							verbatimTextOutput("SP_Summary"),
-#							plotOutput("SP_Histogram")
-#						)
-#					)
 				),
 				tabPanel(SP_Name_Location,
 					tags$head(
@@ -303,9 +296,9 @@ shinyUI(
 					                   selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
 					),
 					sliderInput("LD_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Forestfire", min = 0.01, 
-					            max = 1.0, step = 0.01, value = 0.9),
+					            max = 1.0, step = 0.01, value = 0.955),
 					sliderInput("LD_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
-					            max = 1.0, step = 0.01, value = 0.9)
+					            max = 1.0, step = 0.01, value = 0.85)
 				),
 
 				# Main panel for displaying outputs ----
@@ -709,9 +702,9 @@ shinyUI(
 		                                  selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
 		                    ),
 		                    sliderInput("DM_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Forestfire", min = 0.01, 
-		                                  max = 1.0, step = 0.01, value = 0.9),
+		                                  max = 1.0, step = 0.01, value = 0.955),
 		                    sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
-		                                  max = 1.0, step = 0.01, value = 0.7),
+		                                  max = 1.0, step = 0.01, value = 0.85),
 		                    tags$br(),
 		                    sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 10, 
 		                                  max = 100, step = 10, value = 50),

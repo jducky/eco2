@@ -342,37 +342,22 @@ shinyServer(function(input, output) {
 
 	output$SP_Info <- DT::renderDataTable ({
 	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
-	    G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
+	    G_FILE_speciesindex <- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
 	    G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
-	  }
+	    G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	    G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	  } else {
+	  G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
+	  G_FILE_specieslocation <<- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
 	  G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-	  G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	  G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	  }
 	  DT::datatable(G_FILE_speciesinfo)
-	})
-	    
-	output$SP_Summary <- renderPrint({
-		rs <- input$SP_Info_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-		if (length(rs) > 0) {
-			species_info <- G_FILE_speciesinfo[rs, , drop = FALSE]
-			summary(species_info$n)
-		}
-	})
-	
-	output$SP_Histogram <- renderPlot({
-		rs <- input$SP_Info_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-		if (length(rs) > 0) {
-			species_info <- G_FILE_speciesinfo[rs, , drop = FALSE]
-			hist(species_info$n, # breaks = bins, 
-				col="orange",
-				border="brown",
-				xlab = "Species Number",
-				main = "Histogram")
-		}
 	})
   
 	output$SP_Map <- renderLeaflet({
 	          
-		rs <- input$SP_Info_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+		rs <- input$SP_Info_rows_selected 
 		if (length(rs)) {
 			species_data <- inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[rs, , drop = FALSE], by = "ID")
 			leaflet(data = species_data) %>%
@@ -549,15 +534,18 @@ shinyServer(function(input, output) {
 		setView(lng = 128.00, lat = 36.00, zoom = 7)
 	})
 	
-#	output$SDM_SP_Info <- DT::renderDataTable(G_FILE_speciesinfo, server = TRUE)
-	
 	output$SDM_SP_Info <- DT::renderDataTable({
 	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
-	    G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
-	    G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
+	      G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
+	      G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
+	      G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	      G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = G$SE_Species_ID)
+	  } else {
+	      G_FILE_speciesindex <<- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
+	      G_FILE_specieslocation <<- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
+	      G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	      G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = G$SE_Species_ID)
 	  }
-	  G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-	  G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
 	  DT::datatable(G_FILE_speciesinfo)
 	})
 	
@@ -662,10 +650,10 @@ shinyServer(function(input, output) {
 	    file.copy(file.path(getwd(), "maxent.jar"), PATH_MODEL_OUTPUT)
 	    setwd(PATH_MODEL_OUTPUT)
 	    # Setting Column Name of species data
-	    NAME_ID <- "ID"
-	    NAME_SPECIES <- "K_NAME"
-	    NAME_LONG <- "Longitude"
-	    NAME_LAT <- "Latitude"
+	    NAME_ID <- G$SE_Species_ID  # "ID"
+	    NAME_SPECIES <- G$SE_Species_Name  # "K_NAME"
+	    NAME_LONG <- G$SE_Species_Location_Longitude  # "Longitude"
+	    NAME_LAT <- G$SE_Species_Location_Latitude  # "Latitude"
 	    
 	    # setting speices and environmental data
 	    FILE_SPECIES_NAME <<- input$SE_speciesindex   # G$SE_speciesindex

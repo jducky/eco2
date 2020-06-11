@@ -63,12 +63,12 @@ if (length(destfile) == 0 | !file.exists(destfile)) {
     button <- tkmessageBox(title='Message',message='Species data is not available. Please set species data and rerun the system again!',type='ok')
     if(tclvalue(button) == 'ok') {stop('Exit the program!')}
   }
-  G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
-  G_FILE_specieslocation <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
-  G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-  G_FILE_speciesinfo <- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
-  Input_img <- as.character(system_env[10,2])
-  Output_img <- as.character(system_env[11,2])
+  G$SE_Species_ID <- as.character(system_env[10,2])
+  G$SE_Species_Name <- as.character(system_env[11,2])
+  G$SE_Species_Location_Longitude <- as.character(system_env[12,2])
+  G$SE_Species_Location_Latitude <- as.character(system_env[13,2])
+  Input_img <- as.character(system_env[14,2])
+  Output_img <- as.character(system_env[15,2])
 }
 
 
@@ -104,7 +104,7 @@ G$IS_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep 
 G$IS_AO_MI_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
 G$IS_AO_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
 
-Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[12,2])), header = T, sep = ",")
+Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[16,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
 if (SE_Language == "English") {
     language_position <- 3
@@ -115,11 +115,11 @@ if (SE_Language == "English") {
 }
 
 if (SE_Language == "English") {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[13,2])), header = T, sep = ",")
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[17,2])), header = T, sep = ",")
 } else if (SE_Language == "Korean"){
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[14,2])), header = T, sep = ",")   
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[18,2])), header = T, sep = ",")   
 } else {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[13,2])), header = T, sep = ",")  
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[17,2])), header = T, sep = ",")  
 }
 Option_lists[is.na(Option_lists)] = ""
 
