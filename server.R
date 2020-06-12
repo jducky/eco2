@@ -344,13 +344,13 @@ shinyServer(function(input, output) {
 	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
 	    G_FILE_speciesindex <- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
 	    G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
-	    G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-	    G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	    G_FILE_speciesfreq <- count(G_FILE_specieslocation, !!sym(G$SE_Species_ID))
+	    G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = G$SE_Species_ID)
 	  } else {
-	  G_FILE_speciesindex <- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
-	  G_FILE_specieslocation <<- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
-	  G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
-	  G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = "ID")
+	  G_FILE_speciesindex <- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
+	  G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, G$SE_specieslocation), header = T, sep = ",")
+	  G_FILE_speciesfreq <- count(G_FILE_specieslocation, !!sym(G$SE_Species_ID))
+	  G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = G$SE_Species_ID)
 	  }
 	  DT::datatable(G_FILE_speciesinfo)
 	})
@@ -359,19 +359,19 @@ shinyServer(function(input, output) {
 	          
 		rs <- input$SP_Info_rows_selected 
 		if (length(rs)) {
-			species_data <- inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[rs, , drop = FALSE], by = "ID")
+			species_data <- inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[rs, , drop = FALSE], by = G$SE_Species_ID)
 			leaflet(data = species_data) %>%
 			addTiles(
 					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
 
-			addMarkers(~Longitude, ~Latitude, popup = ~as.character(ID), label = ~as.character(ID)) %>%
+			addMarkers(~as.numeric(noquote(G$SE_Species_Location_Longitude)), ~as.numeric(noquote(G$SE_Species_Location_Latitude)), popup = ~as.character(noquote(G$SE_Species_ID)), label = ~as.character(noquote(G$SE_Species_ID))) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})
 
-	output$SP_LOC_Info <- DT::renderDataTable(inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[input$SP_Info_rows_selected, , drop = FALSE], by = "ID"), server = TRUE)
+	output$SP_LOC_Info <- DT::renderDataTable(inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[input$SP_Info_rows_selected, , drop = FALSE], by = G$SE_Species_ID), server = TRUE)
 	
 	output$SP_LOC_Map <- renderLeaflet({
 		rs <- input$SP_LOC_Info_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
@@ -383,7 +383,7 @@ shinyServer(function(input, output) {
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
 	
-			addMarkers(~Longitude, ~Latitude, popup = ~as.character(ID), label = ~as.character(ID)) %>%
+			addMarkers(~Longitude, ~Latitude, popup = ~as.character(noquote(G$SE_Species_ID)), label = ~as.character(noquote(G$SE_Species_ID))) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})  
@@ -538,20 +538,20 @@ shinyServer(function(input, output) {
 	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
 	      G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
 	      G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
-	      G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	      G_FILE_speciesfreq <- count(G_FILE_specieslocation, !!sym(G$SE_Species_ID))
 	      G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = G$SE_Species_ID)
 	  } else {
-	      G_FILE_speciesindex <<- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex)), header = T, sep = ",")
-	      G_FILE_specieslocation <<- read.csv(file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation)), header = T, sep = ",")
-	      G_FILE_speciesfreq <- count(G_FILE_specieslocation, ID)
+	      G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
+	      G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, G$SE_specieslocation), header = T, sep = ",")
+	      G_FILE_speciesfreq <- count(G_FILE_specieslocation, !!sym(G$SE_Species_ID))
 	      G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = G$SE_Species_ID)
 	  }
 	  DT::datatable(G_FILE_speciesinfo)
 	})
 	
 	output$SDM_SP_Selection <- renderPrint({
-		s_id <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$ID)
-		s_kname <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$K_NAME)
+		s_id <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$noquote(G$SE_Species_ID))
+		s_kname <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$noquote(G$SE_Species_Name))
 		if (length(s_id)) {
 			cat('Speices ID:\n\n')
 			cat(s_id, sep = ', ')
