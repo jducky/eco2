@@ -366,7 +366,7 @@ shinyServer(function(input, output) {
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
 
-			addMarkers(~as.numeric(noquote(G$SE_Species_Location_Longitude)), ~as.numeric(noquote(G$SE_Species_Location_Latitude)), popup = ~as.character(noquote(G$SE_Species_ID)), label = ~as.character(noquote(G$SE_Species_ID))) %>%
+			addMarkers(lng = species_data[, G$SE_Species_Location_Longitude], lat = species_data[, G$SE_Species_Location_Latitude], popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_ID]) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})
@@ -383,7 +383,7 @@ shinyServer(function(input, output) {
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
 	
-			addMarkers(~Longitude, ~Latitude, popup = ~as.character(noquote(G$SE_Species_ID)), label = ~as.character(noquote(G$SE_Species_ID))) %>%
+			  addMarkers(lng = species_data[, G$SE_Species_Location_Longitude], lat = species_data[, G$SE_Species_Location_Latitude], popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_ID]) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})  
@@ -547,11 +547,12 @@ shinyServer(function(input, output) {
 	      G_FILE_speciesinfo <<- inner_join(G_FILE_speciesfreq, G_FILE_speciesindex, by = G$SE_Species_ID)
 	  }
 	  DT::datatable(G_FILE_speciesinfo)
+	  
 	})
 	
 	output$SDM_SP_Selection <- renderPrint({
-		s_id <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$noquote(G$SE_Species_ID))
-		s_kname <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$noquote(G$SE_Species_Name))
+		s_id <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][, G$SE_Species_ID])
+		s_kname <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][, G$SE_Species_Name])
 		if (length(s_id)) {
 			cat('Speices ID:\n\n')
 			cat(s_id, sep = ', ')
@@ -2499,8 +2500,8 @@ shinyServer(function(input, output) {
 			Group <- vindex[, input$SS_AO_IV_UI_plot2]
 			vindex %>%
 			tail(10) %>%
-			ggplot(aes(x = Year, y = Vulnerability_Area_Loss_Ratio)) +
-				geom_line(aes(color = Group, linetype = Group)) +
+			ggplot(aes(x = Year, y = Vulnerability_Area_Loss_Ratio, group = Model)) +
+				geom_line(aes(color = Model, linetype = Model)) +
 				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
 				theme_ipsum() +
 				labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
@@ -2515,8 +2516,8 @@ shinyServer(function(input, output) {
 			Group <- vindex[, input$SS_AO_IV_UI_plot2]
 			vindex %>%
 			tail(10) %>%
-			ggplot(aes(x = Year, y = Vulnerability_Area_LossIN_GainOUT_Ratio)) +
-				geom_line(aes(color = Group, linetype = Group)) +
+			ggplot(aes(x = Year, y = Vulnerability_Area_LossIN_GainOUT_Ratio, group = Model)) +
+				geom_line(aes(color = Model, linetype = Model)) +
 				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
 				theme_ipsum() +
 				labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")

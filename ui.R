@@ -260,7 +260,7 @@ shinyUI(
 						includeScript("gomap.js")
 					),
 					tags$hr(),
-					column(6, DT::dataTableOutput("SP_LOC_Info")),
+					column(8, DT::dataTableOutput("SP_LOC_Info")),
 					column(6, leafletOutput("SP_LOC_Map", width = "500", height = "600"))
 				)             
 			)
@@ -974,6 +974,13 @@ shinyUI(
 									  tags$hr(),
 									  column(6, plotOutput("SS_AO_VP_Plot1")),
 									  column(6, plotOutput("SS_AO_VP_Plot2"))
+									),
+									fluidRow(
+									  tags$hr(),
+									  uiOutput("SS_AO_VP_UI_plot2"),
+									  tags$hr(),
+									  column(6, plotOutput("SS_AO_VP_Plot11")),
+									  column(6, plotOutput("SS_AO_VP_Plot21"))
 									),
 									fluidRow(
 									  tags$hr(),
