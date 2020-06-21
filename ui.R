@@ -249,7 +249,7 @@ shinyUI(
 					),
 					tags$hr(),
 					fluidRow(
-						column(6, DT::dataTableOutput("SP_Info")),
+						column(6, DT::dataTableOutput("SP_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
 						column(6, leafletOutput("SP_Map", width = "500", height = "600"))
 					)
 				),
@@ -260,7 +260,7 @@ shinyUI(
 						includeScript("gomap.js")
 					),
 					tags$hr(),
-					column(8, DT::dataTableOutput("SP_LOC_Info")),
+					column(6, DT::dataTableOutput("SP_LOC_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
 					column(6, leafletOutput("SP_LOC_Map", width = "500", height = "600"))
 				)             
 			)
@@ -403,7 +403,7 @@ shinyUI(
 						tabPanel(SDM_Name_Model_Species,
 							fluidRow(
 								tags$hr(),
-								column(6, DT::dataTableOutput("SDM_SP_Info")),
+								column(6, DT::dataTableOutput("SDM_SP_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
 								column(4, verbatimTextOutput("SDM_SP_Selection"))
 							)
 						),
@@ -446,9 +446,6 @@ shinyUI(
 								# Sidebar panel for inputs ----
 								sidebarPanel(width = 3,
                   tags$p("Data Options:"),
-#                  uiOutput("DM_MO_DM_envChgSteps"),
-#                  uiOutput("DM_MO_DM_envChgSteps"),
-#                  uiOutput("DM_MO_DM_envChgSteps"),
 #                  uiOutput("DM_MO_DM_envChgSteps"),
                   selectInput("BIOMOD_eval.resp.var", "BIOMOD_eval.resp.var",
                     choices = NULL,
@@ -820,22 +817,12 @@ shinyUI(
 		                    tags$hr(),
 		                    sidebarLayout(
 		                      sidebarPanel(width = 3, Fluid = TRUE,
-#		                                   shinyDirButton("DM_AO_Dir_Folder", DM_Name_Dir, DM_Name_Dir),
-#		                                   verbatimTextOutput("DM_AO_Dir_Folder", placeholder = TRUE),
-#		                                   textInput("DM_AO_MO_Dir_Folder_Name", "DM Model Foler Name",
-#		                                             value = ""),
-#		                                   tags$hr(),
 		                                   uiOutput("DM_AO_Dir_Folder"),
                                        uiOutput("DM_AO_Model_Name"),
 		                                   uiOutput("DM_OU_Species"),
 		                                   tags$hr(),
 		                                   
 		                                   uiOutput("DM_OU_SDM_model"),
-		                                   
-#		                                   checkboxGroupInput("DM_OU_Dispersal_type", DM_Name_DM_Models,
-#		                                                      choices = c(DM_Name_DM_Models_list),
-#		                                                      selected = DM_Name_DM_Models_selected
-#		                                   ),
 		                                   
 		                                   # Input: Checkbox if file has header ----
 		                                   checkboxGroupInput("DM_OU_Climate_model", DM_Name_CD_Models,
@@ -877,11 +864,11 @@ shinyUI(
                     tags$hr(),
 					fluidRow(
 						sidebarPanel(width = 2, Fluid = TRUE,
-                            uiOutput("SS_MO_Dir_Folder"),
-                            uiOutput("SS_MO_Dir_Folder_Name"),
-						    tags$hr(),
-						    actionButton("SS_CA_Species_Sel_All", label = "Select All"),
-						    actionButton("SS_CA_Species_Sel_None", label = "Select None"),
+              uiOutput("SS_MO_Dir_Folder"),
+              uiOutput("SS_MO_Dir_Folder_Name"),
+              tags$hr(),
+              actionButton("SS_CA_Species_Sel_All", label = "Select All"),
+              actionButton("SS_CA_Species_Sel_None", label = "Select None"),
 							uiOutput("SS_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,             
@@ -914,9 +901,13 @@ shinyUI(
 					tags$hr(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
-                            uiOutput("SS_AO_Dir_Folder"),
-                            uiOutput("SS_AO_Model_Name"),	
-							uiOutput("SS_AO_Species"),
+              uiOutput("SS_AO_Dir_Folder"),
+              uiOutput("SS_AO_Model_Name"),	
+#							uiOutput("SS_AO_Species"),
+              tags$hr(),
+              actionButton("SS_AO_Species_Sel_All", label = "Select All"),
+              actionButton("SS_AO_Species_Sel_None", label = "Select None"),
+              uiOutput("SS_AO_Species"),
 							tags$hr(),
 							uiOutput("SS_AO_SDM_model"),
 							
@@ -943,53 +934,98 @@ shinyUI(
 									tags$hr(),
 									uiOutput("SS_AO_UI_plot")
 								),
-								tabPanel(SS_Name_Out_Pattern, 
+								tabPanel(SS_Name_Out_IV_Table,
+#                  tags$hr(),
+#                  radioButtons("SS_AO_IV_Data", "Vulnerable Index File",
+#                                choices = c("Target Species" = "Species","Total Species" = "Total"),
+#                                selected = "Species"
+#                  ),
 									tags$hr(),
 									fluidRow(
-										column(6, DT::dataTableOutput("SS_AO_IV_Table"))
-									),
-									fluidRow(
-										tags$hr(),
-										uiOutput("SS_AO_IV_UI_plot1"),
-										tags$hr(),
-										column(6, plotOutput("SS_AO_IV_Plot1")),
-										column(6, plotOutput("SS_AO_IV_Plot2"))
-									),
-									fluidRow(
-										tags$hr(),
-										uiOutput("SS_AO_IV_UI_plot2"),
-										tags$hr(),
-										column(6, plotOutput("SS_AO_IV_Plot11")),
-										column(6, plotOutput("SS_AO_IV_Plot21"))
+#										column(12, DT::dataTableOutput("SS_AO_IV_Table"), style = "height:460px; overflow-y: scroll;overflow-x: scroll;")
+										column(12, DT::dataTableOutput("SS_AO_IV_Table"), style = "overflow-y: scroll;overflow-x: scroll;")
 									)
                 ),
-								tabPanel(SS_Name_Out_Vulnerabiity, 
-									tags$hr(),
+                tabPanel(SS_Name_Out_IV_GainLoss,
 									fluidRow(
-                    column(6,DT::dataTableOutput("SS_AO_VP_Table"))
-									),
-									fluidRow(
-									  tags$hr(),
-									  uiOutput("SS_AO_VP_UI_plot1"),
-									  tags$hr(),
-									  column(6, plotOutput("SS_AO_VP_Plot1")),
-									  column(6, plotOutput("SS_AO_VP_Plot2"))
-									),
-									fluidRow(
-									  tags$hr(),
-									  uiOutput("SS_AO_VP_UI_plot2"),
-									  tags$hr(),
-									  column(6, plotOutput("SS_AO_VP_Plot11")),
-									  column(6, plotOutput("SS_AO_VP_Plot21"))
-									),
-									fluidRow(
-									  tags$hr(),
-									  uiOutput("SS_AO_VP_UI_plot3"),
-									  tags$hr(),
-									  column(6, plotOutput("SS_AO_VP_Plot12")),
-									  column(6, plotOutput("SS_AO_VP_Plot22"))
+										tags$hr(),
+										selectInput("SS_AO_IV_UI_plot11", "Select the 1st group",
+										            choices = c(SS_Name_Group1_list),
+										            selected = SS_Name_Group11_selected
+										),
+										selectInput("SS_AO_IV_UI_plot12", "Select the 2nd group",
+                                choices = c(SS_Name_Group1_list),
+                                selected = SS_Name_Group12_selected
+                    ),
+										selectInput("SS_AO_IV_UI_plot13", "Select the 3rd group",
+                                choices = c(SS_Name_Group1_list),
+                                selected = SS_Name_Group13_selected
+                    ),
+                    selectInput("SS_AO_IV_UI_plot14", "Select the 4th group",
+                                choices = c(SS_Name_Group1_list),
+                                selected = SS_Name_Group14_selected
+                    ),
+                    selectInput("SS_AO_IV_UI_plot15", "Select the 5th group",
+                                choices = c(SS_Name_Group1_list),
+                                selected = SS_Name_Group15_selected
+                    ),
+										tags$br(),
+										column(6, plotOutput("SS_AO_IV_Plot11")),
+										column(6, plotOutput("SS_AO_IV_Plot12"))
 									)
-								)
+                ),
+								tabPanel(SS_Name_Out_IV_Pattern,
+									fluidRow(
+										tags$hr(),
+									  selectInput("SS_AO_IV_UI_plot21", "Select the 1st group",
+									              choices = c(SS_Name_Group2_list),
+									              selected = SS_Name_Group21_selected
+									  ),
+									  selectInput("SS_AO_IV_UI_plot22", "Select the 2nd group",
+									              choices = c(SS_Name_Group2_list),
+									              selected = SS_Name_Group22_selected
+									  ),
+									  selectInput("SS_AO_IV_UI_plot23", "Select the 3rd group",
+									              choices = c(SS_Name_Group2_list),
+									              selected = SS_Name_Group23_selected
+									  ),
+									  selectInput("SS_AO_IV_UI_plot24", "Select the 4th group",
+									              choices = c(SS_Name_Group2_list),
+									              selected = SS_Name_Group24_selected
+									  ),
+										tags$hr(),
+										column(6, plotOutput("SS_AO_IV_Plot21")),
+										column(6, plotOutput("SS_AO_IV_Plot22"))
+									)
+								),
+								tabPanel(SS_Name_Out_IV_Order,
+                  fluidRow(
+                    tags$hr(),
+                    selectInput("SS_AO_IV_UI_plot31", "Select the 1st group",
+                                choices = c(SS_Name_Group3_list),
+                                selected = SS_Name_Group31_selected
+                    ),
+                    selectInput("SS_AO_IV_UI_plot32", "Select the 2nd group",
+                                choices = c(SS_Name_Group3_list),
+                                selected = SS_Name_Group32_selected
+                    ),
+                    selectInput("SS_AO_IV_UI_plot33", "Select the 3rd group",
+                                choices = c(SS_Name_Group3_list),
+                                selected = SS_Name_Group33_selected
+                    ),
+                    selectInput("SS_AO_IV_UI_plot34", "Select the 4th group",
+                                choices = c(SS_Name_Group3_list),
+                                selected = SS_Name_Group34_selected
+                    ),
+                    selectInput("SS_AO_IV_UI_plot35", "Select the 5th group",
+                                choices = c(SS_Name_Group3_list),
+                                selected = SS_Name_Group35_selected
+                    ),
+                    tags$hr(),
+                    column(6, plotOutput("SS_AO_IV_Plot31")),
+                    column(6, plotOutput("SS_AO_IV_Plot32"))
+                  )
+                )
 							)
 						)
 					)

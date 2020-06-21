@@ -161,8 +161,10 @@ SS_Name,0,Senstive Species,기후변화민감종
 SS_Name_Analysis,0,Impact and Vulnerability Asessment,영향 및 취약성평가
 SS_Name_Out,0,Assessment Result,평가결과
 SS_Name_Out_ChangePlot,0,Distribution Change Result,분포변화 결과
-SS_Name_Out_Pattern,0,Vulnerability Pattern,취약성 패턴
-SS_Name_Out_Vulnerabiity,0,Vulnerability Order,취약성 순위
+SS_Name_Out_IV_Table,0,Vulnerability Table,취약성 지수 결과
+SS_Name_Out_IV_GainLoss,0,Vulnerability Gain_Loss Ratio,취약성 면적변화비
+SS_Name_Out_IV_Pattern,0,Vulnerability Pattern,취약성 패턴
+SS_Name_Out_IV_Order,0,Vulnerability Order,취약성 순위
 SS_Name_DM_Models,0,DIspersal Types,확산모형
 SS_Name_DM_Models_list,1,DM_Models_list,DM_Models_list
 SS_Name_DM_Models_selected,0,BIOMOD2,BIOMOD2
@@ -193,11 +195,22 @@ SS_Name_CD_Year_out,0,Projecting Years,예측년도
 SS_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
 SS_Name_CD_Year_out_selected,0,2000,2000
 SS_Name_Group1_list,1,SS_Group1_list,SS_Group1_list
-SS_Name_Group1_selected,0,Year,Year
+SS_Name_Group11_selected,0,Species,Species
+SS_Name_Group12_selected,0,Climate_Model,Climate_Model
+SS_Name_Group13_selected,0,Climate_Scenario,Climate_Scenario
+SS_Name_Group14_selected,0,Model,Model
+SS_Name_Group15_selected,0,Year,Year
 SS_Name_Group2_list,1,SS_Group2_list,SS_Group2_list
-SS_Name_Group2_selected,0,Model,Model
+SS_Name_Group21_selected,0,Species,Species
+SS_Name_Group22_selected,0,Climate_Model,Climate_Model
+SS_Name_Group23_selected,0,Climate_Scenario,Climate_Scenario
+SS_Name_Group24_selected,0,Model,Model
 SS_Name_Group3_list,1,SS_Group3_list,SS_Group3_list
-SS_Name_Group3_selected,0,Model,Model
+SS_Name_Group31_selected,0,Climate_Model,Climate_Model
+SS_Name_Group32_selected,0,Climate_Scenario,Climate_Scenario
+SS_Name_Group33_selected,0,Model,Model
+SS_Name_Group34_selected,0,Year,Year
+SS_Name_Group35_selected,0,Species,Species
 SS_Name_MO_Dir,0,Input Folder,민감종평가 입력폴더
 SS_Name_AO_Dir,0,Output Folder,민감종평가 결과폴더
 IS_Name,0,Invasive Species,외래종

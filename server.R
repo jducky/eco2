@@ -74,7 +74,7 @@ shinyServer(function(input, output) {
 	    if (!dir.exists(G$SE_Dir_Project)) { 
 	      showModal(modalDialog(
 	        title = "Error Message",
-	        paste(Project_Info_Path, "is not exist.")
+	        paste("Working Project folder does not exist.")
 	      ))
 	    }
 	  } else {
@@ -104,7 +104,7 @@ shinyServer(function(input, output) {
 	  if (!dir.exists(G$SE_Dir_Project)) {
 	    showModal(modalDialog(
 	      title = "Error Message",
-	      paste(G$SE_Dir_Project, "is not exist.")
+	      paste("Working Project folder does not exist.")
 	    ))
 	  }
 	    verbatimTextOutput("SE_Project_New_Path_Name")
@@ -2295,7 +2295,9 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SS_AO_Model_Name <- renderUI({
-	  SS_AO_Model_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species[1]), full.names = FALSE, recursive = FALSE)
+	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
+	  SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	  SS_AO_Model_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, SS_Name_Species_list[1]), full.names = FALSE, recursive = FALSE)
 	  SS_AO_Model_Name_selected <- SS_AO_Model_Name_list[1]
 	  selectInput("SS_AO_Model_Name_Input", "Working SDM Types",
 	              choices = c(SS_AO_Model_Name_list),
@@ -2304,7 +2306,28 @@ shinyServer(function(input, output) {
 	  
 	})
 	
+	observeEvent(input$SS_AO_Species_Sel_All, {
+	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
+	  SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	  G$SS_Name_Species_selected <<- SS_Name_Species_list
+	})
+	
+	observeEvent(input$SS_AO_Species_Sel_None, {
+	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
+	  SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	  G$SS_Name_Species_selected <<- ""  #SS_Name_Species_list[1]
+	})
+	
 	output$SS_AO_Species <- renderUI({
+	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
+	  SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	  checkboxGroupInput("SS_AO_Species", "Select a species",
+	                     choices = c(SS_Name_Species_list),
+	                     selected = G$SS_Name_Species_selected
+	  )
+	})
+	
+	output$SS_AO_Species_old <- renderUI({
 	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
 		SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		SS_Name_Species_selected <- SS_Name_Species_list[1]
@@ -2316,7 +2339,8 @@ shinyServer(function(input, output) {
 
 	output$SS_AO_SDM_model <- renderUI({
 	  G$SS_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir)
-		destfile <- file.path(G$SS_AO_Dir_Folder, input$SS_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$SS_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	  SS_Name_Species_list <- list.dirs(path = G$SS_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+		destfile <- file.path(G$SS_AO_Dir_Folder, SS_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(SS_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		SS_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
@@ -2424,34 +2448,93 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SS_AO_IV_Table <- DT::renderDataTable({
-		destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species, input$SS_AO_Model_Name_Input, paste(as.name(paste(input$SS_AO_Species, "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
-		vindex <- read.csv(destfile)
-		G_FILE_species_vindex <<- vindex
-		vindex
-	})
-	
-	output$SS_AO_IV_3DPlot <- renderPlot({
-		rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-		if (length(rs)) {
-			vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
-			plot_ly(x = vindex$Area_Loss_Ratio, y = vindex$Area_Gain_Ratio, z = vindex$Area_Stay_Ratio, type = "scatter3d", mode = "markers", color = as.character(vindex$Year))
-		}   
+#	  if (input$SS_AO_IV_Data == "Species") {
+#  		destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species, input$SS_AO_Model_Name_Input, paste(as.name(paste(input$SS_AO_Species, "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
+#	  } else {
+	    destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, paste(input$SS_AO_Model_Name_Input, "_Speices_VINDEX.csv", sep = "")) # , sep = "", collapse = "--")
+#	  }
+		
+	  if (!file.exists(destfile)) {
+#	    G_FILE_species_vindex_CHK <<- FALSE
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Vulnerable Index file doesn't exist.")
+	    ))
+	  } else {
+#	    G_FILE_species_vindex_CHK <<- TRUE
+	    vindex <- read.csv(destfile)
+		  G_FILE_species_vindex <<- vindex
+		  vindex
+	  }
 	})
 
-	output$SS_AO_IV_UI_plot1 <- renderUI({
-		selectInput("SS_AO_IV_UI_plot1", "Select a group",
-			choices = c(SS_Name_Group1_list),
-			selected = SS_Name_Group1_selected
-		)
-	})
 	
-	output$SS_AO_IV_Plot1 <- renderPlot({
+	output$SS_AO_IV_Plot11 <- renderPlot({
 		rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs)) {
 			vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
-			vindex$Year <- as.character(vindex$Year)
+			
+		if (input$SS_AO_IV_UI_plot11 == "Species") {
+      vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+		} else if (input$SS_AO_IV_UI_plot11 == "Climate_Model") {
+      vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+		} else if (input$SS_AO_IV_UI_plot11 == "Climate_Scenario") {
+      vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+		} else if (input$SS_AO_IV_UI_plot11 == "Model") {
+      vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+		} else {
+      vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+		}
+	  
+	  if (input$SS_AO_IV_UI_plot12 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot12 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot12 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot12 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot13 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot13 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot13 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot13 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot14 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot14 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot14 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot14 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot15 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot15 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot15 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot15 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
 	
-			Group <- vindex[, input$SS_AO_IV_UI_plot1]
+			Group <- vindex[, input$SS_AO_IV_UI_plot15]
 			ggplot(vindex, aes(x = Area_Loss_Ratio, y = Area_Gain_Ratio_Reverse, color = Group)) +
 				geom_point(size = 6) +
 				labs(title = "Vulnerability (Area Loss Ratio)", x = "Loss", y = "Gain") +
@@ -2462,16 +2545,76 @@ shinyServer(function(input, output) {
 				geom_vline(xintercept = 50, color="orange", size=1) +
 				# Add arrow
 				annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow())
+	  
 		}   
 	})
 	
-	output$SS_AO_IV_Plot2 <- renderPlot({
+	output$SS_AO_IV_Plot12 <- renderPlot({
 		rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs)) {
 			vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
-			vindex$Year <- as.character(vindex$Year)
+	  
+	  if (input$SS_AO_IV_UI_plot11 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot11 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot11 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot11 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot12 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot12 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot12 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot12 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot13 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot13 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot13 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot13 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot14 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot14 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot14 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot14 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot15 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot15 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot15 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot15 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
 	
-			Group <- vindex[, input$SS_AO_IV_UI_plot1]
+			Group <- vindex[, input$SS_AO_IV_UI_plot15]
 			ggplot(vindex, aes(x = Area_Loss_Ratio, y = Area_Gain_Ratio_Outside_Reverse, color = Group)) +
 				geom_point(size = 6) +
 				labs(title = "Vulnerability (Area LossIN GainOUT Ratio)", x = "Loss", y = "Gain") +
@@ -2482,156 +2625,195 @@ shinyServer(function(input, output) {
 				geom_vline(xintercept = 50, color="orange", size=1) +
 				# Add arrow
 				annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow())
-		}
-	})
-	
-	output$SS_AO_IV_UI_plot2 <- renderUI({
-		selectInput("SS_AO_IV_UI_plot2", "Select a group",
-			choices = c(SS_Name_Group2_list),
-			selected = SS_Name_Group2_selected
-		)
-	})
-	
-	output$SS_AO_IV_Plot11 <- renderPlot({
-		rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-		if (length(rs)) {
-			vindex <<- G_FILE_species_vindex[rs, , drop = FALSE]
 			
-			Group <- vindex[, input$SS_AO_IV_UI_plot2]
-			ggplot(vindex, aes(x = Year, y = Vulnerability_Area_Loss_Ratio, group = Group, color = Group, linetype = Group)) +
-			  geom_line() +
-				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
-				theme_ipsum() +
-				labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
-		}
+	  }
 	})
 	
 	output$SS_AO_IV_Plot21 <- renderPlot({
 		rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs)) {
 			vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
+	  
+	  if (input$SS_AO_IV_UI_plot21 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot21 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot21 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } 
+	  
+	  if (input$SS_AO_IV_UI_plot22 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot22 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot22 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } 
+	  
+	  if (input$SS_AO_IV_UI_plot23 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot23 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot23 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } 
+	  
+	  if (input$SS_AO_IV_UI_plot24 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot24 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot24 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } 
+			
+	  vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+			Group <- vindex[, input$SS_AO_IV_UI_plot24]
+			ggplot(vindex, aes(x = Year, y = Vulnerability_Area_Loss_Ratio, group = Group, color = Group, linetype = Group)) +
+			  geom_line() +
+				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
+				theme_ipsum() +
+				labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
+			
+	  }
+	})
 	
-			Group <- vindex[, input$SS_AO_IV_UI_plot2]
+	output$SS_AO_IV_Plot22 <- renderPlot({
+		rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+		if (length(rs)) {
+			vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
+	  
+	  if (input$SS_AO_IV_UI_plot21 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot21 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot21 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } 
+	  
+	  if (input$SS_AO_IV_UI_plot22 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot22 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot22 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } 
+	  
+	  if (input$SS_AO_IV_UI_plot23 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot23 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot23 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } 
+	  
+	  if (input$SS_AO_IV_UI_plot24 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot24 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot24 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  }
+	  
+	  vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+			Group <- vindex[, input$SS_AO_IV_UI_plot24]
 			ggplot(vindex, aes(x = Year, y = Vulnerability_Area_LossIN_GainOUT_Ratio, group = Group)) +
 				geom_line(aes(color = Group, linetype = Group)) +
 				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
 				theme_ipsum() +
 				labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
-		}
-	})
-	
-	output$SS_AO_VP_Table <- DT::renderDataTable({
-		destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, paste(input$SS_AO_Model_Name_Input, "_Speices_VINDEX.csv", sep = "")) # , sep = "", collapse = "--")
-		vindex <- read.csv(destfile)
-		G_FILE_species_vindex <<- vindex
-		vindex
-	})
-	
-	output$SS_AO_VP_UI_plot1 <- renderUI({
-	  selectInput("SS_AO_VP_UI_plot1", "Select a group",
-	              choices = c(SS_Name_Group1_list),
-	              selected = SS_Name_Group1_selected
-	  )
-	})
-	
-	output$SS_AO_VP_Plot1 <- renderPlot({
-	  rs <- input$SS_AO_VP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-	  if (length(rs)) {
-	    vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
-	    vindex$Year <- as.character(vindex$Year)
-	    
-	    Group <- vindex[, input$SS_AO_VP_UI_plot1]
-	    ggplot(vindex, aes(x = Area_Loss_Ratio, y = Area_Gain_Ratio_Reverse, color = Group)) +
-	      geom_point(size = 6) +
-	      labs(title = "Vulnerability (Area Loss Ratio)", x = "Loss", y = "Gain") +
-	      geom_text(aes(label = Vulnerability_Area_Loss_Ratio), size = 3, hjust = 0.5, vjust = 3) + #, position =     "stack") +
-	      # horizontal
-	      geom_hline(yintercept = -50, color="orange", size=1) + 
-	      # vertical
-	      geom_vline(xintercept = 50, color="orange", size=1) +
-	      # Add arrow
-	      annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow())
-	  }   
-	})
-	
-	output$SS_AO_VP_Plot2 <- renderPlot({
-	  rs <- input$SS_AO_VP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-	  if (length(rs)) {
-	    vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
-	    vindex$Year <- as.character(vindex$Year)
-	    
-	    Group <- vindex[, input$SS_AO_VP_UI_plot1]
-	    ggplot(vindex, aes(x = Area_Loss_Ratio, y = Area_Gain_Ratio_Outside_Reverse, color = Group)) +
-	      geom_point(size = 6) +
-	      labs(title = "Vulnerability (Area LossIN GainOUT Ratio)", x = "Loss", y = "Gain") +
-	      geom_text(aes(label = Vulnerability_Area_LossIN_GainOUT_Ratio), size = 3, hjust = 0.5, vjust = 3) + #, position =     "stack") +
-	      # horizontal
-	      geom_hline(yintercept = -50, color="orange", size=1) + 
-	      # vertical
-	      geom_vline(xintercept = 50, color="orange", size=1) +
-	      # Add arrow
-	      annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow())
+			
 	  }
 	})
 	
-	output$SS_AO_VP_UI_plot2 <- renderUI({
-	  selectInput("SS_AO_VP_UI_plot2", "Select a group",
-	              choices = c(SS_Name_Group2_list),
-	              selected = SS_Name_Group2_selected
-	  )
-	})
-	
-	output$SS_AO_VP_Plot11 <- renderPlot({
-	  rs <- input$SS_AO_VP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	output$SS_AO_IV_Plot31 <- renderPlot({
+	  rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 	  if (length(rs)) {
 	    vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
-	    
-	    Group <- vindex[, input$SS_AO_VP_UI_plot2]
-	    vindex %>%
-	      tail(10) %>%
-	      ggplot(aes(x = Year, y = Vulnerability_Area_Loss_Ratio)) +
-	      geom_line(aes(color = Group, linetype = Group)) +
-	      geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
-	      theme_ipsum() +
-	      labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
+	  
+	  if (input$SS_AO_IV_UI_plot31 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot31 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot31 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot31 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
 	  }
-	})
-	
-	output$SS_AO_VP_Plot21 <- renderPlot({
-	  rs <- input$SS_AO_VP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-	  if (length(rs)) {
-	    vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
-	    
-	    Group <- vindex[, input$SS_AO_VP_UI_plot2]
-	    vindex %>%
-	      tail(10) %>%
-	      ggplot(aes(x = Year, y = Vulnerability_Area_LossIN_GainOUT_Ratio)) +
-	      geom_line(aes(color = Group, linetype = Group)) +
-	      geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
-	      theme_ipsum() +
-	      labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
+	  
+	  if (input$SS_AO_IV_UI_plot32 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot32 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot32 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot32 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
 	  }
-	})
-	
-	output$SS_AO_VP_UI_plot3 <- renderUI({
-	  selectInput("SS_AO_VP_UI_plot3", "Select a group",
-	              choices = c(SS_Name_Group3_list),
-	              selected = SS_Name_Group3_selected
-	  )
-	})
-	
-	output$SS_AO_VP_Plot12 <- renderPlot({
-	  rs <- input$SS_AO_VP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-	  if (length(rs)) {
-	    vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
+	  
+	  if (input$SS_AO_IV_UI_plot33 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot33 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot33 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot33 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot34 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot34 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot34 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot34 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot35 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot35 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot35 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot35 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
 	    
-	    Group <- vindex[, input$SS_AO_VP_UI_plot3]
+	    Group <- vindex[, input$SS_AO_IV_UI_plot35]
 	    vindex$X <- ifelse(vindex$Vulnerability_Area_Loss_Ratio < 0, "below", "above")  # above / below avg flag
 	    vindex <- vindex[order(vindex$Vulnerability_Area_Loss_Ratio), ]  # sort
-	    vindex$Species <- factor(vindex$Species, ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
+#	    vindex$Species <- factor(vindex$Species, ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
+	    vindex[, input$SS_AO_IV_UI_plot35] <- factor(vindex[, input$SS_AO_IV_UI_plot35], ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
 	    
 	    # Diverging Barcharts
-	    ggplot(vindex, aes(x=Species, y=Vulnerability_Area_Loss_Ratio, label=Vulnerability_Area_Loss_Ratio)) + 
+	    ggplot(vindex, aes(x=Group, y=Vulnerability_Area_Loss_Ratio, label=Vulnerability_Area_Loss_Ratio)) + 
 	      geom_bar(stat='identity', aes(fill=X), width=.5)  +
 	      scale_fill_manual(name="Vulnerability", 
 	                        labels = c("Above Average", "Below Average"), 
@@ -2639,15 +2821,76 @@ shinyServer(function(input, output) {
 	      labs(subtitle="Species Vulnerability Index", 
 	           title= "Diverging Bars") + 
 	      coord_flip()
+	    
 	  }
 	})
 	
-	output$SS_AO_VP_Plot22 <- renderPlot({
-	  rs <- input$SS_AO_VP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	output$SS_AO_IV_Plot32 <- renderPlot({
+	  rs <- input$SS_AO_IV_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 	  if (length(rs)) {
 	    vindex <- G_FILE_species_vindex[rs, , drop = FALSE]
+	  
+	  if (input$SS_AO_IV_UI_plot31 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot31 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot31 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot31 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot32 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot32 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot32 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot32 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot33 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot33 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot33 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot33 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot34 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot34 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot34 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot34 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
+	  
+	  if (input$SS_AO_IV_UI_plot35 == "Species") {
+	    vindex <- filter(vindex, Species %in% input$SS_AO_Species)
+	  } else if (input$SS_AO_IV_UI_plot35 == "Climate_Model") {
+	    vindex <- filter(vindex, Climate_Model %in% input$SS_AO_Climate_model)
+	  } else if (input$SS_AO_IV_UI_plot35 == "Climate_Scenario") {
+	    vindex <- filter(vindex, Climate_Scenario %in% input$SS_AO_Climate_scenario)
+	  } else if (input$SS_AO_IV_UI_plot35 == "Model") {
+	    vindex <- filter(vindex, Model %in% input$SS_AO_SDM_model)
+	  } else {
+	    vindex <- filter(vindex, Year %in% input$SS_AO_Project_year)
+	  }
 	    
-	    Group <- vindex[, input$SS_AO_VP_UI_plot2]
+	    Group <- vindex[, input$SS_AO_IV_UI_plot35]
 	    vindex$X <- ifelse(vindex$Vulnerability_Area_LossIN_GainOUT_Ratio < 0, "below", "above")  # above / below avg flag
 	    vindex <- vindex[order(vindex$Vulnerability_Area_LossIN_GainOUT_Ratio), ]  # sort
 	    vindex$Species <- factor(vindex$Species, ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
@@ -2661,32 +2904,8 @@ shinyServer(function(input, output) {
 	      labs(subtitle="Species Vulnerability Index", 
 	           title= "Diverging Bars") + 
 	      coord_flip()
+	    
 	  }
-	})
-	
-	output$SS_SP_Change <- renderPlot({
-		dataset <- read.csv("C:/Projects/2019_DATA/3. graph/VI_2.csv")
-		a=c(2000, 2030, 2050, 2080)
-		b=c(dataset$X4530_0[1],dataset$X4530_L[1],dataset$X4550_L[1],dataset$X4580_L[1])
-		c=c(dataset$X4530_0[68],dataset$X4530_L[68],dataset$X4550_L[68],dataset$X4580_L[68])
-	
-		# Make a basic graph
-		plot( b~a , type="b" , bty="l" , xlab="Year" , ylab="Vulnerability Index" , col=rgb(0.2,0.4,0.1,0.7) , lwd=3 , pch=17 , ylim=c(-1,1) )
-		lines(c ~a , col=rgb(0.8,0.4,0.1,0.7) , lwd=3 , pch=19 , type="b" )
-	
-		# Add a legend
-		legend("bottomleft", 
-			#  legend = c(dataset$SPECIES[1], dataset$SPECIES[68]), 
-			legend = c("구상나무", "분비나무"), 
-			col = c(rgb(0.2,0.4,0.1,0.7), 
-			rgb(0.8,0.4,0.1,0.7)), 
-			pch = c(17,19), 
-			bty = "n", 
-			pt.cex = 2, 
-			cex = 1.2, 
-			text.col = "black", 
-			horiz = F , 
-			inset = c(0.1, 0.1))
 	})
 
 	
