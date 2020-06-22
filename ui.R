@@ -901,13 +901,13 @@ shinyUI(
 					tags$hr(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
-              uiOutput("SS_AO_Dir_Folder"),
-              uiOutput("SS_AO_Model_Name"),	
+                            uiOutput("SS_AO_Dir_Folder"),
+                            uiOutput("SS_AO_Model_Name"),	
 #							uiOutput("SS_AO_Species"),
-              tags$hr(),
-              actionButton("SS_AO_Species_Sel_All", label = "Select All"),
-              actionButton("SS_AO_Species_Sel_None", label = "Select None"),
-              uiOutput("SS_AO_Species"),
+                            tags$hr(),
+                            actionButton("SS_AO_Species_Sel_All", label = "Select All"),
+                            actionButton("SS_AO_Species_Sel_None", label = "Select None"),
+                            uiOutput("SS_AO_Species"),
 							tags$hr(),
 							uiOutput("SS_AO_SDM_model"),
 							
@@ -935,37 +935,20 @@ shinyUI(
 									uiOutput("SS_AO_UI_plot")
 								),
 								tabPanel(SS_Name_Out_IV_Table,
-#                  tags$hr(),
-#                  radioButtons("SS_AO_IV_Data", "Vulnerable Index File",
-#                                choices = c("Target Species" = "Species","Total Species" = "Total"),
-#                                selected = "Species"
-#                  ),
+                                tags$hr(),
+                  radioButtons("SS_AO_IV_Data", "Vulnerable Index File",
+                                choices = c("Target Species" = "Species","Total Species" = "Total"),
+                                selected = "Species"
+                  ),
 									tags$hr(),
 									fluidRow(
-#										column(12, DT::dataTableOutput("SS_AO_IV_Table"), style = "height:460px; overflow-y: scroll;overflow-x: scroll;")
 										column(12, DT::dataTableOutput("SS_AO_IV_Table"), style = "overflow-y: scroll;overflow-x: scroll;")
 									)
                 ),
                 tabPanel(SS_Name_Out_IV_GainLoss,
 									fluidRow(
 										tags$hr(),
-										selectInput("SS_AO_IV_UI_plot11", "Select the 1st group",
-										            choices = c(SS_Name_Group1_list),
-										            selected = SS_Name_Group11_selected
-										),
-										selectInput("SS_AO_IV_UI_plot12", "Select the 2nd group",
-                                choices = c(SS_Name_Group1_list),
-                                selected = SS_Name_Group12_selected
-                    ),
-										selectInput("SS_AO_IV_UI_plot13", "Select the 3rd group",
-                                choices = c(SS_Name_Group1_list),
-                                selected = SS_Name_Group13_selected
-                    ),
-                    selectInput("SS_AO_IV_UI_plot14", "Select the 4th group",
-                                choices = c(SS_Name_Group1_list),
-                                selected = SS_Name_Group14_selected
-                    ),
-                    selectInput("SS_AO_IV_UI_plot15", "Select the 5th group",
+                    selectInput("SS_AO_IV_UI_plot1", "Select the 5th group",
                                 choices = c(SS_Name_Group1_list),
                                 selected = SS_Name_Group15_selected
                     ),
@@ -977,19 +960,7 @@ shinyUI(
 								tabPanel(SS_Name_Out_IV_Pattern,
 									fluidRow(
 										tags$hr(),
-									  selectInput("SS_AO_IV_UI_plot21", "Select the 1st group",
-									              choices = c(SS_Name_Group2_list),
-									              selected = SS_Name_Group21_selected
-									  ),
-									  selectInput("SS_AO_IV_UI_plot22", "Select the 2nd group",
-									              choices = c(SS_Name_Group2_list),
-									              selected = SS_Name_Group22_selected
-									  ),
-									  selectInput("SS_AO_IV_UI_plot23", "Select the 3rd group",
-									              choices = c(SS_Name_Group2_list),
-									              selected = SS_Name_Group23_selected
-									  ),
-									  selectInput("SS_AO_IV_UI_plot24", "Select the 4th group",
+									  selectInput("SS_AO_IV_UI_plot2", "Select the 4th group",
 									              choices = c(SS_Name_Group2_list),
 									              selected = SS_Name_Group24_selected
 									  ),
@@ -1001,23 +972,7 @@ shinyUI(
 								tabPanel(SS_Name_Out_IV_Order,
                   fluidRow(
                     tags$hr(),
-                    selectInput("SS_AO_IV_UI_plot31", "Select the 1st group",
-                                choices = c(SS_Name_Group3_list),
-                                selected = SS_Name_Group31_selected
-                    ),
-                    selectInput("SS_AO_IV_UI_plot32", "Select the 2nd group",
-                                choices = c(SS_Name_Group3_list),
-                                selected = SS_Name_Group32_selected
-                    ),
-                    selectInput("SS_AO_IV_UI_plot33", "Select the 3rd group",
-                                choices = c(SS_Name_Group3_list),
-                                selected = SS_Name_Group33_selected
-                    ),
-                    selectInput("SS_AO_IV_UI_plot34", "Select the 4th group",
-                                choices = c(SS_Name_Group3_list),
-                                selected = SS_Name_Group34_selected
-                    ),
-                    selectInput("SS_AO_IV_UI_plot35", "Select the 5th group",
+                    selectInput("SS_AO_IV_UI_plot3", "Select the 5th group",
                                 choices = c(SS_Name_Group3_list),
                                 selected = SS_Name_Group35_selected
                     ),
