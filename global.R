@@ -52,6 +52,7 @@ if (length(destfile) == 0 | !file.exists(destfile)) {
   SE_Language <- as.character(system_env[1,2])
   G$SE_Dir_Project <- as.character(system_env[3,2])
   G$SE_Dir_Climate <- as.character(system_env[4,2])
+# G$SDM_MO_Variables_Folder <- file.path(isolate(G$SE_Dir_Climate), "2000")
   G$SE_Dir_Link <- as.character(system_env[5,2])
   G$SE_Dir_GIS <- as.character(system_env[6,2])
   G$SE_Dir_Species <- as.character(system_env[7,2])
@@ -159,7 +160,11 @@ names(CD_Variables_list) = as.character(Option_lists[,"CD_Variables_name"][Optio
 SDM_Variables_list = as.character(Option_lists[,"SDM_Variables_value"][Option_lists[,"SDM_Variables_value"] != ""])
 names(SDM_Variables_list) = as.character(Option_lists[,"SDM_Variables_name"][Option_lists[,"SDM_Variables_name"] != ""])
 
+SDM_AO_Variables_list = as.character(Option_lists[,"SDM_AO_Variables_value"][Option_lists[,"SDM_AO_Variables_value"] != ""])
+names(SDM_AO_Variables_list) = as.character(Option_lists[,"SDM_AO_Variables_name"][Option_lists[,"SDM_AO_Variables_name"] != ""])
+
 SDM_Variables_selected = as.character(Option_lists[,"SDM_Variables_selected_value"][Option_lists[,"SDM_Variables_selected_value"] != ""])
+SDM_AO_Variables_selected = as.character(Option_lists[,"SDM_AO_Variables_selected_value"][Option_lists[,"SDM_AO_Variables_selected_value"] != ""])
 
 SS_Group1_list = as.character(Option_lists[,"SS_Group1_value"][Option_lists[,"SS_Group1_value"] != ""])
 names(SS_Group1_list) = as.character(Option_lists[,"SS_Group1_name"][Option_lists[,"SS_Group1_name"] != ""])

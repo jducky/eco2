@@ -354,9 +354,7 @@ shinyUI(
 			tags$hr(),
             sidebarLayout(
 				sidebarPanel(width = 3, Fluid = TRUE,
-					selectInput("CD_Variables", CD_Name_Variables,
-						choices = CD_Name_Variables_list,
-						selected = CD_Name_Variables_selected),
+          uiOutput("CD_Variables_select"),
 
 					# Input: Checkbox if file has header ----
 					radioButtons("CD_Climate_model", CD_Name_Models,
@@ -407,11 +405,11 @@ shinyUI(
 								column(4, verbatimTextOutput("SDM_SP_Selection"))
 							)
 						),
-						tabPanel(SDM_Name_Model_Projection,
+						tabPanel(SDM_Name_Model_Variable,
 							tags$hr(),
 							fluidRow(
 								# Sidebar panel for inputs ----
-								sidebarPanel(width = 4,
+								sidebarPanel(width = 3,
 									# Input: Checkbox if file has header ----
 									checkboxGroupInput("SDM_MO_Climate_model", SDM_Name_CD_Models,
 										choices = c(SDM_Name_CD_Models_list),
@@ -426,17 +424,32 @@ shinyUI(
 									checkboxGroupInput("SDM_MO_Project_year", SDM_Name_CD_Year,
 										choices = c(SDM_Name_CD_Year_list),
 										selected = SDM_Name_CD_Year_selected)
-								)	
-							)
-						),
-						tabPanel(SDM_Name_Model_Variable,  
-							tags$hr(),
-							fluidRow(
-								# Sidebar panel for inputs ----
-								sidebarPanel(width = 5,
-									checkboxGroupInput("SDM_MO_Variables", SDM_Name_CD_Variables,
-										choices = c(SDM_Name_CD_Variables_list),
-										selected = SDM_Name_CD_Variables_selected)
+								),	
+								sidebarPanel(width = 3,
+                  tags$p("Modeling Output Variables Options:"),
+                  checkboxGroupInput("SDM_MO_AO_Variables", SDM_Name_MO_AO_Variables,
+                                     choices = c(SDM_Name_MO_AO_Variables_list),
+                                     selected = SDM_Name_MO_AO_Variables_selected),
+                  useShinyalert(),  # Set up shinyalert
+                  actionButton("SDM_MO_AO_Variables_Create", label = SDM_MO_AO_Variables_Create),
+                  tags$hr(),
+                  tags$p("SDM Species Distribution:"),
+								  uiOutput("SDM_AO_MI_Dir_Folder"),
+								  uiOutput("SDM_AO_MI_Dir_Folder_Name"),
+								  uiOutput("SDM_AO_Species"),
+								  uiOutput("SDM_AO_SDM_PROJ_model"),
+								  tags$hr(),
+								  tags$p("Invasive Species Richness:"),
+								  uiOutput("SDM_IS_AO_MO_Dir_Folder"),
+								  uiOutput("SDM_IS_AO_SDM_PRED_model"),
+								  tags$hr(),
+								  tags$p("Vunerable Species Richness:"),
+								  uiOutput("SDM_VH_AO_MO_Dir_Folder"),
+								  uiOutput("SDM_VH_AO_SDM_PRED_model")
+								),
+								sidebarPanel(width = 3,
+                  tags$p("Data Options:"),
+                  uiOutput("SDM_MO_Variables_Select"),
 								)
 							)
 						),
@@ -595,7 +608,7 @@ shinyUI(
 								tabPanel(SDM_Name_Model_Out_Validation,
 									tags$hr(),
 									fluidRow(
-										column(6, DT::dataTableOutput("SDM_OU_Validation"))
+										column(8, DT::dataTableOutput("SDM_OU_Validation"), style = "overflow-y: scroll;overflow-x: scroll;")
 									),
 									tags$hr(),
 									fluidRow(
@@ -605,7 +618,7 @@ shinyUI(
 								tabPanel(SDM_Name_Model_Out_Contribution,
 									tags$hr(),
 									fluidRow(
-										column(6, DT::dataTableOutput("SDM_OU_Contribution"))
+										column(8, DT::dataTableOutput("SDM_OU_Contribution"), style = "overflow-y: scroll;overflow-x: scroll;")
 									),
 									tags$hr(),
 									fluidRow(
@@ -847,8 +860,12 @@ shinyUI(
 		                      mainPanel(
 		                        tabsetPanel(
 		                          tabPanel(DM_Name_Out_Plot,
-		                                   tags$hr(),
+		                                  tags$hr(),
 		                                   uiOutput("DM_OU_UI_plot")
+		                          ),
+                              tabPanel(DM_Name_Out_SDMDM_Plot,
+                                      tags$hr(),
+                                      uiOutput("DM_OU_SDMDM_UI_plot")
 		                          )
 		                        )
 		                      )

@@ -70,9 +70,12 @@ SDM_Name_Model_Out_Validation,0,Validation,모형검증
 SDM_Name_Model_Out_Contribution,0,Contribution,변수기여도
 SDM_Name_Model_Out_Probability,0,Probability Map,확률지도
 SDM_Name_Model_Out_Prediction,0,Predicted Map,예측지도
-SDM_Name_CD_Variables,0,Climate Variables,기후변수
-SDM_Name_CD_Variables_list,1,SDM_Variables_list,SDM_Variables_list
-SDM_Name_CD_Variables_selected,1,SDM_Variables_selected,SDM_Variables_selected
+SDM_Name_MO_Variables,0,SDM Variables,SDM 변수
+SDM_Name_MO_AO_Variables,0,Modeling Output Variables,모형결과변수
+SDM_Name_MO_Variables_list,1,SDM_Variables_list,SDM_Variables_list
+SDM_Name_MO_Variables_selected,1,SDM_Variables_selected,SDM_Variables_selected
+SDM_Name_MO_AO_Variables_list,1,SDM_AO_Variables_list,SDM_AO_Variables_list
+SDM_Name_MO_AO_Variables_selected,1,SDM_AO_Variables_selected,SDM_AO_Variables_selected
 SDM_Name_CD_Models,0,Climate Models,기후모델
 SDM_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
 SDM_Name_CD_Models_selected,0,KMA,KMA
@@ -87,6 +90,7 @@ SDM_Name_models_list,1,SDM_models_list,SDM_models_list
 SDM_Name_models_selected,0,GLM,GLM
 SDM_Name_EMmodels,0,Ensemble,앙상블
 SDM_Name_models_run,0,Run,실행
+SDM_MO_AO_Variables_Create,0,Create,변수생성
 SDM_Name_models_out,0,Model types,모델유형
 SDM_Name_models_out_list,0,SDM_models_out_list,SDM_models_out_list
 SDM_Name_models_out_selected,0,GLM,GLM
@@ -106,7 +110,8 @@ DM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
 DM_Name_Model_DM_Barrier,0,Dispersal Model Barrier Option,확산모형 장애물 옵션
 DM_Name_Model_DM,0,Dispersal Model Option,확산모형 옵션
 DM_Name_Model_Out,0,Model Outputs,모형결과
-DM_Name_Out_Plot,0,Species Distribution Change Plot,생물종 분포변화
+DM_Name_Out_Plot,0,Species Distribution Change Plot,생물종 분포 변화
+DM_Name_Out_SDMDM_Plot,0,Species Dispersal Limit Plot,생물종 확산 한계
 DM_Name_DM_MO_Barriers,0,DM_Barriers,장애물
 DM_Name_DM_MO_Barriers_list,1,DM_Variables_list,DM_Variables_list
 DM_Name_DM_MO_Barriers_selected,0,Landuse,Landuse

@@ -497,15 +497,29 @@ shinyServer(function(input, output) {
 	        setView(lng = 127.00, lat = 36.00, zoom = 7)
 	})
 	
+	output$CD_Variables_select <- renderUI({
+	  
+	  CD_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
+	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, full.names = FALSE, recursive = FALSE)
+	  CD_Name_Variables_selected <- CD_Name_Variables_list[1]
+	  
+	  selectInput("CD_Variables", CD_Name_Variables,
+	              choices = CD_Name_Variables_list,
+	              selected = CD_Name_Variables_selected
+    )
+	})
+	
 	output$CD_Summary <- renderPrint({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+#		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
 		r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		summary(r)
 	})
 	
 	output$CD_Histogram <- renderPlot({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+#		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+	  file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
 		x <- raster(file)
 		crs(x) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		hist(x, # breaks = bins, 
@@ -517,7 +531,8 @@ shinyServer(function(input, output) {
    
 	
 	output$CD_Map <- renderLeaflet({
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+#		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
 		r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
@@ -561,6 +576,318 @@ shinyServer(function(input, output) {
 #			cat(s_kname, sep = ', ')
 		}
 	})
+	
+	
+	output$SDM_AO_MI_Dir_Folder <- renderUI({
+	  SDM_AO_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	  SDM_AO_MI_Dir_Folder_selected <- SDM_AO_MI_Dir_Folder_list[1]
+	  selectInput("SDM_AO_MI_Dir", "Working Species Distribution Folders",
+	              choices = c(SDM_AO_MI_Dir_Folder_list),
+	              selected = SDM_AO_MI_Dir_Folder_selected
+	  )
+	  
+	})
+	
+	output$SDM_IS_AO_MO_Dir_Folder <- renderUI({
+	  SDM_IS_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Invasive_Species"), full.names = FALSE, recursive = FALSE)
+	  SDM_IS_AO_MO_Dir_Folder_selected <- SDM_IS_AO_MO_Dir_Folder_list[1]
+	  selectInput("SDM_IS_AO_MO_Dir", "Working Invasive Species Folders",
+	              choices = c(SDM_IS_AO_MO_Dir_Folder_list),
+	              selected = SDM_IS_AO_MO_Dir_Folder_selected
+	  )
+	  
+	})
+	
+	output$SDM_VH_AO_MO_Dir_Folder <- renderUI({
+	  SDM_VH_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"), full.names = FALSE, recursive = FALSE)
+	  SDM_VH_AO_MO_Dir_Folder_selected <- SDM_VH_AO_MO_Dir_Folder_list[1]
+	  selectInput("SDM_VH_AO_MO_Dir", "Working Vulberable Habitat Folders",
+	              choices = c(SDM_VH_AO_MO_Dir_Folder_list),
+	              selected = SDM_VH_AO_MO_Dir_Folder_selected
+	  )
+	  
+	})
+	
+	output$SDM_AO_MI_Dir_Folder_Name <- renderUI({
+	  SDM_AO_MI_Dir_Folder_Name_list <- "BIOMOD2"   # list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_MI_Dir, input$SDM_AO_Species[1]), full.names = FALSE, recursive = FALSE)
+	  SDM_AO_MI_Dir_Folder_Name_selected <- SDM_AO_MI_Dir_Folder_Name_list[1]
+	  selectInput("SDM_AO_MI_Dir_Folder", "Working SDM Types",
+	              choices = c(SDM_AO_MI_Dir_Folder_Name_list),
+	              selected = SDM_AO_MI_Dir_Folder_Name_selected
+	  )
+	  
+	})		
+	
+	
+	output$SDM_AO_Species <- renderUI({
+	  G$SDM_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_MI_Dir)
+	  IS_Name_Species_list <- list.dirs(path = G$SDM_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	  IS_Name_Species_selected <- IS_Name_Species_list[1]
+	  selectInput("SDM_AO_Species", "Select a species",
+	              choices = c(IS_Name_Species_list),
+	              selected = IS_Name_Species_selected
+	  )
+	})
+	
+	output$SDM_AO_SDM_PROJ_model <- renderUI({
+	  G$SDM_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_MI_Dir)
+	  destfile <- file.path(G$SDM_AO_MI_Dir_Folder, input$SDM_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$SDM_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	  all_eval <- read.csv(destfile)
+	  G_FILE_species_evaluation <<- all_eval
+	  SDM_Name_Models_list <- as.character(G_FILE_species_evaluation$Projection)
+	  SDM_Name_Models_selected <- SDM_Name_Models_list[1]
+	  radioButtons("SDM_AO_SDM_PROJ_model", "Select models",
+	               choices = c(SDM_Name_Models_list),
+	               selected = SDM_Name_Models_selected
+	  )
+	})
+	
+	output$SDM_IS_AO_SDM_PRED_model <- renderUI({
+
+	  destfile <- file.path(G$SE_Dir_Project, "Invasive_Species", input$SDM_IS_AO_MO_Dir, "InvasiveSpecies_Options.csv")
+	  IS_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  IS_Options_lists[is.na(IS_Options_lists)] = ""
+	  SDM_Name_Models_list <- as.character(IS_Options_lists[1, 8])
+	  SDM_Name_Models_selected <- SDM_Name_Models_list[1]
+	  
+	  radioButtons("SDM_IS_AO_SDM_PRED_model", "Select models",
+	               choices = c(SDM_Name_Models_list),
+	               selected = SDM_Name_Models_selected
+	  )
+	})
+	
+	
+	output$SDM_VH_AO_SDM_PRED_model <- renderUI({
+
+	  destfile <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$SDM_VH_AO_MO_Dir, "VulnerableHabitat_Options.csv")
+	  VH_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  VH_Options_lists[is.na(VH_Options_lists)] = ""
+	  SDM_Name_Models_list <- as.character(VH_Options_lists[1, 8])
+	  SDM_Name_Models_selected <- SDM_Name_Models_list[1]
+	  
+	  radioButtons("SDM_VH_AO_SDM_PRED_model", "Select models",
+	               choices = c(SDM_Name_Models_list),
+	               selected = SDM_Name_Models_selected
+	  )
+	})
+	
+	output$SDM_MO_Variables_Select <- renderUI({
+	  
+	  SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
+	  SDM_Name_MO_Variables_list <- list.files(path = SDM_MO_Variables_Folder, full.names = FALSE, recursive = FALSE)
+	  SDM_Name_MO_Variables_selected <- SDM_Name_MO_Variables_selected
+	  
+	  checkboxGroupInput("SDM_MO_Variables", SDM_Name_MO_Variables,
+	                     choices = c(SDM_Name_MO_Variables_list),
+	                     selected = SDM_Name_MO_Variables_selected
+	  )
+	})
+	
+	observeEvent(input$SDM_MO_AO_Variables_Create, {
+	  # setting Climate change scenarios, Future time, Species and current environmental path
+	  slist <- input$SDM_AO_Species
+	  dlist <- input$SDM_MO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	  clist <- input$SDM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+#	  mlist <- input$SDM_AO_SDM_PROJ_model # c("PA1_Full_GLM_byROC")
+	  ylist <- input$SDM_MO_Project_year
+	  
+	  n <- 0
+	  ld <- length(dlist)
+	  lc <- length(clist)
+	  ly <- length(ylist)
+#	  lm <- length(mlist)
+	  ls <- length(slist)
+	  tl <- ld * lc * ly * ls
+	  
+
+	  withProgress(message = 'Creeating model output variables.........', value = 0, {
+    for (v in input$SDM_MO_AO_Variables) {
+  	  if (v == "Species.grd") {
+  	    mlist <- input$SDM_AO_SDM_PROJ_model
+  	    PATH_MODEL_OUTPUT <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_MI_Dir)
+  	    for (s in slist) {
+  	      for (d in dlist) {
+  	        for (c in clist) {
+  	          for (m in mlist) {
+  	            org_path <- file.path(PATH_MODEL_OUTPUT, s, input$SDM_AO_MI_Dir_Folder)
+  	            target_path <- file.path(G$SE_Dir_Climate, ylist[1])
+  	            o_file_grd <- paste("PROJ_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".grd", sep = "")
+  	            o_file_gri <- paste("PROJ_", d, "_", c, "_", ylist[1], "_", s, "_", m, ".gri", sep = "")
+  	            t_file_grd <- paste("Species.grd")
+  	            t_file_gri <- paste("Species.gri")
+  	            ofile_path_grd <- file.path(org_path, o_file_grd)
+  	            ofile_path_gri <- file.path(org_path, o_file_gri)
+  	            tfile_path_grd <- file.path(target_path, t_file_grd)
+  	            tfile_path_gri <- file.path(target_path, t_file_gri)
+  	            if (!file.exists(ofile_path_grd)){
+  	              showModal(modalDialog(
+  	                title = "Error Message",
+  	                paste(ofile_path_grd, "does not exist.")
+  	              ))
+  	            } else {
+  	              if (file.exists(tfile_path_grd)) {
+  	                file.remove(tfile_path_grd)
+  	                file.remove(tfile_path_gri)
+  	              }
+  	              file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
+  	              file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
+  	            }
+  	            for (y in ylist) {
+  	              incProgress(1/tl, detail = paste("Doing part", "(", s, ")", "_", d, "_", c, "_", y))
+  	              org_path <- file.path(PATH_MODEL_OUTPUT, s, input$SDM_AO_MI_Dir_Folder)
+  	              target_path <- file.path(G$SE_Dir_Climate, d, c, y)
+  	              o_file_grd <- paste("PROJ_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")
+  	              o_file_gri <- paste("PROJ_", d, "_", c, "_", y, "_", s, "_", m, ".gri", sep = "")
+  	              t_file_grd <- paste("Species.grd")
+  	              t_file_gri <- paste("Species.gri")
+  	              ofile_path_grd <- file.path(org_path, o_file_grd)
+  	              ofile_path_gri <- file.path(org_path, o_file_gri)
+  	              tfile_path_grd <- file.path(target_path, t_file_grd)
+  	              tfile_path_gri <- file.path(target_path, t_file_gri)
+  	              if (!file.exists(ofile_path_grd)){
+  	                showModal(modalDialog(
+    	                  title = "Error Message",
+  	                  paste(ofile_path_grd, "does not exist.")
+  	                ))
+  	              } else {
+  	                if (file.exists(tfile_path_grd)) {
+  	                  file.remove(tfile_path_grd)
+  	                  file.remove(tfile_path_gri)
+  	                }
+  	                file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
+  	                file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
+  	              }
+  	            }
+  	          }
+  	        }
+  	      }
+  	    }
+  	  } else if (v == "Invasive.grd") {
+  	    mlist <- input$SDM_IS_AO_SDM_PRED_model
+	      PATH_MODEL_OUTPUT <- file.path(G$SE_Dir_Project, "Invasive_Species", input$SDM_IS_AO_MO_Dir)
+	      for (s in slist) {
+	        for (d in dlist) {
+	          for (c in clist) {
+	            for (m in mlist) {
+	              org_path <- PATH_MODEL_OUTPUT
+	              target_path <- file.path(G$SE_Dir_Climate, ylist[1])
+	              o_file_grd <- paste("IS_SR_", d, "_", c, "_", m, "_", ylist[1], ".grd", sep = "")
+	              o_file_gri <- paste("IS_SR_", d, "_", c, "_", m, "_", ylist[1], ".gri", sep = "")
+	              t_file_grd <- paste("Invasive.grd")
+	              t_file_gri <- paste("Invasive.gri")
+	              ofile_path_grd <- file.path(org_path, o_file_grd)
+	              ofile_path_gri <- file.path(org_path, o_file_gri)
+	              tfile_path_grd <- file.path(target_path, t_file_grd)
+	              tfile_path_gri <- file.path(target_path, t_file_gri)
+	              if (!file.exists(ofile_path_grd)){
+	                showModal(modalDialog(
+	                  title = "Error Message",
+	                  paste(ofile_path_grd, "does not exist.")
+	                ))
+	              } else {
+	                if (file.exists(tfile_path_grd)) {
+	                  file.remove(tfile_path_grd)
+	                  file.remove(tfile_path_gri)
+	                }
+	                file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
+	                file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
+	              }
+	              for (y in ylist) {
+	                incProgress(1/tl, detail = paste("Doing part", "(", s, ")", "_", d, "_", c, "_", y))
+	                org_path <- PATH_MODEL_OUTPUT
+	                target_path <- file.path(G$SE_Dir_Climate, d, c, y)
+	                o_file_grd <- paste("IS_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+	                o_file_gri <- paste("IS_SR_", d, "_", c, "_", m, "_", y, ".gri", sep = "")
+	                t_file_grd <- paste("Invasive.grd")
+	                t_file_gri <- paste("Invasive.gri")
+	                ofile_path_grd <- file.path(org_path, o_file_grd)
+	                ofile_path_gri <- file.path(org_path, o_file_gri)
+	                tfile_path_grd <- file.path(target_path, t_file_grd)
+	                tfile_path_gri <- file.path(target_path, t_file_gri)
+	                if (!file.exists(ofile_path_grd)){
+	                  showModal(modalDialog(
+	                    title = "Error Message",
+	                    paste(ofile_path_grd, "does not exist.")
+	                  ))
+	                } else {
+	                  if (file.exists(tfile_path_grd)) {
+	                    file.remove(tfile_path_grd)
+	                    file.remove(tfile_path_gri)
+	                  }
+	                  file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
+	                  file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
+	                }
+	              }
+	            }
+	          }
+	        }
+	      }
+	    } else {
+	      mlist <- input$SDM_VH_AO_SDM_PRED_model
+	      PATH_MODEL_OUTPUT <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$SDM_VH_AO_MO_Dir)
+	      for (s in slist) {
+	        for (d in dlist) {
+	          for (c in clist) {
+	            for (m in mlist) {
+	              org_path <- PATH_MODEL_OUTPUT
+	              target_path <- file.path(G$SE_Dir_Climate, ylist[1])
+	              o_file_grd <- paste("VH_SR_", d, "_", c, "_", m, "_", ylist[1], ".grd", sep = "")
+	              o_file_gri <- paste("VH_SR_", d, "_", c, "_", m, "_", ylist[1], ".gri", sep = "")
+	              t_file_grd <- paste("Vulnerable.grd")
+	              t_file_gri <- paste("Vulnerable.gri")
+	              ofile_path_grd <- file.path(org_path, o_file_grd)
+	              ofile_path_gri <- file.path(org_path, o_file_gri)
+	              tfile_path_grd <- file.path(target_path, t_file_grd)
+	              tfile_path_gri <- file.path(target_path, t_file_gri)
+	              if (!file.exists(ofile_path_grd)){
+	                showModal(modalDialog(
+	                  title = "Error Message",
+	                  paste(ofile_path_grd, "does not exist.")
+	                ))
+	              } else {
+	                if (file.exists(tfile_path_grd)) {
+	                  file.remove(tfile_path_grd)
+	                  file.remove(tfile_path_gri)
+	                }
+	                file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
+	                file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
+	              }
+	              for (y in ylist) {
+	                incProgress(1/tl, detail = paste("Doing part", "(", s, ")", "_", d, "_", c, "_", y))
+	                org_path <- PATH_MODEL_OUTPUT
+	                target_path <- file.path(G$SE_Dir_Climate, d, c, y)
+	                o_file_grd <- paste("VH_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+	                o_file_gri <- paste("VH_SR_", d, "_", c, "_", m, "_", y, ".gri", sep = "")
+	                t_file_grd <- paste("Vulnerable.grd")
+	                t_file_gri <- paste("Vulnerable.gri")
+	                ofile_path_grd <- file.path(org_path, o_file_grd)
+	                ofile_path_gri <- file.path(org_path, o_file_gri)
+	                tfile_path_grd <- file.path(target_path, t_file_grd)
+	                tfile_path_gri <- file.path(target_path, t_file_gri)
+	                if (!file.exists(ofile_path_grd)){
+	                  showModal(modalDialog(
+	                    title = "Error Message",
+	                    paste(ofile_path_grd, "does not exist.")
+	                  ))
+	                } else {
+	                  if (file.exists(tfile_path_grd)) {
+	                    file.remove(tfile_path_grd)
+	                    file.remove(tfile_path_gri)
+	                  }
+	                  file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
+	                  file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
+	                }
+	              }
+	            }
+	          }
+	        }
+	      }
+	    }
+    }
+    })
+	  G$SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
+	})
+	
 	
 	observeEvent(input$SDM_MO_Dir_Folder, {
 	  
@@ -1190,14 +1517,24 @@ shinyServer(function(input, output) {
 		data <- data.frame(t(new_import[-1]))
 		colnames(data) <- new_import[, 1]
 		# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
-		data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
-		data <- data[-c(1,2),]
+#		data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
+#		data <- data[-c(1,2),]
 		rs <- input$SDM_OU_Contribution_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs) > 0) {
 			data <- data[rs, , drop = FALSE]
 			data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
-			radarchart(data)
-			legend(x=0.7, y=1, legend = rownames(data[-c(1,2),]))
+			coul <- brewer.pal(length(rs), "BuPu")
+			colors_border <- coul
+			colors_in <- alpha(coul,0.3)
+			radarchart(data, axistype=0 , maxmin=F,
+			           #custom polygon
+			           pcol=colors_border , pfcol=colors_in , plwd=4 , plty=1,
+			           #custom the grid
+			           cglcol="grey", cglty=1, axislabcol="black", cglwd=0.8, 
+			           #custom labels
+			           vlcex=0.8 
+      )
+			legend(x=1.2, y=1.2, legend = rownames(data[-c(1,2),]), bty = "n", pch = 20, col = colors_in, text.col = "grey", cex = 1.2, pt.cex = 3)
 		}
 	})
   
@@ -1332,7 +1669,7 @@ shinyServer(function(input, output) {
 	
 	output$DM_Map_Landuse <- renderLeaflet({
 	    
-	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_CD_Variables_selected[1])
+	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
 	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -1374,7 +1711,7 @@ shinyServer(function(input, output) {
 	
 	output$DM_Map_Forestfire <- renderLeaflet({
 	    
-	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_CD_Variables_selected[1])
+	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
 	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -1414,7 +1751,7 @@ shinyServer(function(input, output) {
 	
 	output$DM_Map_Landslide <- renderLeaflet({
 	    
-	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_CD_Variables_selected[1])
+	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
 	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -1454,7 +1791,7 @@ shinyServer(function(input, output) {
 	
 	output$DM_Map_Total <- renderLeaflet({
 	    
-	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_CD_Variables_selected[1])
+	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
 	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -1760,6 +2097,9 @@ shinyServer(function(input, output) {
 	              r_dm[is.na(pred_cur)] <- NA
 	              r_dm <- extractByMask(r_dm, msk=pred_cur, spatial=TRUE)
 	              writeRaster(r_dm, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              pred_sdm <- raster(file.path(org_path, paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")))
+	              sdm_dm <- pred_sdm - r_dm
+	              writeRaster(sdm_dm, file = file.path(target_path, paste(as.name(paste("SDM-DM_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	              }
 	              }
 	            } # End year loop y
@@ -1939,6 +2279,86 @@ shinyServer(function(input, output) {
 	          }
 	        }
 	    }
+	  ##### End Plot output =========================================
+	})
+	
+	output$DM_OU_SDMDM_UI_plot <- renderUI({
+	  # setting Climate change scenarios, Future time, Species and current environmental path
+	  slist <- input$DM_OU_Species
+	  dlist <- input$DM_OU_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	  clist <- input$DM_OU_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	  mlist <- input$DM_OU_SDM_model # c("PA1_Full_GLM_byROC")
+	  ylist <- input$DM_OU_Project_year
+	  #	  dtlist <- input$DM_OU_Dispersal_type
+	  
+	  n <- 0
+	  ls <- length(slist)
+	  ld <- length(dlist)
+	  lc <- length(clist)
+	  lm <- length(mlist)
+	  ly <- length(ylist)
+	  #	  ldt <- length(dtlist)
+	  tl <- ls * ld * lc * lm * ly # * ldt
+	  
+	  nc <- 2
+	  if (tl <  2) {
+	    nr <- round(tl / nc) + 1
+	  } else {
+	    nr <- round((tl + 0.1) / nc)
+	  }
+	  
+	  ws <- nc * 500
+	  hs <- nr * 500
+	  plotOutput("DM_AO_OU_SDMDM_plot", width = ws, height = hs)
+	})
+	
+	
+	output$DM_AO_OU_SDMDM_plot <- renderPlot({
+	  #####========================================================
+	  ##### Plot GAP output =========================================
+	  
+	  # setting Climate change scenarios, Future time, Species and current environmental path
+	  slist <- input$DM_OU_Species
+	  dlist <- input$DM_OU_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	  clist <- input$DM_OU_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	  mlist <- input$DM_OU_SDM_model # c("PA1_Full_GLM_byROC")
+	  ylist <- input$DM_OU_Project_year
+	  
+	  ls <- length(slist)
+	  ld <- length(dlist)
+	  lc <- length(clist)
+	  lm <- length(mlist)
+	  ly <- length(ylist)
+	  tl <- ls * ld * lc * lm * ly
+	  
+	  nc <- 2
+	  if (tl <  2) {
+	    nr <- round(tl / nc) + 1
+	  } else {
+	    nr <- round((tl + 0.1) / nc)
+	  }
+	  
+	  par(mfrow = c(nr,nc), cex.main = 1.2)
+	  G$DM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$DM_AO_Dir)
+	  
+	  for (s in slist) {
+	    dir_path <- file.path(G$DM_AO_Dir_Folder, s, input$DM_AO_Model_Name_Input)  # paste(input$DM_AO_Model_Name_Input, sep = ""))
+	    for (d in dlist) {
+	      for (c in clist) {
+	        for (m in mlist) {
+	          if (ly > 0) {
+	            for (y in 1:ly) {
+	              Map1 <- paste("SDM-DM", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
+	              if (file.exists(file.path(dir_path, Map1))) {
+	                R_Map1 <- raster(file.path(dir_path, Map1))
+	                plot(R_Map1, main = Map1)
+	              }
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }
 	  ##### End Plot output =========================================
 	})
 	
