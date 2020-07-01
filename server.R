@@ -3121,10 +3121,10 @@ shinyServer(function(input, output) {
 	})
 	
 	observeEvent(input$IS_MO_Dir_Folder, {
-	  showModal(modalDialog(
-	    title = "Message",
-	    "A folder path and name is recommended in english!"
-	  ))
+#	  showModal(modalDialog(
+#	    title = "Message",
+#	    "A folder path and name is recommended in english!"
+#	  ))
 		volumes <- c(main = file.path(G$SE_Dir_Project, "Invasive_Species"))
 		shinyDirChoose(input, 'IS_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
 		G$IS_MO_Dir_Folder <- parseDirPath(volumes, input$IS_MO_Dir_Folder)
@@ -3290,55 +3290,57 @@ shinyServer(function(input, output) {
 	  ly <- length(ylist)
 	  lv <- length(vlist)
 	  
-	  tl <- la * ld * lc * lm * ly * lv
+	  tls <- la * ld * lc * lm * ly * lv
+	  tlg <- la * ld * lc * lm * ly * ls 
 
-	  withProgress(message = paste("Grouping by ", input$IS_VA_Admin), value = 0, {
-	    
-	    dir_path <- G$IS_MO_Dir_Folder
-	    
-	    for (a in alist) {
-	      
-	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
-	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-#	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
-	      poly <- readOGR(dsn=dir_path, layer=a)
-	      df <- read.dbf(file.path(dir_path, paste(a, ".dbf", sep = "")))
-	    
+	  
+	  if(FALSE) { 
+      # Individual Species
+      
+	  for (a in alist) {
+	    withProgress(message = paste("Species Analyzing by ", input$IS_VA_Admin), value = 0, {
+	    for (s in slist) {
+	        dir_path <- file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_MI_Dir, s, input$IS_MI_Dir_Folder)
+	        dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	        file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	        #	    poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	        poly <- readOGR(dsn=dir_path, layer=a)
+	        df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
 	    for (d in dlist) {
 	      for (c in clist) {
 	        for (m in mlist) {
 	          for (y in ylist) {
-	            if (length(ylist) > 1) {
-	              if(y == ylist[1]) {
-	                incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
-                    img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
-                    r <- raster(img)
-                    df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
-                    #write to a data frame
-                    df1 <- data.frame(df1[-1])
-                    colnames(df1) <- c(paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, sep = ""))
-                    df1[is.na(df1)] <- 0
-                    df <- cbind(df, df1)
-	              } else {
-	                for (v in vlist) {
-	                  incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
-	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+#	            if (length(ylist) > 1) {
+#	              if(y == ylist[1]) {
+#	                incProgress(1/tls, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
+#                    img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+#                    r <- raster(img)
+#                    df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
+#                    #write to a data frame
+#                    df1 <- data.frame(df1[-1])
+#                    colnames(df1) <- c(paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, sep = ""))
+#                    df1[is.na(df1)] <- 0
+#                    df <- cbind(df, df1)
+#	              } else {
+	                for (v in "PRED") {
+	                  incProgress(1/tls, detail = paste("Doing part", d, "_", c, "_", y, "_", s, "_", m))
+	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                  r <- raster(img)
 	                  df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
 	                  #write to a data frame
 	                  df1 <- data.frame(df1[-1])
-	                  colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                  colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, sep = ""))
 	                  df1[is.na(df1)] <- 0
 	                  df <- cbind(df, df1)
 	                }
-	              }
-	            }
-	            else {
-	                showModal(modalDialog(
-	                    title = "Message",
-	                    "Please select projection years more than one!"
-	                ))
-	            }  
+#	              }
+#	            }
+#	            else {
+#	                showModal(modalDialog(
+#	                    title = "Message",
+#	                    "Please select projection years more than one!"
+#	                ))
+#	            }  
 	          }
 	        }
 	      }
@@ -3347,9 +3349,69 @@ shinyServer(function(input, output) {
 	    #write to a CSV file
 	    write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
 	    write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	    
+	    }
+	    })
+	  }
+	  
+	  } else { 
+	  # Species Group
+	  dir_path <- G$IS_MO_Dir_Folder
+	  for (a in alist) {
+	        
+	    dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	    file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	    #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	    poly <- readOGR(dsn=dir_path, layer=a)
+	    df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
+	    withProgress(message = paste("Species Group Analyzing by ", input$IS_VA_Admin), value = 0, {
+	    for (d in dlist) {
+	        for (c in clist) {
+	            for (m in mlist) {
+	                for (y in ylist) {
+#	                    if (length(ylist) > 1) {
+#	                        if(y == ylist[1]) {
+#	                            incProgress(1/tlg, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
+#	                            img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+#	                            r <- raster(img)
+#	                            df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
+#	                            #write to a data frame
+#	                            df1 <- data.frame(df1[-1])
+#	                            colnames(df1) <- c(paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, sep = ""))
+#	                            df1[is.na(df1)] <- 0
+#	                            df <- cbind(df, df1)
+#	                        } else {
+	                            for (v in vlist) {
+	                                incProgress(1/tlg, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
+	                                img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+	                                r <- raster(img)
+	                                df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
+	                                #write to a data frame
+	                                df1 <- data.frame(df1[-1])
+	                                colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                                df1[is.na(df1)] <- 0
+	                                df <- cbind(df, df1)
+	                            }
+#	                        }
+#	                    }
+#	                    else {
+#	                        showModal(modalDialog(
+#	                            title = "Message",
+#	                            "Please select projection years more than one!"
+#	                        ))
+#	                    }  
+	                }
+	            }
+	        }
 	    }
 	    
+	    #write to a CSV file
+	    write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	    write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	    
 	  })
+	  }
+	  }
 	})
 	
 

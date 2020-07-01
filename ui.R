@@ -880,7 +880,7 @@ shinyUI(
 				tabPanel(SS_Name_Analysis, fluid = TRUE,
                     tags$hr(),
 					fluidRow(
-						sidebarPanel(width = 2, Fluid = TRUE,
+						sidebarPanel(width = 3, Fluid = TRUE,
               uiOutput("SS_MO_Dir_Folder"),
               uiOutput("SS_MO_Dir_Folder_Name"),
               tags$hr(),
@@ -907,8 +907,11 @@ shinyUI(
 						sidebarPanel(width = 4,
 							uiOutput("SS_CA_SDM_model"),
 							tags$hr(),
+							tags$hr(),
+							br(),
 							actionButton("SS_CA_Action_change", label = "Analayzing the change of Species Distribution"),
 							tags$hr(),
+							br(),
 							actionButton("SS_CA_Action_Vindex", label = "Calculating the Climate Vulnerability Index of Species")
 						)
 					)
@@ -1037,15 +1040,17 @@ shinyUI(
 						sidebarPanel(width = 4,
 							uiOutput("IS_CA_SDM_model"),
 							tags$hr(),
-							shinyDirButton("IS_MO_Dir_Folder", IS_Name_AO_Dir, IS_Name_AO_Dir),
-							verbatimTextOutput("IS_MO_Dir_Folder", placeholder = TRUE),
-							actionButton("IS_VA_Action_Analysis", label = IS_Name_Action),
 							tags$hr(),
 							br(),
-						checkboxGroupInput("IS_VA_Admin", IS_Name_Admin,
+							shinyDirButton("IS_MO_Dir_Folder", IS_Name_AO_Dir, IS_Name_AO_Dir),
+							verbatimTextOutput("IS_MO_Dir_Folder", placeholder = TRUE),
+							tags$hr(),
+							actionButton("IS_VA_Action_Analysis", label = IS_Name_Action),
+							tags$hr(),
+						    checkboxGroupInput("IS_VA_Admin", IS_Name_Admin,
                                     choices = c(IS_Name_Admin_list),
                                     selected = IS_Name_Admin_selected),
-                        actionButton("IS_VA_Action_Admin", label = IS_Name_Action_Admin)
+                            actionButton("IS_VA_Action_Admin", label = IS_Name_Action_Admin)
 						)
 					)
 				),
@@ -1196,7 +1201,7 @@ shinyUI(
 				tabPanel(VH_Name_Analysis, fluid = TRUE,
 					tags$hr(),
 					fluidRow(
-						sidebarPanel(width = 2, Fluid = TRUE,
+						sidebarPanel(width = 3, Fluid = TRUE,
 						    uiOutput("VH_MI_Dir_Folder"),
 						    uiOutput("VH_MI_Dir_Folder_Name"),
 						    tags$hr(),
@@ -1205,9 +1210,9 @@ shinyUI(
 						    uiOutput("VH_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                
-							checkboxGroupInput("VH_CA_Dispersal_type", VH_Name_DM_Models,
-								choices = c(VH_Name_DM_Models_list),
-								selected = VH_Name_DM_Models_selected),
+#							checkboxGroupInput("VH_CA_Dispersal_type", VH_Name_DM_Models,
+#								choices = c(VH_Name_DM_Models_list),
+#								selected = VH_Name_DM_Models_selected),
 	
 							# Input: Checkbox if file has header ----
 							checkboxGroupInput("VH_CA_Climate_model", VH_Name_CD_Models,
@@ -1227,11 +1232,13 @@ shinyUI(
 						sidebarPanel(width = 4,
 						             uiOutput("VH_CA_SDM_model"),
 						             tags$hr(),
-						             shinyDirButton("VH_MO_Dir_Folder", VH_Name_Dir, VH_Name_Dir),
-						             verbatimTextOutput("VH_MO_Dir_Folder", placeholder = TRUE),
-						             actionButton("VH_VA_Action_Analysis", label = VH_Name_Action),
 						             tags$hr(),
 						             br(),
+						             shinyDirButton("VH_MO_Dir_Folder", VH_Name_Dir, VH_Name_Dir),
+						             verbatimTextOutput("VH_MO_Dir_Folder", placeholder = TRUE),
+						             tags$hr(),
+						             actionButton("VH_VA_Action_Analysis", label = VH_Name_Action),
+						             tags$hr(),
 						             checkboxGroupInput("VH_VA_Habitat", VH_Name_Habitat,
 						                                choices = c(VH_Name_Habitat_list),
 						                                selected = VH_Name_Habitat_selected
