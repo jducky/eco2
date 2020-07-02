@@ -74,7 +74,7 @@ shinyUI(
 #             a("English", style = "cursor:pointer; margin-right: 5px; color: white; " ),
 #             a("CONTACT US", style = "cursor:pointer; margin-right: 5px; color: white; " ),
 #             a("LOGOUT", style = "cursor:pointer; margin-right: 5px; color: white;" )
-            a(SE_Name_System_institute, style = "cursor:pointer; margin-right: 5px; color: ghostwhite;" )
+            a(SE_Name_System_institute, style = "cursor:pointer; margin-right: 5px; color: white;" )
 
         ),
         style = "background-image: url(eco_title.png); height: 10vh; position: relative;"),
@@ -1087,18 +1087,53 @@ shinyUI(
 	# Main panel for displaying outputs ----
 						mainPanel(
 							tabsetPanel(
-							  tabPanel(IS_Name_Out_Species, 
-							           tags$head(
-							             # Include our custom CSS
-							             includeCSS("styles.css"),
-							             includeScript("gomap.js")
-							           ),
-							           tags$hr(),
-							           column(6, leafletOutput("IS_AO_SD_Map", width = "800", height = "650")),
-							           tags$hr(),
-							           column(10, verbatimTextOutput("IS_AO_SD_Summary")),
-							           column(10, plotOutput("IS_AO_SD_Histogram"))
-							  ),
+                                tabPanel(IS_Name_Out_Species,
+                                    tabsetPanel(
+                                        tabPanel(IS_Name_Out_Map,
+                                            tags$head(
+                                                # Include our custom CSS
+                                                includeCSS("styles.css"),
+                                                includeScript("gomap.js")
+                                            ),
+                                            leafletOutput("IS_AO_SD_Map", width = "800", height = "600")
+                                        ),
+                                        tabPanel(IS_Name_Out_SIDO,
+                                            tabsetPanel(
+                                                    tabPanel(IS_Name_Out_Map, 
+                                                        tags$head(
+                                                            # Include our custom CSS
+                                                            includeCSS("styles.css"),
+                                                            includeScript("gomap.js")
+                                                        ),
+                                                        leafletOutput("IS_AO_SD_SIDO_Map", width = "800", height = "600")
+                                                    ),
+                                                    tabPanel(IS_Name_Out_Stat, 
+                                                        plotOutput("IS_AO_SD_SIDO_Stat")
+                                                    )
+                                            )
+                                        ),
+                                        tabPanel(IS_Name_Out_SGG,
+                                            tabsetPanel(
+                                                tabPanel(IS_Name_Out_Map, 
+                                                    tags$head(
+                                                        # Include our custom CSS
+                                                        includeCSS("styles.css"),
+                                                        includeScript("gomap.js")
+                                                    ),
+                                                    leafletOutput("IS_AO_SD_SGG_Map", width = "800", height = "600")
+                                                ),
+                                                tabPanel(IS_Name_Out_Stat,
+                                                    fluidRow(
+                                                        tags$hr(),
+                                                        uiOutput("IS_AO_SD_SGG_UI"),
+                                                        tags$hr(),
+                                                        plotOutput("IS_AO_SD_SGG_Stat")
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                ),
 								tabPanel(IS_Name_Out_SR,
 									tabsetPanel(
 										tabPanel(IS_Name_Out_Map,
@@ -1107,7 +1142,8 @@ shinyUI(
 												includeCSS("styles.css"),
 												includeScript("gomap.js")
 											),
-											leafletOutput("IS_AO_SR_Map", width = "800", height = "600")),
+											leafletOutput("IS_AO_SR_Map", width = "800", height = "600")
+										),
 										tabPanel(IS_Name_Out_SIDO,
 											tabsetPanel(
 												tabPanel(IS_Name_Out_Map, 
@@ -1131,7 +1167,8 @@ shinyUI(
 														includeCSS("styles.css"),
 														includeScript("gomap.js")
 													),
-													leafletOutput("IS_AO_SR_SGG_Map", width = "800", height = "600")),
+													leafletOutput("IS_AO_SR_SGG_Map", width = "800", height = "600")
+												),
 												tabPanel(IS_Name_Out_Stat,
 												  fluidRow(
 												    tags$hr(),

@@ -3175,13 +3175,21 @@ shinyServer(function(input, output) {
 								sr_stack <- stack(sr_list)
 								sr_raster <- overlay(sr_stack, fun=sum)
 								sr_raster1 <- sr_raster
+								loss_raster <- sr_raster
+								loss_raster[] <- NULL
+								stay_raster <- sr_raster
+								gain_raster <- sr_raster
+								gain_raster[] <- NULL
 								writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("IS_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("IS_LOSS_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("IS_STAY_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("IS_GAIN_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								vi1_raster <- sr_raster
-								vi1_raster[] <- 0
+								vi1_raster[] <- NULL
 								vi2_raster <- sr_raster
-								vi2_raster[] <- 0
+								vi2_raster[] <- NULL
 								vi3_raster <- sr_raster
-								vi3_raster[] <- 0
+								vi3_raster[] <- NULL
 								writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("IS_VI1_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("IS_VI2_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("IS_VI3_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
@@ -3294,7 +3302,7 @@ shinyServer(function(input, output) {
 	  tlg <- la * ld * lc * lm * ly * ls 
 
 	  
-	  if(FALSE) { 
+	  if(TRUE) { 
       # Individual Species
       
 	  for (a in alist) {
@@ -3306,50 +3314,29 @@ shinyServer(function(input, output) {
 	        #	    poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
 	        poly <- readOGR(dsn=dir_path, layer=a)
 	        df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-#	            if (length(ylist) > 1) {
-#	              if(y == ylist[1]) {
-#	                incProgress(1/tls, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
-#                    img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
-#                    r <- raster(img)
-#                    df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
-#                    #write to a data frame
-#                    df1 <- data.frame(df1[-1])
-#                    colnames(df1) <- c(paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, sep = ""))
-#                    df1[is.na(df1)] <- 0
-#                    df <- cbind(df, df1)
-#	              } else {
-	                for (v in "PRED") {
-	                  incProgress(1/tls, detail = paste("Doing part", d, "_", c, "_", y, "_", s, "_", m))
-	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
-	                  r <- raster(img)
-	                  df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
-	                  #write to a data frame
-	                  df1 <- data.frame(df1[-1])
-	                  colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, sep = ""))
-	                  df1[is.na(df1)] <- 0
-	                  df <- cbind(df, df1)
+	        df <- cbind(df, SPECIES = s)
+	        for (d in dlist) {
+	            for (c in clist) {
+	                for (m in mlist) {
+	                    for (y in ylist) {
+	                        for (v in "PRED") {
+	                            incProgress(1/tls, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", s))
+	                            img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
+	                            r <- raster(img)
+	                            df1 <- extract(r, poly, fun = sum, na.rm = TRUE, df=TRUE)
+	                            #write to a data frame
+	                            df1 <- data.frame(df1[-1])
+	                            colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                            df1[is.na(df1)] <- 0
+	                            df <- cbind(df, df1)
+	                        }
+	                    }
 	                }
-#	              }
-#	            }
-#	            else {
-#	                showModal(modalDialog(
-#	                    title = "Message",
-#	                    "Please select projection years more than one!"
-#	                ))
-#	            }  
-	          }
+	            }
 	        }
-	      }
-	    }
-	    
-	    #write to a CSV file
-	    write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
-	    write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	    
+	        #write to a CSV file
+	        write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
 	    }
 	    })
 	  }
@@ -3369,46 +3356,24 @@ shinyServer(function(input, output) {
 	        for (c in clist) {
 	            for (m in mlist) {
 	                for (y in ylist) {
-#	                    if (length(ylist) > 1) {
-#	                        if(y == ylist[1]) {
-#	                            incProgress(1/tlg, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
-#	                            img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
-#	                            r <- raster(img)
-#	                            df1 <- extract(r, poly, fun = max, na.rm = TRUE, df = TRUE)
-#	                            #write to a data frame
-#	                            df1 <- data.frame(df1[-1])
-#	                            colnames(df1) <- c(paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, sep = ""))
-#	                            df1[is.na(df1)] <- 0
-#	                            df <- cbind(df, df1)
-#	                        } else {
-	                            for (v in vlist) {
-	                                incProgress(1/tlg, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
-	                                img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
-	                                r <- raster(img)
-	                                df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
-	                                #write to a data frame
-	                                df1 <- data.frame(df1[-1])
-	                                colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
-	                                df1[is.na(df1)] <- 0
-	                                df <- cbind(df, df1)
-	                            }
-#	                        }
-#	                    }
-#	                    else {
-#	                        showModal(modalDialog(
-#	                            title = "Message",
-#	                            "Please select projection years more than one!"
-#	                        ))
-#	                    }  
+	                   for (v in vlist) {
+	                       incProgress(1/tlg, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
+	                       img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+	                       r <- raster(img)
+	                       df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
+	                       #write to a data frame
+	                       df1 <- data.frame(df1[-1])
+	                       colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                       df1[is.na(df1)] <- 0
+	                       df <- cbind(df, df1)
+	                   }
 	                }
 	            }
 	        }
 	    }
-	    
 	    #write to a CSV file
 	    write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
 	    write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	    
 	  })
 	  }
 	  }
@@ -3506,6 +3471,146 @@ shinyServer(function(input, output) {
 	       border="brown",
 	       xlab = "Predicted Value",
 	       main = "Histogram")
+	})
+	
+	output$IS_AO_SD_SIDO_Map <- renderLeaflet({
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    poly <- readOGR(file.path(IS_AO_SD_Dir_Folder, paste("SD", ".shp", sep = "")))
+	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	    names(poly) <- c(names(x)[-1])
+	    X_NAME <- names(poly[4])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
+	    
+	    max <- max(x[V_NAME], na.rm = TRUE)
+	    bins <- seq(from = 0, to = max, by = max/10)
+	    pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
+	    
+	    labels <- sprintf(
+	        "<strong>%s</strong><br/>%g Km2", # people / mi<sup>2</sup>",
+	        poly[[X_NAME]], poly[[V_NAME]]
+	    ) %>% lapply(htmltools::HTML)
+	    
+	    leaflet(poly) %>%
+	        setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
+	        addProviderTiles("MapBox", options = providerTileOptions(
+	            id = "mapbox.light",
+	            accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%   
+	        addPolygons(
+	            fillColor = ~pal(poly[[V_NAME]]),
+	            weight = 2,
+	            opacity = 1,
+	            color = "grey",
+	            dashArray = "3",
+	            fillOpacity = 0.7,
+	            highlight = highlightOptions(
+	                weight = 5,
+	                color = "#666",
+	                dashArray = "",
+	                fillOpacity = 0.7,
+	                bringToFront = TRUE),
+	            label = labels,
+	            labelOptions = labelOptions(
+	                style = list("font-weight" = "normal", padding = "3px 8px"),
+	                textsize = "15px",
+	                direction = "auto")) %>%
+	        addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
+	                  position = "bottomright")
+	})
+	
+	output$IS_AO_SD_SIDO_Stat <- renderPlot({
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
+	    
+	    ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
+	        geom_bar(stat="identity", position=position_dodge()) +
+	        geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
+	                  position = position_dodge(0.9), size=3.5) +
+	        scale_fill_brewer(palette="Paired") +
+	        theme_minimal() +
+	        labs(title = "시도 외래종 분포") + labs(x = "시도") + labs(y = "외래종수")
+	})
+	
+	output$IS_AO_SD_SGG_Map <- renderLeaflet({
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    poly <- readOGR(file.path(IS_AO_SD_Dir_Folder, paste("SGG", ".shp", sep = "")))
+	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	    names(poly) <- c(names(x[-1]))
+	    X_NAME <- names(poly[7])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
+	    
+	    max <- max(x[V_NAME], na.rm = TRUE)
+	    bins <- seq(from = 0, to = max, by = max/10)
+	    pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
+	    
+	    labels <- sprintf(
+	        "<strong>%s</strong><br/>%g Km2", # people / mi<sup>2</sup>",
+	        poly[[X_NAME]], poly[[V_NAME]]
+	    ) %>% lapply(htmltools::HTML)
+	    
+	    leaflet(poly) %>%
+	        setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
+	        addProviderTiles("MapBox", options = providerTileOptions(
+	            id = "mapbox.light",
+	            accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+	        addTiles(
+	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	        ) %>%   
+	        addPolygons(
+	            fillColor = ~pal(poly[[V_NAME]]),
+	            weight = 2,
+	            opacity = 1,
+	            color = "grey",
+	            dashArray = "3",
+	            fillOpacity = 0.7,
+	            highlight = highlightOptions(
+	                weight = 5,
+	                color = "#666",
+	                dashArray = "",
+	                fillOpacity = 0.7,
+	                bringToFront = TRUE),
+	            label = labels,
+	            labelOptions = labelOptions(
+	                style = list("font-weight" = "normal", padding = "3px 8px"),
+	                textsize = "15px",
+	                direction = "auto")) %>%
+	        addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
+	                  position = "bottomright")
+	})
+	
+	output$IS_AO_SD_SGG_UI <- renderUI({
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	    IS_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
+	    IS_Name_SD_selected <- IS_Name_SD_list[1]
+	    
+	    selectInput("IS_AO_SD_SGG_UI", "시도",
+	                choices = c(IS_Name_SD_list),
+	                selected = IS_Name_SD_selected
+	    )
+	})
+	
+	output$IS_AO_SD_SGG_Stat <- renderPlot({
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	    df <- df[which(df$SD_KOR==input$IS_AO_SD_SGG_UI), ]
+	    #	  names(df) <- c(names(x[-1]))
+	    X_NAME <- names(df[8])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
+	    
+	    ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
+	        geom_bar(stat="identity", position=position_dodge()) +
+	        geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
+	                  position = position_dodge(0.9), size=3.5) +
+	        scale_fill_brewer(palette="Paired") +
+	        theme_minimal() +
+	        labs(title = "시군구 외래종 분포") + labs(x = "시군구") + labs(y = "외래종수")
 	})
 	
   output$IS_AO_SR_Map <- renderLeaflet({
