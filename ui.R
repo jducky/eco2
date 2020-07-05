@@ -1317,18 +1317,93 @@ shinyUI(
                       # Main panel for displaying outputs ----
                       mainPanel(
                         tabsetPanel(
-                            tabPanel(VH_Name_Out_Species, 
-                                     tags$head(
-                                         # Include our custom CSS
-                                         includeCSS("styles.css"),
-                                         includeScript("gomap.js")
+                          tabPanel(VH_Name_Out_Species,
+                                   tabsetPanel(
+                                     tabPanel(VH_Name_Out_Map,
+                                              tags$head(
+                                                # Include our custom CSS
+                                                includeCSS("styles.css"),
+                                                includeScript("gomap.js")
+                                              ),
+                                              leafletOutput("VH_AO_SD_Map", width = "800", height = "600")),
+                                     tabPanel(VH_Name_Out_SIDO,
+                                              tabsetPanel(
+                                                tabPanel(VH_Name_Out_Map, 
+                                                         tags$head(
+                                                           # Include our custom CSS
+                                                           includeCSS("styles.css"),
+                                                           includeScript("gomap.js")
+                                                         ),
+                                                         leafletOutput("VH_AO_SD_SIDO_Map", width = "800", height = "600")
+                                                ),
+                                                tabPanel(VH_Name_Out_Stat, 
+                                                         plotOutput("VH_AO_SD_SIDO_Stat")
+                                                )
+                                              )
                                      ),
-                                     tags$hr(),
-                                     column(6, leafletOutput("VH_AO_SD_Map", width = "800", height = "650")),
-                                     tags$hr(),
-                                     column(10, verbatimTextOutput("VH_AO_SD_Summary")),
-                                     column(10, plotOutput("VH_AO_SD_Histogram"))
-                            ),
+                                     tabPanel(VH_Name_Out_SGG,
+                                              tabsetPanel(
+                                                tabPanel(VH_Name_Out_Map, 
+                                                         tags$head(
+                                                           # Include our custom CSS
+                                                           includeCSS("styles.css"),
+                                                           includeScript("gomap.js")
+                                                         ),
+                                                         leafletOutput("VH_AO_SD_SGG_Map", width = "800", height = "600")),
+                                                tabPanel(VH_Name_Out_Stat, 
+                                                         fluidRow(
+                                                           tags$hr(),
+                                                           uiOutput("VH_AO_SD_SGG_UI"),
+                                                           tags$hr(),
+                                                           plotOutput("VH_AO_SD_SGG_Stat")
+                                                         )
+                                                )
+                                              )
+                                     ),
+                                     tabPanel(VH_Name_Out_NP,
+                                              tabsetPanel(
+                                                tabPanel(VH_Name_Out_Map, 
+                                                         tags$head(
+                                                           # Include our custom CSS
+                                                           includeCSS("styles.css"),
+                                                           includeScript("gomap.js")
+                                                         ),
+                                                         leafletOutput("VH_AO_SD_NP_Map", width = "800", height = "600")),
+                                                tabPanel(VH_Name_Out_Stat, 
+                                                         plotOutput("VH_AO_SD_NP_Stat")
+                                                )
+                                              )
+                                     ),
+                                     tabPanel(VH_Name_Out_BR,
+                                              tabsetPanel(
+                                                tabPanel(VH_Name_Out_Map, 
+                                                         tags$head(
+                                                           # Include our custom CSS
+                                                           includeCSS("styles.css"),
+                                                           includeScript("gomap.js")
+                                                         ),
+                                                         leafletOutput("VH_AO_SD_BR_Map", width = "800", height = "600")),
+                                                tabPanel(VH_Name_Out_Stat, 
+                                                         plotOutput("VH_AO_SD_BR_Stat")
+                                                )
+                                              )
+                                     ),
+                                     tabPanel(VH_Name_Out_DMZ,
+                                              tabsetPanel(
+                                                tabPanel(VH_Name_Out_Map, 
+                                                         tags$head(
+                                                           # Include our custom CSS
+                                                           includeCSS("styles.css"),
+                                                           includeScript("gomap.js")
+                                                         ),
+                                                         leafletOutput("VH_AO_SD_DMZ_Map", width = "800", height = "600")),
+                                                tabPanel(VH_Name_Out_Stat, 
+                                                         plotOutput("VH_AO_SD_DMZ_Stat")
+                                                )
+                                              )
+                                     )
+                                   )
+                          ),
                           tabPanel(VH_Name_Out_SR,
                             tabsetPanel(
                               tabPanel(VH_Name_Out_Map,

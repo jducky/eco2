@@ -621,11 +621,11 @@ shinyServer(function(input, output) {
 	
 	output$SDM_AO_Species <- renderUI({
 	  G$SDM_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SDM_AO_MI_Dir)
-	  IS_Name_Species_list <- list.dirs(path = G$SDM_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	  IS_Name_Species_selected <- IS_Name_Species_list[1]
+	  SDM_Name_Species_list <- list.dirs(path = G$SDM_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	  SDM_Name_Species_selected <- SDM_Name_Species_list[1]
 	  selectInput("SDM_AO_Species", "Select a species",
-	              choices = c(IS_Name_Species_list),
-	              selected = IS_Name_Species_selected
+	              choices = c(SDM_Name_Species_list),
+	              selected = SDM_Name_Species_selected
 	  )
 	})
 	
@@ -4151,9 +4151,255 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <<- G$VH_MO_Dir_Folder
 	  output$VH_AO_MO_Dir_Folder <- renderText({G$VH_AO_MO_Dir_Folder})
 	})
-	
-	
+
 	observeEvent(input$VH_VA_Action_Analysis, {
+	  
+	  # setting Climate change scenarios, Future time, Species and current environmental path
+	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	  clist <- input$VH_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	  #		dtlist <- input$VH_CA_Dispersal_type
+	  mlist <- input$VH_CA_SDM_model # c("PA1_Full_GLM_byROC")
+	  ylist <- input$VH_CA_Project_year
+	  slist <- input$VH_CA_Species
+	  
+	  n <- 0
+	  ls <- length(slist)
+	  ld <- length(dlist)
+	  lc <- length(clist)
+	  lm <- length(mlist)
+	  ly <- length(ylist)
+	  #		ldt <- length(dtlist)
+	  tl <- ld * lc * lm * ly
+	  
+	  sr_list <- NULL
+	  loss_list <- NULL
+	  stay_list <- NULL
+	  gain_list <- NULL
+	  
+	  withProgress(message = 'Runing Vulnerable Habitat Impact and Vulnerability Analysis.........', value = 0, {
+	    G$VH_MI_Dir_Folder <- file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_MI_Dir)  
+	    for (d in dlist) {
+	      for (c in clist) {
+	        for (m in mlist) {
+	          for (y in ylist) {
+	            incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
+	            if(y == ylist[1]) {
+	              for (s in slist) {
+	                dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
+	                img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
+	                sr_list <- c(sr_list, img)
+	              }
+	              save_path <- G$VH_MO_Dir_Folder
+	              sr_list <- grep("PRED", sr_list, value = TRUE)
+	              sr_stack <- stack(sr_list)
+	              sr_raster <- overlay(sr_stack, fun=sum)
+	              sr_raster1 <- sr_raster
+	              loss_raster <- sr_raster
+	              loss_raster[] <- NULL
+	              stay_raster <- sr_raster
+	              gain_raster <- sr_raster
+	              gain_raster[] <- NULL
+	              writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("VH_LOSS_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("VH_STAY_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("VH_GAIN_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              vi1_raster <- sr_raster
+	              vi1_raster[] <- NULL
+	              vi2_raster <- sr_raster
+	              vi2_raster[] <- NULL
+	              vi3_raster <- sr_raster
+	              vi3_raster[] <- NULL
+	              writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              sr_list <- NULL
+	            } else {
+	              #							    incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
+	              for (s in slist) {
+	                dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
+	                img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
+	                sr_list <- c(sr_list, img)
+	                img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
+	                loss_list <- c(loss_list, img)
+	                img <- file.path(dir_path, paste("STAY_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
+	                stay_list <- c(stay_list, img)
+	                img <- file.path(dir_path, paste("GAIN_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
+	                gain_list <- c(gain_list, img)
+	              }
+	              save_path <- G$VH_MO_Dir_Folder
+	              sr_list <- grep("PRED", sr_list, value = TRUE)
+	              sr_stack <- stack(sr_list)
+	              sr_raster <- overlay(sr_stack, fun=sum)
+	              sr_raster2 <- sr_raster
+	              losssr_raster <- sr_raster2 - sr_raster1
+	              writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              writeRaster(losssr_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              
+	              loss_list <- grep("LOSS", loss_list, value = TRUE)
+	              loss_stack <- stack(loss_list)
+	              loss_raster <- overlay(loss_stack, fun=sum)
+	              writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("VH_LOSS_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              
+	              stay_list <- grep("STAY", stay_list, value = TRUE)
+	              stay_stack <- stack(stay_list)
+	              stay_raster <- overlay(stay_stack, fun=sum)
+	              writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("VH_STAY_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              
+	              gain_list <- grep("GAIN", gain_list, value = TRUE)
+	              gain_stack <- stack(gain_list)
+	              gain_raster <- overlay(gain_stack, fun=sum)
+	              writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("VH_GAIN_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              
+	              vi2_raster <- sr_raster
+	              vi2_raster <- loss_raster / sr_raster1
+	              vi2_raster[sr_raster1 == 0] <- 0
+	              writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")),overwrite = TRUE)
+	              
+	              vi3_raster <- sr_raster
+	              vi3_raster <- (1 - (loss_raster / sr_raster1)) + (gain_raster / (length(slist) - sr_raster1))
+	              vi3_raster[sr_raster1 == 0] <- 0
+	              writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              
+	              sr_list <- NULL
+	              loss_list <- NULL
+	              stay_list <- NULL
+	              gain_list <- NULL
+	            }				    
+	          }
+	        }
+	      }
+	    }
+	    
+	    #####
+	    
+	    #		    destfile <- file.path(G$VH_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
+	    
+	    VH_variables <- setNames(data.frame(matrix(ncol = 8, nrow = 5000)), c("input$SDM_Folder", "VH_CA_Species_Number", "input$VH_CA_Species", "input$VH_CA_Dispersal_type", "input$VH_CA_Climate_model", "input$VH_CA_Climate_scenario", 
+	                                                                          "input$VH_CA_Project_year", "input$VH_CA_SDM_model"
+	    ))
+	    
+	    VH_variables[1:length(G$VH_MI_Dir_Folder), "input$SDM_Folder"] <- G$VH_MI_Dir_Folder
+	    VH_variables[1:1, "VH_CA_Species_Number"] <- length(input$VH_CA_Species)
+	    VH_variables[1:length(input$VH_CA_Species), "input$VH_CA_Species"] <- input$VH_CA_Species
+	    VH_variables[1:length(input$VH_CA_Dispersal_type), "input$VH_CA_Dispersal_type"] <- input$VH_MI_Dir_Folder
+	    VH_variables[1:length(input$VH_CA_Climate_model), "input$VH_CA_Climate_model"] <- input$VH_CA_Climate_model
+	    VH_variables[1:length(input$VH_CA_Climate_scenario), "input$VH_CA_Climate_scenario"] <- input$VH_CA_Climate_scenario
+	    VH_variables[1:length(input$VH_CA_Project_year), "input$VH_CA_Project_year"] <- input$VH_CA_Project_year
+	    VH_variables[1:length(input$VH_CA_SDM_model), "input$VH_CA_SDM_model"] <- input$VH_CA_SDM_model
+	    
+	    VH_variables[is.na(VH_variables)] <- ""
+	    write.csv(VH_variables, file = file.path(G$VH_MO_Dir_Folder, "VulnerableHabitat_Options.csv"))
+	    
+	    #####		    
+	    
+	    
+	  })
+	})
+	
+	observeEvent(input$VH_VA_Action_Habitat, {
+	  
+	  # setting Climate change scenarios, Future time, Species and current environmental path
+	  alist <- input$VH_VA_Habitat
+	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	  clist <- input$VH_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	  #	  dtlist <- input$VH_CA_Dispersal_type
+	  mlist <- input$VH_CA_SDM_model # c("PA1_Full_GLM_byROC")
+	  ylist <- input$VH_CA_Project_year
+	  slist <- input$VH_CA_Species
+	  vlist <- c("VH_SR", "VH_LOSS", "VH_STAY", "VH_GAIN", "VH_VI1", "VH_VI2", "VH_VI3") # c("VH_SR") # 
+	  
+	  n <- 0
+	  la <- length(alist)
+	  ls <- length(slist)
+	  ld <- length(dlist)
+	  lc <- length(clist)
+	  lm <- length(mlist)
+	  ly <- length(ylist)
+	  lv <- length(vlist)
+	  
+	  tls <- la * ld * lc * lm * ly * lv
+	  tlg <- la * ld * lc * lm * ly * ls 
+	  
+	  
+	  if(TRUE) { 
+	    # Individual Species
+	    
+	    for (a in alist) {
+	      withProgress(message = paste("Species Analyzing by ", input$VH_VA_Admin), value = 0, {
+	        for (s in slist) {
+	          dir_path <- file.path(G$SE_Dir_Project, "Species_Distribution", input$VH_MI_Dir, s, input$VH_MI_Dir_Folder)
+	          dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	          file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	          #	    poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	          poly <- readOGR(dsn=dir_path, layer=a)
+	          df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
+	          df <- cbind(df, SPECIES = s)
+	          for (d in dlist) {
+	            for (c in clist) {
+	              for (m in mlist) {
+	                for (y in ylist) {
+	                  for (v in "PRED") {
+	                    incProgress(1/tls, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", s))
+	                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
+	                    r <- raster(img)
+	                    df1 <- extract(r, poly, fun = sum, na.rm = TRUE, df=TRUE)
+	                    #write to a data frame
+	                    df1 <- data.frame(df1[-1])
+	                    colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                    df1[is.na(df1)] <- 0
+	                    df <- cbind(df, df1)
+	                  }
+	                }
+	              }
+	            }
+	          }
+	          #write to a CSV file
+	          write.csv(df, file = file.path(dir_path, paste("VH_", a, ".csv", sep="")))
+	          write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	        }
+	      })
+	    }
+	    
+	  } else { 
+	    # Species Group
+	    dir_path <- G$VH_MO_Dir_Folder
+	    for (a in alist) {
+	      
+	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	      #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	      poly <- readOGR(dsn=dir_path, layer=a)
+	      df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
+	      withProgress(message = paste("Species Group Analyzing by ", input$VH_VA_Admin), value = 0, {
+	        for (d in dlist) {
+	          for (c in clist) {
+	            for (m in mlist) {
+	              for (y in ylist) {
+	                for (v in vlist) {
+	                  incProgress(1/tlg, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
+	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+	                  r <- raster(img)
+	                  df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
+	                  #write to a data frame
+	                  df1 <- data.frame(df1[-1])
+	                  colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                  df1[is.na(df1)] <- 0
+	                  df <- cbind(df, df1)
+	                }
+	              }
+	            }
+	          }
+	        }
+	        #write to a CSV file
+	        write.csv(df, file = file.path(dir_path, paste("VH_", a, ".csv", sep="")))
+	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	      })
+	    }
+	  }
+	})
+	
+	
+	observeEvent(input$VH_VA_Action_Analysis_old, {
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	  clist <- input$VH_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
@@ -4283,7 +4529,7 @@ shinyServer(function(input, output) {
 	  })
 	})
 	
-	observeEvent(input$VH_VA_Action_Habitat, {
+	observeEvent(input$VH_VA_Action_Habitat_old, {
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  alist <- input$VH_VA_Habitat
 	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
@@ -4445,7 +4691,147 @@ shinyServer(function(input, output) {
 	         border="brown",
 	         xlab = "Predicted Value",
 	         main = "Histogram")
-	})	
+	})
+	
+	output$VH_AO_SD_SIDO_Map <- renderLeaflet({
+	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
+	  poly <- readOGR(file.path(VH_AO_SD_Dir_Folder, paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[4])
+	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
+	  
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
+	  
+	  labels <- sprintf(
+	    "<strong>%s</strong><br/>%g Km2", # people / mi<sup>2</sup>",
+	    poly[[X_NAME]], poly[[V_NAME]]
+	  ) %>% lapply(htmltools::HTML)
+	  
+	  leaflet(poly) %>%
+	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
+	    addProviderTiles("MapBox", options = providerTileOptions(
+	      id = "mapbox.light",
+	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+	    addTiles(
+	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	    ) %>%   
+	    addPolygons(
+	      fillColor = ~pal(poly[[V_NAME]]),
+	      weight = 2,
+	      opacity = 1,
+	      color = "grey",
+	      dashArray = "3",
+	      fillOpacity = 0.7,
+	      highlight = highlightOptions(
+	        weight = 5,
+	        color = "#666",
+	        dashArray = "",
+	        fillOpacity = 0.7,
+	        bringToFront = TRUE),
+	      label = labels,
+	      labelOptions = labelOptions(
+	        style = list("font-weight" = "normal", padding = "3px 8px"),
+	        textsize = "15px",
+	        direction = "auto")) %>%
+	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
+	              position = "bottomright")
+	})
+	
+	output$VH_AO_SD_SIDO_Stat <- renderPlot({
+	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
+	  df <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
+	  X_NAME <- names(df[5])
+	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  
+	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
+	    geom_bar(stat="identity", position=position_dodge()) +
+	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
+	              position = position_dodge(0.9), size=3.5) +
+	    scale_fill_brewer(palette="Paired") +
+	    theme_minimal() +
+	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
+	})
+	
+	output$VH_AO_SD_SGG_Map <- renderLeaflet({
+	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
+	  poly <- readOGR(file.path(VH_AO_SD_Dir_Folder, paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
+	  names(poly) <- c(names(x[-1]))
+	  X_NAME <- names(poly[7])
+	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
+	  
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
+	  
+	  labels <- sprintf(
+	    "<strong>%s</strong><br/>%g Km2", # people / mi<sup>2</sup>",
+	    poly[[X_NAME]], poly[[V_NAME]]
+	  ) %>% lapply(htmltools::HTML)
+	  
+	  leaflet(poly) %>%
+	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
+	    addProviderTiles("MapBox", options = providerTileOptions(
+	      id = "mapbox.light",
+	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+	    addTiles(
+	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	    ) %>%   
+	    addPolygons(
+	      fillColor = ~pal(poly[[V_NAME]]),
+	      weight = 2,
+	      opacity = 1,
+	      color = "grey",
+	      dashArray = "3",
+	      fillOpacity = 0.7,
+	      highlight = highlightOptions(
+	        weight = 5,
+	        color = "#666",
+	        dashArray = "",
+	        fillOpacity = 0.7,
+	        bringToFront = TRUE),
+	      label = labels,
+	      labelOptions = labelOptions(
+	        style = list("font-weight" = "normal", padding = "3px 8px"),
+	        textsize = "15px",
+	        direction = "auto")) %>%
+	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
+	              position = "bottomright")
+	})
+	
+	output$VH_AO_SD_SGG_UI <- renderUI({
+	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
+	  df <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
+	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
+	  VH_Name_SD_selected <- VH_Name_SD_list[1]
+	  
+	  selectInput("VH_AO_SD_SGG_UI", "시도",
+	              choices = c(VH_Name_SD_list),
+	              selected = VH_Name_SD_selected
+	  )
+	})
+	
+	output$VH_AO_SD_SGG_Stat <- renderPlot({
+	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
+	  df <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
+	  df <- df[which(df$SD_KOR==input$VH_AO_SD_SGG_UI), ]
+	  #	  names(df) <- c(names(x[-1]))
+	  X_NAME <- names(df[8])
+	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  
+	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
+	    geom_bar(stat="identity", position=position_dodge()) +
+	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
+	              position = position_dodge(0.9), size=3.5) +
+	    scale_fill_brewer(palette="Paired") +
+	    theme_minimal() +
+	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
+	})
 
 	output$VH_AO_SR_Map <- renderLeaflet({
 	   
@@ -4560,7 +4946,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -4697,7 +5083,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -4759,7 +5145,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -4821,7 +5207,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_SR_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -4945,7 +5331,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5082,7 +5468,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5144,7 +5530,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5206,7 +5592,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_LOSS_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5330,7 +5716,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5467,7 +5853,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5529,7 +5915,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5591,7 +5977,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_STAY_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5715,7 +6101,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5852,7 +6238,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5914,7 +6300,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -5976,7 +6362,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_GAIN_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6100,7 +6486,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6237,7 +6623,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6299,7 +6685,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6361,7 +6747,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_VI1_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6485,7 +6871,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6622,7 +7008,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6684,7 +7070,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6746,7 +7132,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_VI2_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -6870,7 +7256,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -7007,7 +7393,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -7069,7 +7455,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
 	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
@@ -7131,7 +7517,7 @@ shinyServer(function(input, output) {
 	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
 	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_VI3_", input$IS_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 	  
 	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	    geom_bar(stat="identity", position=position_dodge()) +
