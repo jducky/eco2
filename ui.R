@@ -1155,7 +1155,11 @@ shinyUI(
 													leafletOutput("IS_AO_SR_SIDO_Map", width = "800", height = "600")
 												),
 												tabPanel(IS_Name_Out_Stat, 
-													plotOutput("IS_AO_SR_SIDO_Stat")
+													plotOutput("IS_AO_SR_SIDO_Stat"),
+													tags$hr(),
+													uiOutput("IS_AO_SR_SIDO_SP_UI"),
+													tags$hr(),
+													plotOutput("IS_AO_SR_SIDO_SP_Stat")
 												)
 											)
 										),

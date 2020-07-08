@@ -3585,8 +3585,8 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SD_SGG_UI <- renderUI({
-	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
-	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+#	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+#	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
 	    IS_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
 	    IS_Name_SD_selected <- IS_Name_SD_list[1]
 	    
@@ -3798,6 +3798,78 @@ shinyServer(function(input, output) {
 	    scale_fill_brewer(palette="Paired") +
 	    theme_minimal() +
 	    labs(title = "시도 외래종 분포") + labs(x = "시도") + labs(y = "외래종수")
+	})
+	
+	output$IS_AO_SR_SIDO_SP_UI <- renderUI({
+#	    IS_AO_SR_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+#	    df <- read.csv(file.path(IS_AO_SR_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	    IS_Name_SR_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
+	    IS_Name_SR_selected <- IS_Name_SR_list[1]
+	    
+	    selectInput("IS_AO_SR_SIDO_SP_UI", "시도",
+	                choices = c(IS_Name_SR_list),
+	                selected = IS_Name_SR_selected
+	    )
+	})
+	
+	output$IS_AO_SR_SIDO_SP_Stat <- renderPlot({
+	    
+	    if (input$SS_AO_IV_Data == "Species") {
+	        if (length(input$SS_AO_Species) > 0) {
+	            if (length(input$SS_AO_Species) == 1) {
+	                destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species[1], input$SS_AO_Model_Name_Input, paste(as.name(paste(input$SS_AO_Species[1], "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
+	                vindex <- read.csv(destfile)
+	                G_FILE_species_vindex <<- vindex
+	                vindex
+	            } else {
+	                destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species[1], input$SS_AO_Model_Name_Input, paste(as.name(paste(input$SS_AO_Species[1], "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
+	                vindex <- read.csv(destfile)
+	                for (s in input$SS_AO_Species[-1]) {
+	                    destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, s, input$SS_AO_Model_Name_Input, paste(as.name(paste(s, "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
+	                    vindex0 <- read.csv(destfile)
+	                    vindex <- rbind(vindex, vindex0)
+	                }
+	                G_FILE_species_vindex <<- vindex
+	                vindex
+	            } 
+	        } else {
+	            showModal(modalDialog(
+	                title = "Error Message",
+	                paste("Vulnerable Index file doesn't exist.")
+	            ))
+	        }
+	    } else {
+	        if (!file.exists(destfile)) {
+	            showModal(modalDialog(
+	                title = "Error Message",
+	                paste("Vulnerable Index file doesn't exist.")
+	            ))
+	        } else {
+	            destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, paste(input$SS_AO_Model_Name_Input, "_Speices_VINDEX.csv", sep = "")) # , sep = "", collapse = "--")
+	            vindex <- read.csv(destfile)
+	            G_FILE_species_vindex <<- vindex
+	            vindex
+	        }
+	    }
+	    
+	    
+	    
+	    
+	    
+	    IS_AO_SR_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	    df <- df[which(df$SD_KOR==input$IS_AO_SD_SGG_UI), ]
+	    #	  names(df) <- c(names(x[-1]))
+	    X_NAME <- names(df[8])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
+	    
+	    ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
+	        geom_bar(stat="identity", position=position_dodge()) +
+	        geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
+	                  position = position_dodge(0.9), size=3.5) +
+	        scale_fill_brewer(palette="Paired") +
+	        theme_minimal() +
+	        labs(title = "시군구 외래종 분포") + labs(x = "시군구") + labs(y = "외래종수")
 	})
 	
 	output$IS_AO_SR_SGG_Map <- renderLeaflet({
