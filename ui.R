@@ -1159,6 +1159,10 @@ shinyUI(
 													tags$hr(),
 													uiOutput("IS_AO_SR_SIDO_SP_UI"),
 													tags$hr(),
+													fluidRow(
+													  column(12, DT::dataTableOutput("IS_AO_SR_SIDO_SP_Table"), style = "overflow-y: scroll;overflow-x: scroll;")
+													),
+													tags$hr(),
 													plotOutput("IS_AO_SR_SIDO_SP_Stat")
 												)
 											)

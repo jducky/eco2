@@ -3302,9 +3302,9 @@ shinyServer(function(input, output) {
 	  tlg <- la * ld * lc * lm * ly * ls 
 
 	  
-	  if(TRUE) { 
+#	  if(TRUE) { 
       # Individual Species
-      
+  if (length(slist) > 0) {      
 	  for (a in alist) {
 	    withProgress(message = paste("Species Analyzing by ", input$IS_VA_Admin), value = 0, {
 	    for (s in slist) {
@@ -3337,11 +3337,20 @@ shinyServer(function(input, output) {
 	        #write to a CSV file
 	        write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
 	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	        if (s == slist[1]) {
+	          df_sp0 <- df
+	          df_sp <- df
+	        } else {
+	          df_sp <- rbind(df_sp, df)
+	        }
 	    }
+	      dir_path <- G$IS_MO_Dir_Folder
+	      write.csv(df_sp, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	      write.dbf(df_sp, file.path(dir_path, paste(a, ".dbf", sep = "")))
 	    })
 	  }
 	  
-	  } else { 
+#	  } else { 
 	  # Species Group
 	  dir_path <- G$IS_MO_Dir_Folder
 	  for (a in alist) {
@@ -3376,7 +3385,13 @@ shinyServer(function(input, output) {
 	    write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
 	  })
 	  }
-	  }
+  } else {
+    showModal(modalDialog(
+      title = "Error Message",
+      paste("Select Species.")
+    ))
+  }
+#	  }
 	})
 	
 
@@ -3455,14 +3470,14 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$IS_AO_SD_Summary <- renderPrint({
-	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".grd", sep = "")
 	  r <- raster(file.path(dir_path, Map))
 	  summary(r)
 	})
 	
 	output$IS_AO_SD_Histogram <- renderPlot({
-	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	  dir_path <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	  Map <- paste("PRED", "_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_Project_year, "_", input$IS_AO_Species, "_", input$IS_AO_SDM_model, ".grd", sep = "")
 	  x <- raster(file.path(dir_path, Map))
 	  
@@ -3474,7 +3489,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SD_SIDO_Map <- renderLeaflet({
-	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	    poly <- readOGR(file.path(IS_AO_SD_Dir_Folder, paste("SD", ".shp", sep = "")))
 	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
 	    names(poly) <- c(names(x)[-1])
@@ -3522,7 +3537,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SD_SIDO_Stat <- renderPlot({
-	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
 	    X_NAME <- names(df[5])
 	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
@@ -3537,7 +3552,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SD_SGG_Map <- renderLeaflet({
-	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	    poly <- readOGR(file.path(IS_AO_SD_Dir_Folder, paste("SGG", ".shp", sep = "")))
 	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
 	    names(poly) <- c(names(x[-1]))
@@ -3597,7 +3612,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$IS_AO_SD_SGG_Stat <- renderPlot({
-	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
+	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
 	    df <- df[which(df$SD_KOR==input$IS_AO_SD_SGG_UI), ]
 	    #	  names(df) <- c(names(x[-1]))
@@ -3812,56 +3827,52 @@ shinyServer(function(input, output) {
 	    )
 	})
 	
-	output$IS_AO_SR_SIDO_SP_Stat <- renderPlot({
-	    
-	    if (input$SS_AO_IV_Data == "Species") {
-	        if (length(input$SS_AO_Species) > 0) {
-	            if (length(input$SS_AO_Species) == 1) {
-	                destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species[1], input$SS_AO_Model_Name_Input, paste(as.name(paste(input$SS_AO_Species[1], "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
-	                vindex <- read.csv(destfile)
-	                G_FILE_species_vindex <<- vindex
-	                vindex
-	            } else {
-	                destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, input$SS_AO_Species[1], input$SS_AO_Model_Name_Input, paste(as.name(paste(input$SS_AO_Species[1], "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
-	                vindex <- read.csv(destfile)
-	                for (s in input$SS_AO_Species[-1]) {
-	                    destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, s, input$SS_AO_Model_Name_Input, paste(as.name(paste(s, "_VINDEX.csv", sep = "")), sep = "", collapse = "--"))
-	                    vindex0 <- read.csv(destfile)
-	                    vindex <- rbind(vindex, vindex0)
-	                }
-	                G_FILE_species_vindex <<- vindex
-	                vindex
-	            } 
-	        } else {
-	            showModal(modalDialog(
-	                title = "Error Message",
-	                paste("Vulnerable Index file doesn't exist.")
-	            ))
-	        }
+	output$IS_AO_SR_SIDO_SP_Table <- DT::renderDataTable({
+	  #	  IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
+	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
+	  destfile <- file.path(G$IS_AO_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
+	  
+	  IS_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  IS_Options_lists <- IS_Options_lists[!(IS_Options_lists$input.IS_CA_Species == ""), ]
+	  IS_AO_SR_SIDO_SP_List <- IS_Options_lists[,"input.IS_CA_Species"]
+	  
+	  if (length(IS_AO_SR_SIDO_SP_List) > 0) {
+	    if (length(input$SS_AO_Species) == 1) {
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "IS_SD.csv")
+	      sindex <- read.csv(destfile)
+	      sindex <- sindex[which(sindex$SD_KOR==input$IS_AO_SR_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
 	    } else {
-	        if (!file.exists(destfile)) {
-	            showModal(modalDialog(
-	                title = "Error Message",
-	                paste("Vulnerable Index file doesn't exist.")
-	            ))
-	        } else {
-	            destfile <- file.path(G$SE_Dir_Project, "Species_Distribution", input$SS_AO_Dir, paste(input$SS_AO_Model_Name_Input, "_Speices_VINDEX.csv", sep = "")) # , sep = "", collapse = "--")
-	            vindex <- read.csv(destfile)
-	            G_FILE_species_vindex <<- vindex
-	            vindex
-	        }
-	    }
-	    
-	    
-	    
-	    
-	    
-	    IS_AO_SR_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, "BIOMOD2")
-	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
-	    df <- df[which(df$SD_KOR==input$IS_AO_SD_SGG_UI), ]
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "IS_SD.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in IS_AO_SR_SIDO_SP_List[-1]) {
+	        destfile <- file.path(G$IS_AO_MI_Dir_Folder, s, input$IS_AO_MI_Dir_Folder, "IS_SD.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      sindex <- sindex[which(sindex$SD_KOR==input$IS_AO_SR_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+  
+	
+	output$IS_AO_SR_SIDO_SP_Stat <- renderPlot({
+	  
+	  rs <- input$IS_AO_SR_SIDO_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+#	    df <- df[which(df$SD_KOR==input$IS_AO_SR_SIDO_SP_UI), ]
 	    #	  names(df) <- c(names(x[-1]))
-	    X_NAME <- names(df[8])
-	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
+	    X_NAME <- names(df[6])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
 	    
 	    ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
 	        geom_bar(stat="identity", position=position_dodge()) +
@@ -3870,6 +3881,7 @@ shinyServer(function(input, output) {
 	        scale_fill_brewer(palette="Paired") +
 	        theme_minimal() +
 	        labs(title = "시군구 외래종 분포") + labs(x = "시군구") + labs(y = "외래종수")
+	  }
 	})
 	
 	output$IS_AO_SR_SGG_Map <- renderLeaflet({
