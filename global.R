@@ -193,3 +193,153 @@ for (v in 1: nrow(Variable_lists)) {
 }
 
 
+G$SIDO_List <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도")
+
+
+#
+# MOTIVE Ecosystem Functions
+#
+
+MotiveEco_SDM_plot <- function(r)
+{
+  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+                      na.color = "transparent")
+  
+  leaflet() %>%
+    addTiles(
+      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+    ) %>%        
+    
+    addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+    setView(lng = 127.00, lat = 36.00, zoom = 7)
+}
+
+
+MotiveEco_BND_stat <- function(df, x, y, title, xname, yname)
+{
+  ggplot(data=df, aes(x=df[[x]], y=df[[y]])) + 
+    geom_bar(stat="identity", position=position_dodge()) +
+    geom_text(aes(label=df[[y]]), vjust=1.6, color="white",
+              position = position_dodge(0.9), size=3.5) +
+    scale_fill_brewer(palette="Paired") +
+    theme_minimal() +
+    labs(title = title) + labs(x = xname) + labs(y = yname)
+}
+
+
+MotiveEco_bnd_plot <- function(p, x, y, b, unit)
+{
+  pal <- colorBin("YlOrRd", domain = p[[y]], bins = b)
+  labels <- sprintf(
+    paste("<strong>%s</strong><br/>%g ", unit),  #"<strong>%s</strong><br/>%g Km2", 
+    p[[x]], p[[y]]
+  ) %>% lapply(htmltools::HTML)
+  
+  leaflet(p) %>%
+    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
+    addProviderTiles("MapBox", options = providerTileOptions(
+      id = "mapbox.light",
+      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+    addTiles(
+      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+    ) %>%   
+    addPolygons(
+      fillColor = ~pal(p[[y]]),
+      weight = 2,
+      opacity = 1,
+      color = "grey",
+      dashArray = "3",
+      fillOpacity = 0.7,
+      highlight = highlightOptions(
+        weight = 5,
+        color = "#666",
+        dashArray = "",
+        fillOpacity = 0.7,
+        bringToFront = TRUE),
+      label = labels,
+      labelOptions = labelOptions(
+        style = list("font-weight" = "normal", padding = "3px 8px"),
+        textsize = "15px",
+        direction = "auto")) %>%
+    addLegend(pal = pal, values = ~p[[y]], opacity = 0.7, title = NULL,
+              position = "bottomright")
+}
+
+
+MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl)
+{
+  lo <- length(ol)
+  ld <- length(dl)
+  lc <- length(cl)
+  lm <- length(ml)
+  ly <- length(yl)
+  
+  for (o in ol) {
+    for (d in dl) {
+      for (c in cl) {
+        for (m in ml) {
+          for (y in yl) {
+            if (ly > 0) {
+              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+              r <- raster(file.path(dir, Map1))
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")	  
+  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+                      na.color = "transparent")
+  
+  leaflet() %>%
+    addTiles(
+      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+    ) %>%        
+    
+    addRasterImage(r, colors = pal, opacity = 0.8) %>%
+    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+    
+    setView(lng = 128.00, lat = 36.00, zoom = 7)
+}
+
+MotiveEco_img_plot <- function(dir, ol, dl, cl, ml, yl)
+{
+  lo <- length(ol)
+  ld <- length(dl)
+  lc <- length(cl)
+  lm <- length(ml)
+  ly <- length(yl)
+  
+  tl <- lo * ld * lc * lm * ly
+  nc <- 2
+  if (tl <  2) {
+    nr <- round(tl / nc) + 1
+  } else {
+    nr <- round((tl + 0.1) / nc)
+  }
+  
+  par(mfrow = c(nr,nc), cex.main = 1.2)
+  
+  for (o in ol) {
+    for (d in dl) {
+      for (c in cl) {
+        for (m in ml) {
+          for (y in yl) {
+            if (ly > 0) {
+              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+              R_Map1 <- raster(file.path(dir, Map1))
+              plot(R_Map1, main = Map1)
+            }
+          }
+        }
+      }
+    }
+  }
+}
