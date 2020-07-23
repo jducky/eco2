@@ -3257,7 +3257,7 @@ shinyServer(function(input, output) {
 		})
 	})
 	
-	observeEvent(input$IS_VA_Action_Admin, {
+	observeEvent(input$IS_VA_Action_Admin_Species, {
 
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  alist <- input$IS_VA_Admin
@@ -3329,50 +3329,86 @@ shinyServer(function(input, output) {
 	      write.dbf(df_sp, file.path(dir_path, paste(a, ".dbf", sep = "")))
 	    })
 	  }
-	  
-#	  } else { 
-	  # Species Group
-	  dir_path <- G$IS_MO_Dir_Folder
-	  for (a in alist) {
-	        
-	    dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
-	    file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	    #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
-	    poly <- readOGR(dsn=dir_path, layer=a)
-	    df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
-	    withProgress(message = paste("Species Group Analyzing by ", input$IS_VA_Admin), value = 0, {
-	    for (d in dlist) {
-	        for (c in clist) {
-	            for (m in mlist) {
-	                for (y in ylist) {
-	                   for (v in vlist) {
-	                       incProgress(1/tlg, detail = paste("Doing part", a, "_", d, "_", c, "_", m, "_", y, "_", v))
-	                       img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
-	                       r <- raster(img)
-	                       df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
-	                       #write to a data frame
-	                       df1 <- data.frame(df1[-1])
-	                       colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
-	                       df1[is.na(df1)] <- 0
-	                       df <- cbind(df, df1)
-	                   }
-	                }
-	            }
-	        }
-	    }
-	    #write to a CSV file
-	    write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
-	    write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	  })
-	  }
-  } else {
-    showModal(modalDialog(
-      title = "Error Message",
-      paste("Select Species.")
-    ))
-  }
-#	  }
+     } else {
+      showModal(modalDialog(
+          title = "Error Message",
+          paste("Select Species.")
+      ))
+    }
 	})
+	
+	observeEvent(input$IS_VA_Action_Admin_Group, {
+	    
+	    # setting Climate change scenarios, Future time, Species and current environmental path
+	    alist <- input$IS_VA_Admin
+	    dlist <- input$IS_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	    clist <- input$IS_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	    #	  dtlist <- input$IS_CA_Dispersal_type
+	    mlist <- input$IS_CA_SDM_model # c("PA1_Full_GLM_byROC")
+	    ylist <- input$IS_CA_Project_year
+	    slist <- input$IS_CA_Species
+	    vlist <- c("IS_SR", "IS_LOSS", "IS_STAY", "IS_GAIN", "IS_VI1", "IS_VI2", "IS_VI3") # c("IS_SR") # 
+	    
+	    n <- 0
+	    la <- length(alist)
+	    ls <- length(slist)
+	    ld <- length(dlist)
+	    lc <- length(clist)
+	    lm <- length(mlist)
+	    ly <- length(ylist)
+	    lv <- length(vlist)
+	    
+	    tls <- la * ls * ld * lc * lm * ly * lv
+	    tlg <- la * ld * lc * lm * ly * lv 
+	    
+	    dir_path <- G$IS_MO_Dir_Folder
+	    file <- file.path(dir_path, "InvasiveSpecies_Options.csv")
+	    if (file.exists(file)) { 
+	        FILE_EXIST <- TRUE
+	    } else {
+	        FILE_EXIST <- FALSE
+	    }
+	    
+	    # Species Group
+	    if (length(slist) > 0) {      
+	        for (a in alist) {
+	            dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	            file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	            #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	            poly <- readOGR(dsn=dir_path, layer=a)
+	            df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
+	            withProgress(message = paste("Species Group Analyzing by ", input$IS_VA_Admin), value = 0, {
+	                for (d in dlist) {
+	                    for (c in clist) {
+	                        for (m in mlist) {
+	                            for (y in ylist) {
+	                                for (v in vlist) {
+	                                    incProgress(1/tlg, detail = paste("Doing part", a, "_", d, "_", c, "_", m, "_", y, "_", v))
+	                                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, ".grd", sep = ""))
+	                                    r <- raster(img)
+	                                    df1 <- extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
+	                                    #write to a data frame
+	                                    df1 <- data.frame(df1[-1])
+	                                    colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                                    df1[is.na(df1)] <- 0
+	                                    df <- cbind(df, df1)
+	                                }
+	                            }
+	                        }
+	                    }
+	                }
+	                #write to a CSV file
+	                write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	                write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	            })
+	        }
+	    } else {
+	        showModal(modalDialog(
+	            title = "Error Message",
+	            paste("Select Species.")
+	        ))
+	    }
+	})	
 	
 
 	output$IS_AO_MI_Dir_Folder <- renderUI({

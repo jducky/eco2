@@ -1044,13 +1044,16 @@ shinyUI(
 							br(),
 							shinyDirButton("IS_MO_Dir_Folder", IS_Name_AO_Dir, IS_Name_AO_Dir),
 							verbatimTextOutput("IS_MO_Dir_Folder", placeholder = TRUE),
-							tags$hr(),
+#							tags$hr(),
 							actionButton("IS_VA_Action_Analysis", label = IS_Name_Action),
+							tags$hr(),
 							tags$hr(),
 						    checkboxGroupInput("IS_VA_Admin", IS_Name_Admin,
                                     choices = c(IS_Name_Admin_list),
                                     selected = IS_Name_Admin_selected),
-                            actionButton("IS_VA_Action_Admin", label = IS_Name_Action_Admin)
+                            actionButton("IS_VA_Action_Admin_Species", label = IS_Name_Action_Admin),
+							tags$hr(),
+							actionButton("IS_VA_Action_Admin_Group", label = IS_Name_Action_Admin)
 						)
 					)
 				),
