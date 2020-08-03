@@ -1048,12 +1048,13 @@ shinyUI(
 							actionButton("IS_VA_Action_Analysis", label = IS_Name_Action),
 							tags$hr(),
 							tags$hr(),
+              br(),
 						    checkboxGroupInput("IS_VA_Admin", IS_Name_Admin,
                                     choices = c(IS_Name_Admin_list),
                                     selected = IS_Name_Admin_selected),
-                            actionButton("IS_VA_Action_Admin_Species", label = IS_Name_Action_Admin),
+              actionButton("IS_VA_Action_Admin_Species", label = IS_Name_Action_Admin_Species),
 							tags$hr(),
-							actionButton("IS_VA_Action_Admin_Group", label = IS_Name_Action_Admin)
+							actionButton("IS_VA_Action_Admin_Group", label = IS_Name_Action_Admin_Group)
 						)
 					)
 				),

@@ -8,6 +8,7 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Species <- renderText({G$SE_Dir_Species})
 #	output$SE_speciesindex <- renderText({G$SE_speciesindex})
 #	output$SE_specieslocation <- renderText({G$SE_specieslocation})
+	global <- reactiveValues(response = FALSE)
 
   
 #	onclick("kor_link_top", SE$Language <<- "Korean")
@@ -3250,7 +3251,7 @@ shinyServer(function(input, output) {
 		    
 		    IS_variables[is.na(IS_variables)] <- ""
 		    write.csv(IS_variables, file = file.path(G$IS_MO_Dir_Folder, "InvasiveSpecies_Options.csv"))
-		    
+		    shinyalert(title = "You did it!", type = "success")
 		    #####		    
 		    
 		    
@@ -3263,11 +3264,10 @@ shinyServer(function(input, output) {
 	  alist <- input$IS_VA_Admin
 	  dlist <- input$IS_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	  clist <- input$IS_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-#	  dtlist <- input$IS_CA_Dispersal_type
 	  mlist <- input$IS_CA_SDM_model # c("PA1_Full_GLM_byROC")
 	  ylist <- input$IS_CA_Project_year
 	  slist <- input$IS_CA_Species
-	  vlist <- c("IS_SR", "IS_LOSS", "IS_STAY", "IS_GAIN", "IS_VI1", "IS_VI2", "IS_VI3") # c("IS_SR") # 
+	  vlist <- c("PRED") # c("IS_SR", "IS_LOSS", "IS_STAY", "IS_GAIN", "IS_VI1", "IS_VI2", "IS_VI3") # c("IS_SR") # 
 	  
 	  n <- 0
 	  la <- length(alist)
@@ -3279,15 +3279,12 @@ shinyServer(function(input, output) {
 	  lv <- length(vlist)
 	  
 	  tls <- la * ls * ld * lc * lm * ly * lv
-	  tlg <- la * ld * lc * lm * ly * lv 
-
 	  
-#	  if(TRUE) { 
-      # Individual Species
-  if (length(slist) > 0) {      
-	  for (a in alist) {
-	    withProgress(message = paste("Species Analyzing by ", input$IS_VA_Admin), value = 0, {
-	    for (s in slist) {
+
+    if (length(slist) > 0) {
+      withProgress(message = paste("Species Analyzing by ", input$IS_VA_Admin), value = 0, {
+      for (a in alist) {
+        for (s in slist) {
 	        dir_path <- file.path(G$SE_Dir_Project, "Species_Distribution", input$IS_MI_Dir, s, input$IS_MI_Dir_Folder)
 	        dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
 	        file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
@@ -3299,7 +3296,7 @@ shinyServer(function(input, output) {
 	            for (c in clist) {
 	                for (m in mlist) {
 	                    for (y in ylist) {
-	                        for (v in "PRED") {
+	                        for (v in vlist) {
 	                            incProgress(1/tls, detail = paste("Doing part", a, "_", s, "_", d, "_", c, "_", m, "_", y))
 	                            img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = ""))
 	                            r <- raster(img)
@@ -3315,7 +3312,7 @@ shinyServer(function(input, output) {
 	            }
 	        }
 	        #write to a CSV file
-	        write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	        write.csv(df, file = file.path(dir_path, paste(a, ".csv", sep="")))
 	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
 	        if (s == slist[1]) {
 	          df_sp0 <- df
@@ -3323,16 +3320,17 @@ shinyServer(function(input, output) {
 	        } else {
 	          df_sp <- rbind(df_sp, df)
 	        }
-	    }
+	      }
 	      dir_path <- G$IS_MO_Dir_Folder
-	      write.csv(df_sp, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	      write.csv(df_sp, file = file.path(dir_path, paste(a, ".csv", sep="")))
 	      write.dbf(df_sp, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	    })
-	  }
-     } else {
+	    }
+    })
+    shinyalert(title = "You did it!", type = "success")
+    } else {
       showModal(modalDialog(
-          title = "Error Message",
-          paste("Select Species.")
+      title = "Error Message",
+      paste("Select Species.")
       ))
     }
 	})
@@ -3343,10 +3341,9 @@ shinyServer(function(input, output) {
 	    alist <- input$IS_VA_Admin
 	    dlist <- input$IS_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	    clist <- input$IS_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	    #	  dtlist <- input$IS_CA_Dispersal_type
 	    mlist <- input$IS_CA_SDM_model # c("PA1_Full_GLM_byROC")
 	    ylist <- input$IS_CA_Project_year
-	    slist <- input$IS_CA_Species
+#	    slist <- input$IS_CA_Species
 	    vlist <- c("IS_SR", "IS_LOSS", "IS_STAY", "IS_GAIN", "IS_VI1", "IS_VI2", "IS_VI3") # c("IS_SR") # 
 	    
 	    n <- 0
@@ -3358,20 +3355,18 @@ shinyServer(function(input, output) {
 	    ly <- length(ylist)
 	    lv <- length(vlist)
 	    
-	    tls <- la * ls * ld * lc * lm * ly * lv
-	    tlg <- la * ld * lc * lm * ly * lv 
-	    
-	    dir_path <- G$IS_MO_Dir_Folder
-	    file <- file.path(dir_path, "InvasiveSpecies_Options.csv")
-	    if (file.exists(file)) { 
-	        FILE_EXIST <- TRUE
-	    } else {
-	        FILE_EXIST <- FALSE
-	    }
+	    tlg <- la * ld * lc * lm * ly * lv
 	    
 	    # Species Group
+	    G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
+	    destfile <- file.path(G$IS_AO_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
+	    
+	    IS_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	    IS_Options_lists <- IS_Options_lists[!(IS_Options_lists$input.IS_CA_Species == ""), ]
+	    slist <- IS_Options_lists[,"input.IS_CA_Species"]
 	    if (length(slist) > 0) {      
 	        for (a in alist) {
+	            dir_path <- G$IS_MO_Dir_Folder
 	            dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
 	            file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
 	            #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
@@ -3398,9 +3393,10 @@ shinyServer(function(input, output) {
 	                    }
 	                }
 	                #write to a CSV file
-	                write.csv(df, file = file.path(dir_path, paste("IS_", a, ".csv", sep="")))
+	                write.csv(df, file = file.path(dir_path, paste(a, ".csv", sep="")))
 	                write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
 	            })
+	            shinyalert(title = "You did it!", type = "success")
 	        }
 	    } else {
 	        showModal(modalDialog(
@@ -3478,7 +3474,7 @@ shinyServer(function(input, output) {
 	output$IS_AO_SD_SIDO_Map <- renderLeaflet({
 	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	    poly <- readOGR(file.path(IS_AO_SD_Dir_Folder, paste("SD", ".shp", sep = "")))
-	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("SD", ".csv", sep = "")))
 	    names(poly) <- c(names(x)[-1])
 	    X_NAME <- names(poly[4])
 	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -3492,7 +3488,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SD_SIDO_Stat <- renderPlot({
 	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
-	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("SD", ".csv", sep = "")))
 	    X_NAME <- names(df[5])
 	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
 	    
@@ -3502,7 +3498,7 @@ shinyServer(function(input, output) {
 	output$IS_AO_SD_SGG_Map <- renderLeaflet({
 	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
 	    poly <- readOGR(file.path(IS_AO_SD_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	    x <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	    names(poly) <- c(names(x[-1]))
 	    X_NAME <- names(poly[7])
 	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -3524,7 +3520,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SD_SGG_Stat <- renderPlot({
 	    IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
-	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	    df <- read.csv(file.path(IS_AO_SD_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	    df <- df[which(df$SD_KOR==input$IS_AO_SD_SGG_UI), ]
 	    X_NAME <- names(df[8])
 	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
@@ -3543,7 +3539,7 @@ shinyServer(function(input, output) {
 	output$IS_AO_SR_SIDO_Map <- renderLeaflet({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$IS_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("IS_SR_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -3555,7 +3551,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SR_SIDO_Stat <- renderPlot({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
-	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("IS_SR_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
 	  
@@ -3583,16 +3579,16 @@ shinyServer(function(input, output) {
 	  
 	  if (length(IS_AO_SR_SIDO_SP_List) > 0) {
 	    if (length(input$SS_AO_Species) == 1) {
-	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "IS_SD.csv")
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "SD.csv")
 	      sindex <- read.csv(destfile)
 	      sindex <- sindex[which(sindex$SD_KOR==input$IS_AO_SR_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
-	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "IS_SD.csv")
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "SD.csv")
 	      sindex <- read.csv(destfile)
 	      for (s in IS_AO_SR_SIDO_SP_List[-1]) {
-	        destfile <- file.path(G$IS_AO_MI_Dir_Folder, s, input$IS_AO_MI_Dir_Folder, "IS_SD.csv")
+	        destfile <- file.path(G$IS_AO_MI_Dir_Folder, s, input$IS_AO_MI_Dir_Folder, "SD.csv")
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
@@ -3625,7 +3621,7 @@ shinyServer(function(input, output) {
 	output$IS_AO_SR_SGG_Map <- renderLeaflet({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("IS_SR_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
@@ -3637,7 +3633,7 @@ shinyServer(function(input, output) {
 	
 	output$IS_AO_SR_SGG_UI <- renderUI({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
-	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  IS_Name_SD_list <- G$SIDO_List
 	  IS_Name_SD_selected <- IS_Name_SD_list[1]
 	  
@@ -3650,7 +3646,7 @@ shinyServer(function(input, output) {
 	output$IS_AO_SR_SGG_Stat <- renderPlot({
 	  
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
-	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$IS_AO_SR_SGG_UI), ]
     X_NAME <- names(df[8])
 	  V_NAME <- paste("IS_SR_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
@@ -3658,149 +3654,190 @@ shinyServer(function(input, output) {
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "외래종수")
 	})
 	
+	output$IS_AO_SR_SGG_SP_UI <- renderUI({
+	  SGG_list <- G$SGG_List
+	  SGG_selected <- SGG_list[1]
+	  
+	  selectInput("IS_AO_SR_SGG_SP_UI", "시군구",
+	              choices = c(SGG_list),
+	              selected = SGG_selected
+	  )
+	})
+	
+	output$IS_AO_SR_SGG_SP_Table <- DT::renderDataTable({
+	  #	  IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
+	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
+	  destfile <- file.path(G$IS_AO_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
+	  
+	  IS_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  IS_Options_lists <- IS_Options_lists[!(IS_Options_lists$input.IS_CA_Species == ""), ]
+	  IS_AO_SR_SIDO_SP_List <- IS_Options_lists[,"input.IS_CA_Species"]
+	  
+	  if (length(IS_AO_SR_SIDO_SP_List) > 0) {
+	    if (length(input$SS_AO_Species) == 1) {
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      sindex <- sindex[which(sindex$SD_KOR==input$IS_AO_SR_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in IS_AO_SR_SIDO_SP_List[-1]) {
+	        destfile <- file.path(G$IS_AO_MI_Dir_Folder, s, input$IS_AO_MI_Dir_Folder, "SD.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      sindex <- sindex[which(sindex$SD_KOR==input$IS_AO_SR_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	
+	output$IS_AO_SR_SIDO_SP_Stat <- renderPlot({
+	  
+	  rs <- input$IS_AO_SR_SIDO_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[6])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "면적(Km2)")
+	  }
+	  
+	})
+
 	output$IS_AO_SI_Map <- renderLeaflet({
 	  
-	  path <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
-	  MotiveEco_gis_plot(path, "IS_GAIN", input$IS_AO_Climate_model, input$IS_AO_Climate_scenario, input$IS_AO_SDM_model, input$IS_AO_Project_year)
+	  dir_path <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
+	  MotiveEco_gis_plot(dir_path, "IS_GAIN", input$IS_AO_Climate_model, input$IS_AO_Climate_scenario, input$IS_AO_SDM_model, input$IS_AO_Project_year)
+	  
 	})
 	
 	
 	output$IS_AO_SI_SIDO_Map <- renderLeaflet({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$IS_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
 	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", #people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
 	})
 	
 	output$IS_AO_SI_SIDO_Stat <- renderPlot({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
-	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SD", ".csv", sep = "")))
+	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
 	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 외래종 유입") + labs(x = "시도") + labs(y = "외래종수")
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "시도 외래종 분포", "시도", "외래종수")
 	})
-	#	geom_text(aes(label = Vulnerability_Area_Loss_Ratio), size = 3, hjust = 0.5, vjust = 3) + 
+	
+	output$IS_AO_SI_SIDO_SP_UI <- renderUI({
+	  IS_Name_SI_list <- G$SIDO_List
+	  IS_Name_SI_selected <- IS_Name_SI_list[1]
+	  
+	  selectInput("IS_AO_SI_SIDO_SP_UI", "시도",
+	              choices = c(IS_Name_SI_list),
+	              selected = IS_Name_SI_selected
+	  )
+	})
+	
+	output$IS_AO_SI_SIDO_SP_Table <- DT::renderDataTable({
+	  #	  IS_AO_SD_Dir_Folder <- file.path(G$IS_AO_MI_Dir_Folder, input$IS_AO_Species, input$IS_AO_MI_Dir_Folder)
+	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
+	  destfile <- file.path(G$IS_AO_MO_Dir_Folder, "InvasiveSpecies_Options.csv")
+	  
+	  IS_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  IS_Options_lists <- IS_Options_lists[!(IS_Options_lists$input.IS_CA_Species == ""), ]
+	  IS_AO_SI_SIDO_SP_List <- IS_Options_lists[,"input.IS_CA_Species"]
+	  
+	  if (length(IS_AO_SI_SIDO_SP_List) > 0) {
+	    if (length(input$SS_AO_Species) == 1) {
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      sindex <- sindex[which(sindex$SD_KOR==input$IS_AO_SR_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$IS_AO_MI_Dir_Folder, IS_AO_SR_SIDO_SP_List[1], input$IS_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in IS_AO_SR_SIDO_SP_List[-1]) {
+	        destfile <- file.path(G$IS_AO_MI_Dir_Folder, s, input$IS_AO_MI_Dir_Folder, "SD.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      sindex <- sindex[which(sindex$SD_KOR==input$IS_AO_SI_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	
+	output$IS_AO_SI_SIDO_SP_Stat <- renderPlot({
+	  
+	  rs <- input$IS_AO_SI_SIDO_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[6])
+	    V_NAME <- paste("PRED_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "면적(Km2)")
+	  }
+	  
+	})
 	
 	output$IS_AO_SI_SGG_Map <- renderLeaflet({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	  x <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
 	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
 	})
 	
 	output$IS_AO_SI_SGG_UI <- renderUI({
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
-	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
-	  IS_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  IS_Name_SD_selected <- IS_Name_SD_list[1]
+	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  IS_Name_SGG_list <- G$SIDO_List
+	  IS_Name_SGG_selected <- IS_Name_SGG_list[1]
 	  
 	  selectInput("IS_AO_SI_SGG_UI", "시도",
-	              choices = c(IS_Name_SD_list),
-	              selected = IS_Name_SD_selected
+	              choices = c(IS_Name_SGG_list),
+	              selected = IS_Name_SGG_selected
 	  )
 	})
 	
 	output$IS_AO_SI_SGG_Stat <- renderPlot({
+	  
 	  G$IS_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Invasive_Species", input$IS_AO_MO_Dir)
-	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("IS_SGG", ".csv", sep = "")))
+	  df <- read.csv(file.path(G$IS_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$IS_AO_SI_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("IS_GAIN_", input$IS_AO_Climate_model, "_", input$IS_AO_Climate_scenario, "_", input$IS_AO_SDM_model, "_", input$IS_AO_Project_year, sep="")
 	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 외래종 유입") + labs(x = "시군구") + labs(y = "외래종수")
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "외래종수")
 	})
 	
 	

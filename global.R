@@ -192,9 +192,13 @@ for (v in 1: nrow(Variable_lists)) {
     }
 }
 
+destfile <- file.path(isolate(G$SE_Dir_GIS), "SD.dbf")
+SD_lists <- read.dbf(destfile)
+G$SIDO_List <-  as.character(SD_lists[,"SD_KOR"])
 
-G$SIDO_List <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도")
-
+destfile <- file.path(isolate(G$SE_Dir_GIS), "SGG.dbf")
+SGG_lists <- read.dbf(destfile)
+G$SGG_List <-  as.character(SGG_lists[,"SGG_KOR"])
 
 #
 # MOTIVE Ecosystem Functions

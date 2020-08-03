@@ -249,8 +249,9 @@ IS_Name_models_out,0,Model types,모델유형
 IS_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
 IS_Name_models_out_selected,0,GLM,GLM
 IS_Name_Dir,0,Output Folder,외래종 평가결과 폴더
-IS_Name_Action,0,Assessing Impact and Vulnerabilty,영향 및 취약성 평가 실행
-IS_Name_Action_Admin,0,Grouping by Administration,행정구역별로 결과분석
+IS_Name_Action,0,Assessing Impact and Vulnerabilty of Invasive Species Group,외래종 영향 및 취약성 평가 실행
+IS_Name_Action_Admin_Species,0,Reclassifying Species Analysis by Administration,행정구역별로 종별 결과 재분류
+IS_Name_Action_Admin_Group,0,Reclassifying Species Group Analysis by Administration,행정구역별로 종그룹 결과 재분류
 IS_Name_Admin,0,Select a Administration Type,행정구역유형을 선택하세요
 IS_Name_Admin_list,1,IS_Group_list,IS_Group_list
 IS_Name_Admin_selected,0,SD,SD
