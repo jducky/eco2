@@ -1,0 +1,84 @@
+
+
+sampleRandom(x, size, na.rm=TRUE, ext=NULL, 
+    cells=FALSE, rowcol=FALSE, xy=FALSE, sp=FALSE, asRaster=FALSE, ...)
+
+biomod2 <- readRDS("D:/MOTIVE_Ecosystem/Github/Projects/R/biomod2.rdb")
+
+
+
+file <- "D:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+r <- raster(file)
+s <- sampleRandom(r, size=100, na.rm=TRUE, xy=TRUE)
+
+
+Species_Path=D:/MOTIVE_Ecosystem/DATA/Species
+Species_File_Index=speciesname_final.csv
+Species_File_Location=shin_specieslocation.csv
+
+
+file <- "D:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+r <- raster(file)
+s <- sampleRandom(r, size=100, na.rm=TRUE, xy=TRUE)
+SPECIES_DATA_A <- as.data.frame(s)
+names(SPECIES_DATA_A)[names(SPECIES_DATA_A) == "bio01"] <- "z"
+SPECIES_DATA_A[,"z"] <- 0
+
+
+NAME_ID <- "ID"
+NAME_SPECIES <- "K_NAME"
+NAME_LONG <- "Longitude"
+NAME_LAT <- "Latitude"
+
+SE_Dir_Species <- "D:/MOTIVE_Ecosystem/DATA/Species"
+SE_speciesindex <- "speciesname_final.csv"
+SE_specieslocation <- "shin_specieslocation.csv"
+
+G_FILE_speciesindex <- read.csv(file.path(SE_Dir_Species, SE_speciesindex), header = T, sep = ",")
+G_FILE_specieslocation <- read.csv(file.path(SE_Dir_Species, SE_specieslocation), header = T, sep = ",")
+
+DATA_SPECIES_NAME <- G_FILE_speciesindex
+DATA_SPECIES_LOCATION <- G_FILE_specieslocation
+		
+SPECIES_ID <- "S005"
+SPECIES_NAME <- subset(DATA_SPECIES_NAME, get(NAME_ID) == SPECIES_ID, select = c(get(NAME_SPECIES)))
+SPECIES_NAME <- as.character(SPECIES_NAME$K_NAME)
+SPECIES_DATA <- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
+SPECIES_DATA[,NAME_ID] <- 1
+
+SPECIES_DATA_P <- cbind(SPECIES_DATA[, c(NAME_LONG, NAME_LAT)], z = 1)
+names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LONG] <- "x"
+names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LAT] <- "y"
+
+SPECIES_DATA_PA <- rbind(SPECIES_DATA_P, SPECIES_DATA_A)
+
+
+ts_sp <- surf.gls(2, expcov, SPECIES_DATA_PA, d=0.7)
+ts_sp <- surf.ls(5, SPECIES_DATA_PA)
+ts_sdm <- trmat(ts_sp, 124.5, 132.01, 33, 39.01, 751)
+
+
+
+
+
+r <-raster(
+             ts_sdm$z,
+             xmn=range(ts_sdm$x)[1], xmx=range(ts_sdm$x)[2],
+             ymn=range(ts_sdm$y)[1], ymx=range(ts_sdm$y)[2], 
+             crs=CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")   # CRS("+proj=utm +zone=11 +datum=NAD83")
+            )
+plot(r)
+
+
+writeRaster(r, file = file.path("D:/MOTIVE_projects/test/ts_sdm1.grd"), overwrite = TRUE)
+writeRaster(r, file = file.path("D:/MOTIVE_projects/test/ts_sdm5_005.grd"), overwrite = TRUE)
+plot("D:/MOTIVE_projects/test/ts_sdm1.grd")
+
+
+S002 구상
+S005 세뿔투구꽂
+S106 분비
+
+
+tsa <- multTSA(SPECIES_DATA_PA, sp.cols = 3, coord.cols = c("x", "y"))
+
