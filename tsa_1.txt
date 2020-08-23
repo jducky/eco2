@@ -1,0 +1,278 @@
+
+install.packages("remotes")
+remotes::install_github("marlonecobos/rangemap")
+library(rangemap)
+
+# nSpecies, Longitude, Latitude
+
+# X_NAME <- "x" # "Longitude"
+# Y_NAME <- "y" # "Latitude"
+# Z_NAME <- "z" # "nSpecies"
+
+NAME_ID <- "ID"
+NAME_SPECIES <- "K_NAME"
+NAME_LONG <- "Longitude"
+NAME_LAT <- "Latitude"
+
+SE_Dir_Species <- "C:/MOTIVE_Ecosystem/DATA/Species"
+SE_speciesindex <- "speciesname_final.csv"
+SE_specieslocation <- "shin_specieslocation.csv"
+
+G_FILE_speciesindex <- read.csv(file.path(SE_Dir_Species, SE_speciesindex), header = T, sep = ",")
+G_FILE_specieslocation <- read.csv(file.path(SE_Dir_Species, SE_specieslocation), header = T, sep = ",")
+
+DATA_SPECIES_NAME <- G_FILE_speciesindex
+DATA_SPECIES_LOCATION <- G_FILE_specieslocation
+		
+SPECIES_ID <- "S106" # S106 분비나무,  S002 구상나무, S010 요강나물, S012 변산바람꽂, S018 매자나무
+SPECIES_NAME <- subset(DATA_SPECIES_NAME, get(NAME_ID) == SPECIES_ID, select = c(get(NAME_SPECIES)))
+SPECIES_NAME <- as.character(SPECIES_NAME$K_NAME)
+SPECIES_DATA <- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
+SPECIES_DATA[,NAME_ID] <- 1
+
+SPECIES_DATA_P <- cbind(SPECIES_DATA[, c(NAME_LONG, NAME_LAT)], z = 1)
+names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LONG] <- "x"
+names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LAT] <- "y"
+
+occ_d <- cbind(z = SPECIES_NAME, SPECIES_DATA_P[, c("x", "y")])
+
+occurrences <- occ_d
+hull_type <- "convex" # "concave"
+concave_distance_lim <- 5000
+buffer_distance <- 10000
+cluster_method <- "hierarchical" # "k-means" # 
+n_k_means <- 3 # NULL
+split_distance <- 100000
+			
+				
+hull_range1 <- rangemap_hull(occurrences = occurrences, hull_type = hull_type, 
+                             buffer_distance = buffer_distance, split = TRUE, 
+                             cluster_method = cluster_method, n_k_means = n_k_means, split_distance = split_distance)				
+range_sp <- hull_range1@species_range
+plot(range_sp)
+
+
+file <- "C:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+r <- raster(file)
+
+poly <- hull_range1@species_range
+rp <- rasterize(poly, r)
+
+rp[rp > 0] <- 0
+rp[is.na(rp[])] <- 1 
+rp[rp == 0] <- NA
+
+plot(rp)
+
+ra <- r * rp
+
+s <- sampleRandom(ra, size=100, na.rm=TRUE, xy=TRUE)
+
+SPECIES_DATA_A <- as.data.frame(s)
+names(SPECIES_DATA_A)[names(SPECIES_DATA_A) == "layer"] <- "z"
+SPECIES_DATA_A[,"z"] <- 0
+
+
+SPECIES_DATA_PA <- rbind(SPECIES_DATA_P, SPECIES_DATA_A)
+occ_pr <- cbind(SPECIES_DATA_PA[, c("z", "x", "y")])
+
+
+SPECIES_DATA_PA <- rbind(SPECIES_DATA_P, SPECIES_DATA_A)
+SE_Dir_Species <- "C:/MOTIVE_Ecosystem/R/test"
+write.csv(SPECIES_DATA_PA, file = file.path(SE_Dir_Species, "species_data_pa.csv"))
+
+
+# ts_sp <- surf.gls(3, expcov, SPECIES_DATA_PA, d=0.7)
+ts_sp <- surf.ls(3, SPECIES_DATA_PA)
+ts_sdm <- trmat(ts_sp, 124.5, 132.01, 33, 39.01, 751)
+
+rt <-raster(
+             ts_sdm$z,
+             xmn=range(ts_sdm$x)[1], xmx=range(ts_sdm$x)[2],
+             ymn=range(ts_sdm$y)[1], ymx=range(ts_sdm$y)[2], 
+             crs=CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")   # CRS("+proj=utm +zone=11 +datum=NAD83")
+            )
+plot(rt)
+
+
+file <- "C:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+rm <- raster(file)
+rm[!is.na(rm[])] <- 1 
+seamask <- rm
+
+
+re <- extractByMask(rt, msk=rm, spatial=TRUE)
+
+
+pres_data <- SPECIES_DATA_P[,c("x", "y")]
+backg_data <- SPECIES_DATA_A[,c("x", "y")]
+
+nr <- nrow(pres_data)
+s <- sample(nr, 0.25 * nr)
+pres_train <- pres_data[-s, ]
+pres_test <- pres_data[s, ]
+
+nr <- nrow(backg_data)
+s <- sample(nr, 0.25 * nr)
+backg_train <- backg_data[-s, ]
+backg_test <- backg_data[s, ]
+
+circ <- circles(pres_train, lonlat=TRUE)
+pc <- predict(seamask, circ, mask=TRUE)
+e <- evaluate(circ, p=pres_test, a=backg_test)
+
+
+
+
+> nr <- nrow(bradypus)
+> s <- sample(nr, 0.25 * nr)
+> pres_train <- bradypus[-s, ]
+> pres_test <- bradypus[s, ]
+> nr <- nrow(backgr)
+> s <- sample(nr, 0.25 * nr)
+> back_train <- backgr[-s, ]
+> back_test <- backgr[s,
+
+
+pres_train <- SPECIES_DATA_P[,c("x", "y")]
+backg_test <- SPECIES_DATA_A[,c("x", "y")]
+distm <- geoDist(pres_train, lonlat=TRUE)
+ds <- predict(seamask, distm, mask=TRUE)
+e <- evaluate(distm, p=pres_test, a=backg_test)
+e
+
+
+circ <- circles(pres_train, lonlat=TRUE)
+pc <- predict(seamask, circ, mask=TRUE)
+e <- evaluate(circ, p=pres_test, a=backg_test)
+
+> seamask <- crop(predictors[[1]], ext)
+> distm <- geoDist(pres_train, lonlat=TRUE)
+> ds <- predict(seamask, distm, mask=TRUE)
+> e <- evaluate(distm, p=pres_test, a=backg_test)
+> e
+> plot(wrld_simpl, add=TRUE, border='dark grey')
+> tr <- threshold(e, 'spec_sens')
+> plot(ds > tr, main='presence/absence')
+> plot(wrld_simpl, add=TRUE, border='dark grey')
+> points(pres_train, pch='+')
+> points(backg_train, pch='-', cex=0.25)
+
+
+> circ <- circles(pres_train, lonlat=TRUE)
+> pc <- predict(seamask, circ, mask=TRUE)
+> e <- evaluate(circ, p=pres_test, a=backg_test)
+> e
+class : ModelEvaluation
+n presences : 23
+n absences : 200
+AUC : 0.8547826
+cor : 0.510354
+max TPR+TNR at : 0.9999
+> par(mfrow=c(1,2))
+> plot(pc, main='Circles')
+> plot(wrld_simpl, add=TRUE, border='dark grey')
+> tr <- threshold(e, 'spec_sens')
+> plot(pc > tr, main='presence/absence')
+> plot(wrld_simpl, add=TRUE, border='dark grey')
+> points(pres_train, pch='+')
+> points(backg_train, pch='-', cex=0.25)
+
+
+
+Spatial-only models for presence/background (or absence) data are also available through functions geoIDW, voronoiHull, and general geostatistical methods such as indicator kriging (available in the gstat pacakge)
+
+
+idwm <- geoIDW(p=pres_train, a=data.frame(backg_train))
+e <- evaluate(idwm, p=pres_test, a=backg_test)
+iw <- predict(seamask, idwm, mask=TRUE)
+
+
+va <- data.frame(backg_train[sample(nrow(backg_train), 30), ])
+vorm <- voronoiHull(p=pres_train, a=va)
+e <- evaluate(vorm, p=pres_test, a=backg_test)
+vo <- predict(seamask, vorm, mask=T)
+
+class : ModelEvaluation
+n presences : 23
+n absences : 200
+AUC : 0.8893478
+cor : 0.5354838
+max TPR+TNR at : 0.0602782
+> iw <- predict(seamask, idwm, mask=TRUE)
+> par(mfrow=c(1,2))
+> plot(iw, main='Inv. Dist. Weighted')
+> plot(wrld_simpl, add=TRUE, border='dark grey')
+> tr <- threshold(e, 'spec_sens')
+> pa <- mask(iw > tr, seamask)
+> plot(pa, main='presence/absence')
+> plot(wrld_simpl, add=TRUE, border='dark grey')
+> points(pres_train, pch='+')
+> points(backg_train, pch='-', cex=0.25)
+
+
+> # take a smallish sample of the background training data
+> va <- data.frame(back_train[sample(nrow(back_train), 100), ])
+> vorm <- voronoiHull(p=pres_train, a=va)
+> e <- evaluate(vorm, p=pres_test, a=backg_test)
+> e
+class : ModelEvaluation
+n presences : 23
+n absences : 200
+AUC : 0.5
+cor : NA
+max TPR+TNR at : 0.9999
+> vo <- predict(seamask, vorm, mask=T)
+> plot(vo, main='Voronoi Hull')
+> plot(wrld_simpl, add=TRUE, border='dark grey')
+> points(pres_train, pch='+')
+> points(backg_train, pch='-', cex=0.25)
+
+
+
+
+
+
+
+
+occurrences <- occ_d
+hull_type <- # "concave"
+concave_distance_lim <- 5000
+buffer_distance <- 10000
+cluster_method <- "hierarchical" # 
+n_k_means <- NULL
+split_distance <- 30000
+
+hull_range2 <- rangemap_hull(occurrences = occurrences, hull_type = hull_type, 
+                             buffer_distance = buffer_distance, split = TRUE, 
+                             cluster_method = cluster_method, n_k_means = n_k_means, split_distance = split_distance)				
+range_sp <- hull_range2@species_range
+sp::plot(range_sp)
+
+
+hull_range3 <- rangemap_hull(occurrences = occ_d, hull_type = "convex", 
+                            buffer_distance = 10000)
+range_sp <- hull_range3@species_range
+sp::plot(range_sp)
+
+				
+rangemap_plot(hull_range)
+
+
+
+help(rangemap_tsa)
+				
+data("occ_f", package = "rangemap")
+CU <- simple_wmap("simple", regions = "Cuba")
+
+# species range
+tsa_r <- rangemap_tsa(occurrences = occ_f, region_of_interest = CU)
+						   
+# creating the species range figure with a polygon defined by the user
+rangemap_plot(tsa_r, polygons = CU, zoom = 0.5)
+
+
+tsa_r <- rangemap_tsa(occurrences = occ_pr)
+
+
+						   

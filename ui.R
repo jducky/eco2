@@ -656,216 +656,88 @@ shinyUI(
 			)
 		),  
 	
-		tabPanel(DM_Name,
+		tabPanel(SRM_Name,
 		         tabsetPanel(
-		           tabPanel(DM_Name_Model, fluid = TRUE,
+		           tabPanel(SRM_Name_Model, fluid = TRUE,
 		             tabsetPanel(
-		               tabPanel(DM_Name_Model_SDM,
+		               tabPanel(SRM_Name_Model_SDM,
 		                  tags$hr(),      
                         fluidRow(
                         sidebarPanel(width = 3, Fluid = TRUE,
-                            uiOutput("DM_SDM_Dir_Folder"),
+                            uiOutput("SRM_SDM_Dir_Folder"),
                             tags$hr(),
-                            actionButton("DM_MO_Species_sel_all", label = "Select All"),
-                            actionButton("DM_MO_Species_sel_none", label = "Unselect All"),
-                            uiOutput("DM_MO_Species")
+                            actionButton("SRM_MO_Species_sel_all", label = "Select All"),
+                            actionButton("SRM_MO_Species_sel_none", label = "Unselect All"),
+                            uiOutput("SRM_MO_Species")
 		                  ),
-		                sidebarPanel(width = 3, Fluid = TRUE,             
+		                  sidebarPanel(width = 3, Fluid = TRUE,             
                             # Input: Checkbox if file has header ----
-                            radioButtons("DM_MO_Climate_model", DM_Name_CD_Models,
-                                choices = c(DM_Name_CD_Models_list),
-                                selected = DM_Name_CD_Models_selected),
+                            radioButtons("SRM_MO_Climate_model", SRM_Name_CD_Models,
+                                choices = c(SRM_Name_CD_Models_list),
+                                selected = SRM_Name_CD_Models_selected),
                             # Input: Checkbox if file has header ----
-                            radioButtons("DM_MO_Climate_scenario", DM_Name_CD_Scenarios,
-                                choices = c(DM_Name_CD_Scenarios_list),
-                                selected = DM_Name_CD_Scenarios_selected),
+                            radioButtons("SRM_MO_Climate_scenario", SRM_Name_CD_Scenarios,
+                                choices = c(SRM_Name_CD_Scenarios_list),
+                                selected = SRM_Name_CD_Scenarios_selected),
                             # Input: Checkbox if file has header ----
-                            checkboxGroupInput("DM_MO_Project_year", DM_Name_CD_Year,
-                                choices = c(DM_Name_CD_Year_list),
-                                selected = DM_Name_CD_Year_selected)
+                            radioButtons("SRM_MO_Project_year", SRM_Name_CD_Year,
+                                choices = c(SRM_Name_CD_Year_list),
+                                selected = SRM_Name_CD_Year_selected),
+                            uiOutput("SRM_MO_SDM_model")
 		                    ),
 		                    sidebarPanel(width = 3,
-                                uiOutput("DM_MO_SDM_model")
+                            # Input: Checkbox if file has header ----
+                            radioButtons("SRM_MO_Type", SRM_Name_MO_Type,
+                                choices = c(SRM_Name_MO_Type_list),
+                                selected = SRM_Name_MO_Type_selected),
+                            
+                            
+                            
+                            tags$hr(),
+                            useShinyalert(),  # Set up shinyalert
+                            actionButton("SRM_MO_Action_run", label = SRM_Name_DM_MO_Action)    
 		                    )
 		                )
-		              ),
-		              tabPanel(DM_Name_Model_DM_Barrier,
-		                       tags$hr(),
-		                sidebarLayout(
-		                  sidebarPanel(width = 3, Fluid = TRUE,
-		                    tags$p("DM_Barrier:"),
-		                    checkboxGroupInput("DM_MO_Barrier", DM_Name_DM_MO_Barriers,
-		                               choices = c(DM_Name_DM_MO_Barriers_list),
-		                               selected = DM_Name_DM_MO_Barriers_selected
-		                    ),
-		                    radioButtons("DM_MO_DM_barrierType", "DM_barrierType",
-		                                 choices = c("strong" = "strong","weak" = "weak"),
-		                                 selected = "weak"
-		                    ),
-		                    tags$hr(),
-		                    radioButtons("DM_MO_Barrier_Landuse", DM_Name_DM_MO_Barrier_Landuse,
-		                                  choices = c(DM_Name_DM_MO_Barrier_Landuse_list),
-		                                  selected = DM_Name_DM_MO_Barrier_Landuse_selected
-		                    ),
-		                    checkboxGroupInput("DM_MO_Barrier_LanduseType", DM_Name_DM_MO_Barrier_LanduseType,
-		                                  choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
-		                                  selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
-		                    ),
-		                    sliderInput("DM_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Forestfire", min = 0.01, 
-		                                  max = 1.0, step = 0.01, value = 0.955),
-		                    sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
-		                                  max = 1.0, step = 0.01, value = 0.85),
-		                    tags$br(),
-		                    sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 10, 
-		                                  max = 100, step = 10, value = 50),
-		                    sliderInput("DM_MO_Barrier_Forestfire_Prop", label = "Proportion of Forestfire occurence within whole period", min = 10, 
-		                                  max = 100, step = 10, value = 50),
-		                    sliderInput("DM_MO_Barrier_Landslide_Prop", label = "Proportion of Landslide occurence within whole period", min = 10, 
-		                                  max = 100, step = 10, value = 50)
-		                  ),
-		                mainPanel(
-		                  tabsetPanel(
-		                      tabPanel(DM_Name_Map_Landuse, 
-		                               tags$head(
-		                                   # Include our custom CSS
-		                                   includeCSS("styles.css"),
-		                                   includeScript("gomap.js")
-		                               ),
-		                               tags$hr(),
-		                               column(6, leafletOutput("DM_Map_Landuse", width = "800", height = "650"))
-		                      ),
-		                      tabPanel(DM_Name_Map_Forestfire, 
-		                               tags$head(
-		                                   # Include our custom CSS
-		                                   includeCSS("styles.css"),
-		                                   includeScript("gomap.js")
-		                               ),
-		                               tags$hr(),
-		                               column(6, leafletOutput("DM_Map_Forestfire", width = "800", height = "650"))
-		                      ),
-		                      tabPanel(DM_Name_Map_Landslide, 
-		                               tags$head(
-		                                   # Include our custom CSS
-		                                   includeCSS("styles.css"),
-		                                   includeScript("gomap.js")
-		                               ),
-		                               tags$hr(),
-		                               column(6, leafletOutput("DM_Map_Landslide", width = "800", height = "650"))
-		                      ),
-		                      tabPanel(DM_Name_Map_Total, 
-		                               tags$head(
-		                                   # Include our custom CSS
-		                                   includeCSS("styles.css"),
-		                                   includeScript("gomap.js")
-		                               ),
-		                               tags$hr(),
-		                               column(6, leafletOutput("DM_Map_Total", width = "800", height = "650"))
-		                      )
-		                    )
-		                  )
-		                )
-		              ),
-		              tabPanel(DM_Name_Model_DM,
-		                tags$hr(),
-                    fluidRow(
-                      sidebarPanel(width = 3,
-                                       sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
-                                                    max = 10, value = 10),
-                                       tags$hr(),
-		                                   tags$p("DM_dispKernel:"),
-		                                   verbatimTextOutput("DM_MO_DM_dispKernel"),
-		                                   sliderInput("DM_MO_DM_dispKernel1", label = "Dispersal Proportion of 1st Pixel", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 1.0),
-		                                   sliderInput("DM_MO_DM_dispKernel2", label = "Dispersal Proportion of 2nd Pixel", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.4),
-		                                   sliderInput("DM_MO_DM_dispKernel3", label = "Dispersal Proportion of 3rd Pixel", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.16),
-		                                   sliderInput("DM_MO_DM_dispKernel4", label = "Dispersal Proportion of 4th Pixel", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.06),
-		                                   sliderInput("DM_MO_DM_dispKernel5", label = "Dispersal Proportion of 5th Pixel", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.03)
-                      ),
-                      sidebarPanel(width = 3,
-                        tags$p("DM_Succession:"),
-		                                   sliderInput("DM_MO_DM_iniMatAge", label = "DM_iniMatAge (the initial maturity age)", min = 0, 
-		                                               max = 10, value = 5),
-		                                   tags$hr(),
-		                                   tags$p("DM_propaguleProd:"),
-		                                   verbatimTextOutput("DM_MO_DM_propaguleProd"),
-		                                   sliderInput("DM_MO_DM_propaguleProd1", label = "Propagule Production Proportion 1st year after iniMatAge", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.01),
-		                                   sliderInput("DM_MO_DM_propaguleProd2", label = "Propagule Production Proportion 2nd year after iniMatAge", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.08),
-		                                   sliderInput("DM_MO_DM_propaguleProd3", label = "Propagule Production Proportion 3rd year after iniMatAge", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.5),
-		                                   sliderInput("DM_MO_DM_propaguleProd4", label = "Propagule Production Proportion 4th year after iniMatAge", min = 0.01, 
-		                                               max = 1.0, step = 0.01, value = 0.92)
-		                      ),
-		                      sidebarPanel(width = 3,
-		                                   tags$p("DM_Dispersal Distance:"),
-		                                   sliderInput("DM_MO_DM_lddFreq", label = "DM_lddFreq", min = 0.001, 
-		                                               max = 1.0, step = 0.001, value = 0.001),
-		                                   sliderInput("DM_MO_SDM_lddDist", label = "LDD Distance Range (pixel)", min = 0, 
-		                                               max = 10, value = c(6, 10)),
-		                                   sliderInput("DM_MO_DM_replicateNb", label = "DM_replicateNb", min = 0, 
-		                                               max = 10, value = 1),
-		                                   checkboxInput("DM_MO_DM_overWrite", "DM_overWrite", TRUE),
-		                                   checkboxInput("DM_MO_DM_testMode", "DM_testMode", FALSE),
-		                                   checkboxInput("DM_MO_DM_fullOutput", "DM_fullOutput", FALSE),
-		                                   checkboxInput("DM_MO_DM_keepTempFiles", "DM_keepTempFiles", FALSE),
-		                                   br(),
-		                                   tags$hr(),
-                                       textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
-                                                  value = ""),
-		                                   tags$hr(),
-		                                   useShinyalert(),  # Set up shinyalert
-		                                   actionButton("DM_MO_Action_run", label = DM_Name_DM_MO_Action)
-		                      )
-		                    )
-		               )
+		              )
 		             )
 		           ),
 		           
-		           tabPanel(DM_Name_Model_Out, fluid = TRUE,
+		           tabPanel(SRM_Name_Model_Out, fluid = TRUE,
 		                    tags$hr(),
 		                    sidebarLayout(
 		                      sidebarPanel(width = 3, Fluid = TRUE,
-		                                   uiOutput("DM_AO_Dir_Folder"),
-                                       uiOutput("DM_AO_Model_Name"),
-		                                   uiOutput("DM_OU_Species"),
+		                                   uiOutput("SRM_AO_Dir_Folder"),
+                                       uiOutput("SRM_AO_Model_Name"),
+		                                   uiOutput("SRM_OU_Species"),
 		                                   tags$hr(),
 		                                   
-		                                   uiOutput("DM_OU_SDM_model"),
+		                                   uiOutput("SRM_OU_SDM_model"),
 		                                   
 		                                   # Input: Checkbox if file has header ----
-		                                   checkboxGroupInput("DM_OU_Climate_model", DM_Name_CD_Models,
-		                                                      choices = c(DM_Name_CD_Models_list),
-		                                                      selected = DM_Name_CD_Models_selected
+		                                   checkboxGroupInput("SRM_OU_Climate_model", SRM_Name_CD_Models,
+		                                                      choices = c(SRM_Name_CD_Models_list),
+		                                                      selected = SRM_Name_CD_Models_selected
 		                                   ),
 		                                   
 		                                   # Input: Checkbox if file has header ----
-		                                   checkboxGroupInput("DM_OU_Climate_scenario", DM_Name_CD_Scenarios,
-		                                                      choices = c(DM_Name_CD_Scenarios_list),
-		                                                      selected = DM_Name_CD_Scenarios_selected
+		                                   checkboxGroupInput("SRM_OU_Climate_scenario", SRM_Name_CD_Scenarios,
+		                                                      choices = c(SRM_Name_CD_Scenarios_list),
+		                                                      selected = SRM_Name_CD_Scenarios_selected
 		                                   ),
 		                                   
 		                                   # Input: Checkbox if file has header ----
-		                                   checkboxGroupInput("DM_OU_Project_year", DM_Name_CD_Year,
-		                                                      choices = c(DM_Name_CD_Year_list),
-		                                                      selected = DM_Name_CD_Year_selected
+		                                   radioButtons("SRM_OU_Project_year", SRM_Name_CD_Year,
+		                                                      choices = c(SRM_Name_CD_Year_list),
+		                                                      selected = SRM_Name_CD_Year_selected
 		                                   )
 		                      ),
 		                      
 		                      # Main panel for displaying outputs ----
 		                      mainPanel(
 		                        tabsetPanel(
-		                          tabPanel(DM_Name_Out_Plot,
+		                          tabPanel(SRM_Name_Out_Plot,
 		                                  tags$hr(),
-		                                   uiOutput("DM_OU_UI_plot")
-		                          ),
-                              tabPanel(DM_Name_Out_SDMDM_Plot,
-                                      tags$hr(),
-                                      uiOutput("DM_OU_SDMDM_UI_plot")
+		                                   uiOutput("SRM_OU_UI_plot")
 		                          )
 		                        )
 		                      )
@@ -873,7 +745,227 @@ shinyUI(
 		         )
 		      )
 
-		), 
+		),
+
+
+tabPanel(DM_Name,
+         tabsetPanel(
+           tabPanel(DM_Name_Model, fluid = TRUE,
+                    tabsetPanel(
+                      tabPanel(DM_Name_Model_SDM,
+                               tags$hr(),      
+                               fluidRow(
+                                 sidebarPanel(width = 3, Fluid = TRUE,
+                                              uiOutput("DM_SDM_Dir_Folder"),
+                                              tags$hr(),
+                                              actionButton("DM_MO_Species_sel_all", label = "Select All"),
+                                              actionButton("DM_MO_Species_sel_none", label = "Unselect All"),
+                                              uiOutput("DM_MO_Species")
+                                 ),
+                                 sidebarPanel(width = 3, Fluid = TRUE,             
+                                              # Input: Checkbox if file has header ----
+                                              radioButtons("DM_MO_Climate_model", DM_Name_CD_Models,
+                                                           choices = c(DM_Name_CD_Models_list),
+                                                           selected = DM_Name_CD_Models_selected),
+                                              # Input: Checkbox if file has header ----
+                                              radioButtons("DM_MO_Climate_scenario", DM_Name_CD_Scenarios,
+                                                           choices = c(DM_Name_CD_Scenarios_list),
+                                                           selected = DM_Name_CD_Scenarios_selected),
+                                              # Input: Checkbox if file has header ----
+                                              checkboxGroupInput("DM_MO_Project_year", DM_Name_CD_Year,
+                                                                 choices = c(DM_Name_CD_Year_list),
+                                                                 selected = DM_Name_CD_Year_selected)
+                                 ),
+                                 sidebarPanel(width = 3,
+                                              uiOutput("DM_MO_SDM_model")
+                                 )
+                               )
+                      ),
+                      tabPanel(DM_Name_Model_DM_Barrier,
+                               tags$hr(),
+                               sidebarLayout(
+                                 sidebarPanel(width = 3, Fluid = TRUE,
+                                              tags$p("DM_Barrier:"),
+                                              checkboxGroupInput("DM_MO_Barrier", DM_Name_DM_MO_Barriers,
+                                                                 choices = c(DM_Name_DM_MO_Barriers_list),
+                                                                 selected = DM_Name_DM_MO_Barriers_selected
+                                              ),
+                                              radioButtons("DM_MO_DM_barrierType", "DM_barrierType",
+                                                           choices = c("strong" = "strong","weak" = "weak"),
+                                                           selected = "weak"
+                                              ),
+                                              tags$hr(),
+                                              radioButtons("DM_MO_Barrier_Landuse", DM_Name_DM_MO_Barrier_Landuse,
+                                                           choices = c(DM_Name_DM_MO_Barrier_Landuse_list),
+                                                           selected = DM_Name_DM_MO_Barrier_Landuse_selected
+                                              ),
+                                              checkboxGroupInput("DM_MO_Barrier_LanduseType", DM_Name_DM_MO_Barrier_LanduseType,
+                                                                 choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
+                                                                 selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
+                                              ),
+                                              sliderInput("DM_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Forestfire", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.955),
+                                              sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.85),
+                                              tags$br(),
+                                              sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 10, 
+                                                          max = 100, step = 10, value = 50),
+                                              sliderInput("DM_MO_Barrier_Forestfire_Prop", label = "Proportion of Forestfire occurence within whole period", min = 10, 
+                                                          max = 100, step = 10, value = 50),
+                                              sliderInput("DM_MO_Barrier_Landslide_Prop", label = "Proportion of Landslide occurence within whole period", min = 10, 
+                                                          max = 100, step = 10, value = 50)
+                                 ),
+                                 mainPanel(
+                                   tabsetPanel(
+                                     tabPanel(DM_Name_Map_Landuse, 
+                                              tags$head(
+                                                # Include our custom CSS
+                                                includeCSS("styles.css"),
+                                                includeScript("gomap.js")
+                                              ),
+                                              tags$hr(),
+                                              column(6, leafletOutput("DM_Map_Landuse", width = "800", height = "650"))
+                                     ),
+                                     tabPanel(DM_Name_Map_Forestfire, 
+                                              tags$head(
+                                                # Include our custom CSS
+                                                includeCSS("styles.css"),
+                                                includeScript("gomap.js")
+                                              ),
+                                              tags$hr(),
+                                              column(6, leafletOutput("DM_Map_Forestfire", width = "800", height = "650"))
+                                     ),
+                                     tabPanel(DM_Name_Map_Landslide, 
+                                              tags$head(
+                                                # Include our custom CSS
+                                                includeCSS("styles.css"),
+                                                includeScript("gomap.js")
+                                              ),
+                                              tags$hr(),
+                                              column(6, leafletOutput("DM_Map_Landslide", width = "800", height = "650"))
+                                     ),
+                                     tabPanel(DM_Name_Map_Total, 
+                                              tags$head(
+                                                # Include our custom CSS
+                                                includeCSS("styles.css"),
+                                                includeScript("gomap.js")
+                                              ),
+                                              tags$hr(),
+                                              column(6, leafletOutput("DM_Map_Total", width = "800", height = "650"))
+                                     )
+                                   )
+                                 )
+                               )
+                      ),
+                      tabPanel(DM_Name_Model_DM,
+                               tags$hr(),
+                               fluidRow(
+                                 sidebarPanel(width = 3,
+                                              sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
+                                                          max = 10, value = 10),
+                                              tags$hr(),
+                                              tags$p("DM_dispKernel:"),
+                                              verbatimTextOutput("DM_MO_DM_dispKernel"),
+                                              sliderInput("DM_MO_DM_dispKernel1", label = "Dispersal Proportion of 1st Pixel", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 1.0),
+                                              sliderInput("DM_MO_DM_dispKernel2", label = "Dispersal Proportion of 2nd Pixel", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.4),
+                                              sliderInput("DM_MO_DM_dispKernel3", label = "Dispersal Proportion of 3rd Pixel", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.16),
+                                              sliderInput("DM_MO_DM_dispKernel4", label = "Dispersal Proportion of 4th Pixel", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.06),
+                                              sliderInput("DM_MO_DM_dispKernel5", label = "Dispersal Proportion of 5th Pixel", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.03)
+                                 ),
+                                 sidebarPanel(width = 3,
+                                              tags$p("DM_Succession:"),
+                                              sliderInput("DM_MO_DM_iniMatAge", label = "DM_iniMatAge (the initial maturity age)", min = 0, 
+                                                          max = 10, value = 5),
+                                              tags$hr(),
+                                              tags$p("DM_propaguleProd:"),
+                                              verbatimTextOutput("DM_MO_DM_propaguleProd"),
+                                              sliderInput("DM_MO_DM_propaguleProd1", label = "Propagule Production Proportion 1st year after iniMatAge", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.01),
+                                              sliderInput("DM_MO_DM_propaguleProd2", label = "Propagule Production Proportion 2nd year after iniMatAge", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.08),
+                                              sliderInput("DM_MO_DM_propaguleProd3", label = "Propagule Production Proportion 3rd year after iniMatAge", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.5),
+                                              sliderInput("DM_MO_DM_propaguleProd4", label = "Propagule Production Proportion 4th year after iniMatAge", min = 0.01, 
+                                                          max = 1.0, step = 0.01, value = 0.92)
+                                 ),
+                                 sidebarPanel(width = 3,
+                                              tags$p("DM_Dispersal Distance:"),
+                                              sliderInput("DM_MO_DM_lddFreq", label = "DM_lddFreq", min = 0.001, 
+                                                          max = 1.0, step = 0.001, value = 0.001),
+                                              sliderInput("DM_MO_SDM_lddDist", label = "LDD Distance Range (pixel)", min = 0, 
+                                                          max = 10, value = c(6, 10)),
+                                              sliderInput("DM_MO_DM_replicateNb", label = "DM_replicateNb", min = 0, 
+                                                          max = 10, value = 1),
+                                              checkboxInput("DM_MO_DM_overWrite", "DM_overWrite", TRUE),
+                                              checkboxInput("DM_MO_DM_testMode", "DM_testMode", FALSE),
+                                              checkboxInput("DM_MO_DM_fullOutput", "DM_fullOutput", FALSE),
+                                              checkboxInput("DM_MO_DM_keepTempFiles", "DM_keepTempFiles", FALSE),
+                                              br(),
+                                              tags$hr(),
+                                              textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
+                                                        value = ""),
+                                              tags$hr(),
+                                              useShinyalert(),  # Set up shinyalert
+                                              actionButton("DM_MO_Action_run", label = DM_Name_DM_MO_Action)
+                                 )
+                               )
+                      )
+                    )
+           ),
+           
+           tabPanel(DM_Name_Model_Out, fluid = TRUE,
+                    tags$hr(),
+                    sidebarLayout(
+                      sidebarPanel(width = 3, Fluid = TRUE,
+                                   uiOutput("DM_AO_Dir_Folder"),
+                                   uiOutput("DM_AO_Model_Name"),
+                                   uiOutput("DM_OU_Species"),
+                                   tags$hr(),
+                                   
+                                   uiOutput("DM_OU_SDM_model"),
+                                   
+                                   # Input: Checkbox if file has header ----
+                                   checkboxGroupInput("DM_OU_Climate_model", DM_Name_CD_Models,
+                                                      choices = c(DM_Name_CD_Models_list),
+                                                      selected = DM_Name_CD_Models_selected
+                                   ),
+                                   
+                                   # Input: Checkbox if file has header ----
+                                   checkboxGroupInput("DM_OU_Climate_scenario", DM_Name_CD_Scenarios,
+                                                      choices = c(DM_Name_CD_Scenarios_list),
+                                                      selected = DM_Name_CD_Scenarios_selected
+                                   ),
+                                   
+                                   # Input: Checkbox if file has header ----
+                                   checkboxGroupInput("DM_OU_Project_year", DM_Name_CD_Year,
+                                                      choices = c(DM_Name_CD_Year_list),
+                                                      selected = DM_Name_CD_Year_selected
+                                   )
+                      ),
+                      
+                      # Main panel for displaying outputs ----
+                      mainPanel(
+                        tabsetPanel(
+                          tabPanel(DM_Name_Out_Plot,
+                                   tags$hr(),
+                                   uiOutput("DM_OU_UI_plot")
+                          ),
+                          tabPanel(DM_Name_Out_SDMDM_Plot,
+                                   tags$hr(),
+                                   uiOutput("DM_OU_SDMDM_UI_plot")
+                          )
+                        )
+                      )
+                    )
+           )
+         )
+         
+), 
      
 		tabPanel(SS_Name,
 			tabsetPanel(

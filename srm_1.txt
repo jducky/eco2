@@ -1,0 +1,123 @@
+
+
+
+NAME_ID <- "ID"
+NAME_SPECIES <- "K_NAME"
+NAME_LONG <- "Longitude"
+NAME_LAT <- "Latitude"
+
+SE_Dir_Species <- "C:/MOTIVE_Ecosystem/DATA/Species"
+SE_speciesindex <- "speciesname_final.csv"
+SE_specieslocation <- "shin_specieslocation.csv"
+
+G_FILE_speciesindex <- read.csv(file.path(SE_Dir_Species, SE_speciesindex), header = T, sep = ",")
+G_FILE_specieslocation <- read.csv(file.path(SE_Dir_Species, SE_specieslocation), header = T, sep = ",")
+
+DATA_SPECIES_NAME <- G_FILE_speciesindex
+DATA_SPECIES_LOCATION <- G_FILE_specieslocation
+		
+SPECIES_ID <- "S106" # S106 분비나무,  S002 구상나무, S010 요강나물, S012 변산바람꽂, S018 매자나무
+SPECIES_NAME <- subset(DATA_SPECIES_NAME, get(NAME_ID) == SPECIES_ID, select = c(get(NAME_SPECIES)))
+SPECIES_NAME <- as.character(SPECIES_NAME$K_NAME)
+SPECIES_DATA <- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
+SPECIES_DATA[,NAME_ID] <- 1
+
+SPECIES_DATA_P <- cbind(SPECIES_DATA[, c(NAME_LONG, NAME_LAT)], z = 1)
+names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LONG] <- "x"
+names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LAT] <- "y"
+
+
+file <- "C:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+rm <- raster(file)
+rm[!is.na(rm[])] <- 1 
+
+sbuffer_dist <- 10000
+circ <- circles(p=SPECIES_DATA_P[,c("x", "y")], d=sbuffer_dist, lonlat=TRUE, n=360, r=6378137, dissolve=TRUE)
+cm <- predict(rm, circ, mask=TRUE)
+
+cm[cm == 1] <- 0
+cm[is.na(cm[])] <- 1 
+cm[cm == 0] <- NA
+sm <- cm * rm
+
+sample_size <- 100
+s <- sampleRandom(sm, size=sample_size, na.rm=TRUE, xy=TRUE)
+SPECIES_DATA_A <- as.data.frame(s)
+names(SPECIES_DATA_A)[names(SPECIES_DATA_A) == "layer"] <- "z"
+SPECIES_DATA_A[,"z"] <- 0
+
+
+cbuffer_dist <- 10000
+circ <- circles(p=SPECIES_DATA_P[,c("x", "y")], d=cbuffer_dist, lonlat=TRUE, n=360, r=6378137, dissolve=TRUE)
+r_circ <- predict(rm, circ, mask=TRUE)
+plot(r_circ)
+
+
+
+occurrences <- cbind(z = SPECIES_NAME, SPECIES_DATA_P[, c("x", "y")])
+hull_type <- "convex"  # "concave"
+concave_distance_lim <- 5000
+buffer_distance <- 10000
+cluster_method <- "hierarchical" # "k-means" 
+n_k_means <- NULL
+split_distance <- 30000
+
+hull_range <- rangemap_hull(occurrences = occurrences, hull_type = hull_type, 
+                             buffer_distance = buffer_distance, split = TRUE, 
+                             cluster_method = cluster_method, n_k_means = n_k_means, split_distance = split_distance)				
+
+hull_r <- rasterize(hull_range@species_range, rm)
+hull_r[hull_r > 0] <- 1
+plot(hull_r)
+
+
+
+va_sample_size <- 100
+va <- data.frame(SPECIES_DATA_A[sample(nrow(SPECIES_DATA_A), va_sample_size), ])
+vorm <- voronoiHull(p=SPECIES_DATA_P, a=va)
+vo <- predict(rm, vorm, mask=T)
+plot(vo)
+
+
+
+
+
+
+
+
+
+
+
+file <- "C:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+r <- raster(file)
+
+poly <- hull_range1@species_range
+rp <- rasterize(poly, r)
+
+rp[rp > 0] <- 0
+rp[is.na(rp[])] <- 1 
+rp[rp == 0] <- NA
+
+plot(rp)
+
+ra <- r * rp
+
+s <- sampleRandom(ra, size=100, na.rm=TRUE, xy=TRUE)
+
+SPECIES_DATA_A <- as.data.frame(s)
+names(SPECIES_DATA_A)[names(SPECIES_DATA_A) == "layer"] <- "z"
+SPECIES_DATA_A[,"z"] <- 0
+
+
+
+
+
+
+file <- "C:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+rm <- raster(file)
+rm[!is.na(rm[])] <- 1 
+
+circ <- circles(SPECIES_DATA_P[,c("x", "y")], lonlat=TRUE)
+r_circ <- predict(rm, circ, mask=TRUE)
+
+

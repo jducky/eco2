@@ -51,15 +51,12 @@ names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LONG] <- "x"
 names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LAT] <- "y"
 
 SPECIES_DATA_PA <- rbind(SPECIES_DATA_P, SPECIES_DATA_A)
+SE_Dir_Species <- "C:/MOTIVE_Ecosystem/R/test"
+write.csv(SPECIES_DATA_PA, file = file.path(SE_Dir_Species, "species_data_pa.csv"))
 
-
-ts_sp <- surf.gls(2, expcov, SPECIES_DATA_PA, d=0.7)
-ts_sp <- surf.ls(5, SPECIES_DATA_PA)
+# ts_sp <- surf.gls(2, expcov, SPECIES_DATA_PA, d=0.7)
+ts_sp <- surf.ls(3, SPECIES_DATA_PA)
 ts_sdm <- trmat(ts_sp, 124.5, 132.01, 33, 39.01, 751)
-
-
-
-
 
 r <-raster(
              ts_sdm$z,
@@ -70,8 +67,28 @@ r <-raster(
 plot(r)
 
 
+
+
+
+p <- SPECIES_DATA_PA
+
+
+library(plotly)
+plot_ly(y= p$y, x = p$x, z = p$z, data=p, type = "surface")
+plot_ly(data = p,x = x,y = y, z = z,type = "scatter3d",showlegend = FALSE)
+
+
+PX = data.matrix(p$x)
+PY = data.matrix(p$y)
+PZ = data.matrix(p$z)
+
+library(plot3D)
+surf3D(p$x, p$y, p$z)
+
+
+
 writeRaster(r, file = file.path("D:/MOTIVE_projects/test/ts_sdm1.grd"), overwrite = TRUE)
-writeRaster(r, file = file.path("D:/MOTIVE_projects/test/ts_sdm5_005.grd"), overwrite = TRUE)
+# writeRaster(r, file = file.path("D:/MOTIVE_projects/test/ts_sdm5_005.grd"), overwrite = TRUE)
 plot("D:/MOTIVE_projects/test/ts_sdm1.grd")
 
 
