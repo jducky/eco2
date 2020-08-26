@@ -1599,6 +1599,60 @@ shinyServer(function(input, output) {
 			main = "Histogram")
 	})
 	
+	output$SRM_SDM_Dir_Folder <- renderUI({
+	    SRM_SDM_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	    SRM_SDM_Dir_Folder_selected <- SRM_SDM_Dir_Folder_list[1]
+	    selectInput("SRM_SDM_Dir", "Working Species Distribution Folders",
+	                choices = c(SRM_SDM_Dir_Folder_list),
+	                selected = SRM_SDM_Dir_Folder_selected
+	    )
+	    
+	})
+	
+	observeEvent(input$SRM_MO_Species_sel_all, {
+	    G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_SDM_Dir)
+	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    G$SRM_Name_Species_selected <<- SRM_Name_Species_list
+	})
+	
+	observeEvent(input$SRM_MO_Species_sel_none, {
+	    G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_SDM_Dir)
+	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    G$SRM_Name_Species_selected <<- ""
+	})
+	
+	output$SRM_MO_Species <- renderUI({
+	    G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_SDM_Dir)
+	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    checkboxGroupInput("SRM_MO_Species", "Select a species",
+	                       choices = c(SRM_Name_Species_list),
+	                       selected = G$SRM_Name_Species_selected
+	    )
+	})
+	
+	output$SRM_MO_SDM_model <- renderUI({
+	    G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_SDM_Dir)
+	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    destfile <- file.path(G$SRM_SDM_Dir_Folder, SRM_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(SRM_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	    all_eval <- read.csv(destfile)
+	    G_FILE_species_evaluation <<- all_eval
+	    SRM_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
+	    SRM_Name_Models_selected <- SRM_Name_Models_list[1]
+	    checkboxGroupInput("SRM_MO_SDM_model", "Select models",
+	                       choices = c(SRM_Name_Models_list),
+	                       selected = SRM_Name_Models_selected
+	    )
+	})	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	output$DM_SDM_Dir_Folder <- renderUI({
 	  DM_SDM_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)

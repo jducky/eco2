@@ -1,6 +1,14 @@
 #####=========================================================
 ##### installing and Loading packages ========================
 # Setting packages and library
+# Install R program
+#Shiny
+#install.packages("remotes")
+#remotes::install_github("marlonecobos/rangemap")
+
+# Install zip file in the MOTIVE Ecosystem program folder
+#SDMTools
+#MigClim1.6.2
 
 packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
 libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
@@ -165,6 +173,18 @@ names(SDM_AO_Variables_list) = as.character(Option_lists[,"SDM_AO_Variables_name
 
 SDM_Variables_selected = as.character(Option_lists[,"SDM_Variables_selected_value"][Option_lists[,"SDM_Variables_selected_value"] != ""])
 SDM_AO_Variables_selected = as.character(Option_lists[,"SDM_AO_Variables_selected_value"][Option_lists[,"SDM_AO_Variables_selected_value"] != ""])
+
+Range_Models_list = as.character(Option_lists[,"Range_Models_value"][Option_lists[,"Range_Models_value"] != ""])
+names(Range_Models_list) = as.character(Option_lists[,"Range_Models_name"][Option_lists[,"Range_Models_name"] != ""])
+
+Hull_Types_list = as.character(Option_lists[,"Hull_Types_value"][Option_lists[,"Hull_Types_value"] != ""])
+names(Hull_Types_list) = as.character(Option_lists[,"Hull_Types_name"][Option_lists[,"Hull_Types_name"] != ""])
+
+Hull_Cluster_Method_list = as.character(Option_lists[,"Hull_Cluster_Method_value"][Option_lists[,"Hull_Cluster_Method_value"] != ""])
+names(Hull_Cluster_Method_list) = as.character(Option_lists[,"Hull_Cluster_Method_name"][Option_lists[,"Hull_Cluster_Method_name"] != ""])
+
+Hull_VoronoiHull_sampling_Type_list = as.character(Option_lists[,"Hull_VoronoiHull_sampling_Type_value"][Option_lists[,"Hull_VoronoiHull_sampling_Type_value"] != ""])
+names(Hull_VoronoiHull_sampling_Type_list) = as.character(Option_lists[,"Hull_VoronoiHull_sampling_Type_name"][Option_lists[,"Hull_VoronoiHull_sampling_Type_name"] != ""])
 
 SS_Group1_list = as.character(Option_lists[,"SS_Group1_value"][Option_lists[,"SS_Group1_value"] != ""])
 names(SS_Group1_list) = as.character(Option_lists[,"SS_Group1_name"][Option_lists[,"SS_Group1_name"] != ""])

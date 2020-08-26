@@ -104,6 +104,33 @@ SDM_Name_CD_Year_out,0,Projecting Years,예측년도
 SDM_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
 SDM_Name_CD_Year_out_selected,0,2000,2000
 SDM_Name_Dir,0,SDM Output Folder,SDM 평가결과 폴더
+SRM_Name,0,Species Range Model,서식영역모델
+SRM_Name_Model,0,Modeling,모형구동
+SRM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
+SRM_Name_CD_Models,0,Climate Models,기후모델
+SRM_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
+SRM_Name_CD_Models_selected,0,KMA,KMA
+SRM_Name_CD_Scenarios,0,Climate Scenarios,기후시나리오
+SRM_Name_CD_Scenarios_list,1,CD_Scenarios_list,CD_Scenarios_list
+SRM_Name_CD_Scenarios_selected,0,RCP4.5,RCP4.5
+SRM_Name_CD_Year,0,Projecting Years,예측년도
+SRM_Name_CD_Year_list,1,CD_Year_list,CD_Year_list
+SRM_Name_CD_Year_selected,0,2000,2000
+SRM_Name_MO_Type,0,Range Models,서식영역모델
+SRM_Name_MO_Type_list,1,Range_Models_list,Range_Models_list
+SRM_Name_MO_Type_selected,0,Buffer,서식반경
+SRM_Name_Hull_Type,0,Hull Types,Hull Types
+SRM_Name_Hull_Type_list,1,Hull_Types_list,Hull_Types_list
+SRM_Name_Hull_Type_selected,0,convex,convex
+SRM_Name_Hull_Cluster_Method,0,Hull Cluster Method,Hull Cluster Method
+SRM_Name_Hull_Cluster_Method_list,1,Hull_Cluster_Method_list,Hull_Cluster_Method_list
+SRM_Name_Hull_Cluster_Method_selected,0,hierarchical,hierarchical
+SRM_Name_VoronoiHull_sampling_Type,0,Hull VoronoiHull sampling Type,Hull VoronoiHull sampling Type
+SRM_Name_VoronoiHull_sampling_Type_list,1,Hull_VoronoiHull_sampling_Type_list,Hull_VoronoiHull_sampling_Type_list
+SRM_Name_VoronoiHull_sampling_Type_selected,0,ratio,ratio
+SRM_Name_SRM_MO_Action,0,Run,실행
+SRM_Name_Model_Out,0,Model Outputs,모형결과
+SRM_Name_Out_Plot,0,Species Range Plot,생물종 서식영역
 DM_Name,0,Dispersal Model,종확산모형
 DM_Name_Model,0,Modeling,모형구동
 DM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
