@@ -107,6 +107,7 @@ SDM_Name_Dir,0,SDM Output Folder,SDM 평가결과 폴더
 SRM_Name,0,Species Range Model,서식영역모델
 SRM_Name_Model,0,Modeling,모형구동
 SRM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
+SRM_Name_Model_SRM,0,SRM Option,SRM모형 옵션
 SRM_Name_CD_Models,0,Climate Models,기후모델
 SRM_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
 SRM_Name_CD_Models_selected,0,KMA,KMA
@@ -125,7 +126,7 @@ SRM_Name_Hull_Type_selected,0,convex,convex
 SRM_Name_Hull_Cluster_Method,0,Hull Cluster Method,Hull Cluster Method
 SRM_Name_Hull_Cluster_Method_list,1,Hull_Cluster_Method_list,Hull_Cluster_Method_list
 SRM_Name_Hull_Cluster_Method_selected,0,hierarchical,hierarchical
-SRM_Name_VoronoiHull_sampling_Type,0,Hull VoronoiHull sampling Type,Hull VoronoiHull sampling Type
+SRM_Name_VoronoiHull_sampling_Type,0,VoronoiHull sampling Type,VoronoiHull sampling Type
 SRM_Name_VoronoiHull_sampling_Type_list,1,Hull_VoronoiHull_sampling_Type_list,Hull_VoronoiHull_sampling_Type_list
 SRM_Name_VoronoiHull_sampling_Type_selected,0,ratio,ratio
 SRM_Name_SRM_MO_Action,0,Run,실행

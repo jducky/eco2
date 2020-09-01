@@ -1644,8 +1644,246 @@ shinyServer(function(input, output) {
 	    )
 	})	
 	
+	observeEvent(input$SRM_MO_Action_run, {
+	    
+	    # setting Climate change scenarios, Future time, Species and current environmental path
+	    dlist <- input$SRM_MO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	    clist <- input$SRM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	    ylist <- input$SRM_MO_Project_year  # c("2000", "2050") # c("2000", "2050", "2070")
+	    slist <- input$SRM_MO_Species
+	    mlist <- input$SRM_MO_SDM_model
+	    
+	    n <- 0
+	    ld <- length(dlist)
+	    lc <- length(clist)
+	    ly <- length(ylist)
+	    ls <- length(slist)
+	    lm <- length(mlist)
+	    tl <- ld * lc * lm * ls * ly
+	    
+	    withProgress(message = 'Runing SRM model.........', value = 0, {
+	        
+	        ##############################################################
+	        ### Species Range Modeling
+	        ### Home range
+	        ###
+	        ### by Changwan Seo
+	        ##############################################################
+	        
+	        #####=========================================================
+	        ##### Setting variables ======================================
+	        
+	        # setting Paths
+	        PATH_PROJECT   <- G$SE_Dir_Project
+	        G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_SDM_Dir)
+	        PATH_MODEL_OUTPUT <- G$SRM_SDM_Dir_Folder   # file.path(PATH_PROJECT, "Species_Distribution")
+	        setwd(PATH_MODEL_OUTPUT)
+	        
+	        # Setting Column Name of species data
+	        NAME_ID <- G$SE_Species_ID  # "ID"
+	        NAME_SPECIES <- G$SE_Species_Name  # "K_NAME"
+	        NAME_LONG <- G$SE_Species_Location_Longitude  # "Longitude"
+	        NAME_LAT <- G$SE_Species_Location_Latitude  # "Latitude"
+	        
+	        # setting speices and environmental data
+	        # FILE_SPECIES_NAME <<- input$SE_speciesindex   # G$SE_speciesindex
+	        # FILE_SPECIES_LOCATION <<- input$SE_specieslocation  # G$SE_specieslocation
+	        
+	        if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
+	            G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
+	            G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
+	        } else {
+	            G_FILE_speciesindex <<- read.csv(file.path(G$SE_Dir_Species, G$SE_speciesindex), header = T, sep = ",")
+	            G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, G$SE_specieslocation), header = T, sep = ",")
+	        }
+	        
+	        DATA_SPECIES_NAME <- G_FILE_speciesindex
+	        DATA_SPECIES_LOCATION <- G_FILE_specieslocation
+	        
+	        
+	        #####========================================================
+	        #####============ Running models ============================
+	        #####========================================================
+	        CUR_PATH <- getwd()
+	        
+	        for (s in slist) {
+	            n <- n + 1
+	            # creating Migclim output path
+	            if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$D_MO_Dir_Folder_Name, sep = "")))) {
+	                cat(paste(paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
+	            } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$F_MO_Dir_Folder_Name, sep = "")))) {
+	                cat(paste(paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
+	            } else {
+	                cat(paste(paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""), "does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
+	                dir.create(file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = "")))
+	            }   
+	            
+	            
+	            # SPECIES_ID <- s # "S106" # S106 분비나무,  S002 구상나무, S010 요강나물, S012 변산바람꽂, S018 매자나무
+	            SPECIES_NAME <<- subset(DATA_SPECIES_NAME, get(NAME_SPECIES) == s, select = c(get(NAME_ID)))
+	            SPECIES_NAME <<- SPECIES_NAME[1,]
+	            SPECIES_ID <<- as.character(SPECIES_NAME$ID)
+	            SPECIES_DATA <<- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
+	            SPECIES_DATA[,NAME_ID] <<- 1
+	            
+	            SPECIES_DATA_P <- cbind(SPECIES_DATA[, c(NAME_LONG, NAME_LAT)], z = 1)
+	            names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LONG] <- "x"
+	            names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LAT] <- "y"
+	            
+
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            # Setting working path
+	            org_path <- file.path(PATH_MODEL_OUTPUT, s, "BIOMOD2")
+	            target_path <- file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""))
+	            setwd(target_path)
+	            
+	            ### Projection on current and future environemental conditions
+	            # Projecting loop
+	            for (d in dlist) {
+	                for (c in clist) {
+	                    for (m in mlist) {
+	                        for (y in ylist) {
+	                            incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", y))
+	                            
+	                            Map <- paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")
+	                            R_SDM <- raster(file.path(org_path, Map))
+	                            R_SRM <- R_SDM
+
+	                            if (input$SRM_MO_Type == "Buffer") {
+	                                cbuffer_dist <- 10000
+	                                circ <- circles(p=SPECIES_DATA_P[,c("x", "y")], d=cbuffer_dist, lonlat=TRUE, n=360, r=6378137, dissolve=TRUE)
+	                                r_circ <- predict(rm, circ, mask=TRUE)
+	                                writeRaster(r_circ, file = file.path(target_path, paste(as.name(paste("SRM-BUFFER_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+  
+	                                R_SRM[R_SDM == 0 & r_circ == 0] <- 0
+	                                R_SRM[R_SDM == 0 & r_circ == 1] <- 0
+	                                R_SRM[R_SDM == 1 & r_circ == 0] <- 0
+	                                R_SRM[R_SDM == 1 & r_circ == 1] <- 1
+	                                writeRaster(R_SRM, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                # plot(r_circ)
+	                            } else if (input$SRM_MO_Type == "Hull") {
+	                                occurrences <- cbind(z = SPECIES_NAME, SPECIES_DATA_P[, c("x", "y")])
+	                                hull_type <- "convex"  # "concave"
+	                                concave_distance_lim <- 5000
+	                                buffer_distance <- 10000
+	                                cluster_method <- "hierarchical" # "k-means" 
+	                                n_k_means <- NULL
+	                                split_distance <- 30000
+	                            
+	                                hull_range <- rangemap_hull(occurrences = occurrences, hull_type = hull_type, 
+	                                                            buffer_distance = buffer_distance, split = TRUE, 
+	                                                            cluster_method = cluster_method, n_k_means = n_k_means, split_distance = split_distance)				
+	                            
+	                                hull_r <- rasterize(hull_range@species_range, rm)
+	                                hull_r[hull_r > 0] <- 1
+	                                writeRaster(hull_r, file = file.path(target_path, paste(as.name(paste("SRM-HULL_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                # plot(hull_r)
+	                            } else {
+	                                file <- "D:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
+	                                rm <- raster(file)
+	                                rm[!is.na(rm[])] <- 1 
+	                            
+	                                sbuffer_dist <- 10000
+	                                circ <- circles(p=SPECIES_DATA_P[,c("x", "y")], d=sbuffer_dist, lonlat=TRUE, n=360, r=6378137, dissolve=TRUE)
+	                                cm <- predict(rm, circ, mask=TRUE)
+	                            
+	                                cm[cm == 1] <- 0
+	                                cm[is.na(cm[])] <- 1 
+	                                cm[cm == 0] <- NA
+	                                sm <- cm * rm
+	                            
+	                                sample_size <- 100
+	                                s <- sampleRandom(sm, size=sample_size, na.rm=TRUE, xy=TRUE)
+	                                SPECIES_DATA_A <- as.data.frame(s)
+	                                names(SPECIES_DATA_A)[names(SPECIES_DATA_A) == "layer"] <- "z"
+	                                SPECIES_DATA_A[,"z"] <- 0
+	                            
+	                                va_sample_size <- 100
+	                                va <- data.frame(SPECIES_DATA_A[sample(nrow(SPECIES_DATA_A), va_sample_size), ])
+	                                vorm <- voronoiHull(p=SPECIES_DATA_P, a=va)
+	                                vo <- predict(rm, vorm, mask=T)
+	                                writeRaster(vo, file = file.path(target_path, paste(as.name(paste("SRM-VHULL_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                # plot(vo)
+	                            }
+	                            
+
+
+	                            
+	                            
+	                            
+	                            
+	                            
+	                            
+	                            
+	                        }
+	                    }
+	                }
+	            }
+	            
+	        }
+
 	
 	
+	    })
+	})
+	
+	
+	
+	
+	output$SRM_AO_Dir_Folder <- renderUI({
+	    SRM_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution"), full.names = FALSE, recursive = FALSE)
+	    SRM_AO_Dir_Folder_selected <- SRM_AO_Dir_Folder_list[1]
+	    selectInput("SRM_AO_Dir", "Working Species Distribution Folders",
+	                choices = c(SRM_AO_Dir_Folder_list),
+	                selected = SRM_AO_Dir_Folder_selected
+	    )
+	    
+	})
+	
+	output$SRM_AO_Model_Name <- renderUI({
+	    SRM_AO_Model_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_AO_Dir, input$SRM_OU_Species[1]), full.names = FALSE, recursive = FALSE)
+	    #	  SRM_AO_Model_Name_list <- SRM_AO_Model_Name_list[-1]
+	    SRM_AO_Model_Name_selected <- SRM_AO_Model_Name_list[1]
+	    selectInput("SRM_AO_Model_Name_Input", "Working SRM Modeling Folders",
+	                choices = c(SRM_AO_Model_Name_list),
+	                selected = SRM_AO_Model_Name_selected
+	    )
+	    
+	})
+	
+	output$SRM_OU_Species <- renderUI({
+	    G$SRM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_AO_Dir)
+	    SRM_Name_Species_list <- list.dirs(path = G$SRM_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
+	    SRM_Name_Species_selected <- SRM_Name_Species_list[1]
+	    selectInput("SRM_OU_Species", "Select a species",
+	                choices = c(SRM_Name_Species_list),
+	                selected = SRM_Name_Species_selected
+	    )
+	})
+	
+	output$SRM_OU_SDM_model <- renderUI({
+	    G$SRM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_AO_Dir)
+	    destfile <- file.path(G$SRM_AO_Dir_Folder, input$SRM_OU_Species[1], "BIOMOD2", paste(as.name(paste(input$SRM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	    all_eval <- read.csv(destfile)
+	    G_FILE_species_evaluation <<- all_eval
+	    SRM_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
+	    SRM_Name_Models_selected <- SRM_Name_Models_list[1]
+	    checkboxGroupInput("SRM_OU_SDM_model", "Select models",
+	                       choices = c(SRM_Name_Models_list),
+	                       selected = SRM_Name_Models_selected
+	    )
+	})
+	
+		
 	
 	
 	

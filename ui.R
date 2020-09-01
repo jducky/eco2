@@ -682,46 +682,64 @@ shinyUI(
                             # Input: Checkbox if file has header ----
                             radioButtons("SRM_MO_Project_year", SRM_Name_CD_Year,
                                 choices = c(SRM_Name_CD_Year_list),
-                                selected = SRM_Name_CD_Year_selected),
+                                selected = SRM_Name_CD_Year_selected)
+                          ),
+                        sidebarPanel(width = 3, Fluid = TRUE, 
                             uiOutput("SRM_MO_SDM_model")
-		                    ),
+                        )
+		                )
+		              ),
+                      tabPanel(SRM_Name_Model_SRM,
+                        tags$hr(),      
+                        fluidRow(
                         sidebarPanel(width = 3,
                             # Input: Checkbox if file has header ----
                             radioButtons("SRM_MO_Type", SRM_Name_MO_Type,
-                                choices = c(SRM_Name_MO_Type_list),
-                                selected = SRM_Name_MO_Type_selected),
-                            tags$hr(),
+                                        choices = c(SRM_Name_MO_Type_list),
+                                        selected = SRM_Name_MO_Type_selected)
+                        ),
+                        sidebarPanel(width = 3,
+                            # Input: Checkbox if file has header ----
+                            tags$p("Buffer:"),
                             sliderInput("SRM_Buffer_Distance", label = "Bufffer Distance", min = 1000, 
                                         max = 100000, step = 1000, value = 10000),
                             tags$hr(),
+                            tags$p("Hull:"),
                             radioButtons("SRM_Hull_Type", SRM_Name_Hull_Type,
-                                         choices = c(SRM_Name_Hull_Type_list),
-                                         selected = SRM_Name_Hull_Type_selected),
+                                        choices = c(SRM_Name_Hull_Type_list),
+                                        selected = SRM_Name_Hull_Type_selected),
                             sliderInput("SRM_Hull_Concave_Distance", label = "Hull Concave Distance", min = 1000, 
                                         max = 100000, step = 1000, value = 10000),
                             sliderInput("SRM_Hull_Buffer_Distance", label = "Hull Bufffer Distance", min = 1000, 
                                         max = 100000, step = 1000, value = 10000),
                             radioButtons("SRM_Hull_Cluster_Method", SRM_Name_Hull_Cluster_Method,
-                                         choices = c(SRM_Name_Hull_Cluster_Method_list),
-                                         selected = SRM_Name_Hull_Cluster_Method_selected),
+                                        choices = c(SRM_Name_Hull_Cluster_Method_list),
+                                        selected = SRM_Name_Hull_Cluster_Method_selected),
                             sliderInput("SRM_Hull_Number_Kmeans", label = "Hull Number of Kmeans", min = 1, 
                                         max = 10, step = 1, value = 3),
                             sliderInput("SRM_Hull_Split_Distance", label = "Hull Split Distance", min = 1000, 
-                                        max = 100000, step = 1000, value = 10000),
-                            tags$hr(),
+                                        max = 100000, step = 1000, value = 10000)
+                        ),
+                        sidebarPanel(width = 3,
+                            # Input: Checkbox if file has header ----
+                            tags$p("VoronoiHull:"),
                             radioButtons("SRM_VoronoiHull_sampling_Type", SRM_Name_VoronoiHull_sampling_Type,
-                                         choices = c(SRM_Name_VoronoiHull_sampling_Type_list),
-                                         selected = SRM_Name_VoronoiHull_sampling_Type_selected),
+                                        choices = c(SRM_Name_VoronoiHull_sampling_Type_list),
+                                        selected = SRM_Name_VoronoiHull_sampling_Type_selected),
                             sliderInput("SRM_VoronoiHull_Absence_sample_ratio", label = "VoronoiHull Absence sampling ratio", min = 1, 
                                         max = 10, step = 0.1, value = 1),
                             sliderInput("SRM_VoronoiHull_Absence_sample_size", label = "VoronoiHull Absence sampling size", min = 10, 
                                         max = 1000, step = 10, value = 100),
+                            br(),
+                            tags$hr(),
+                            textInput("SRM_MO_Dir_Folder_Name", "SRM Model Foler Name",
+                                      value = ""),
                             tags$hr(),
                             useShinyalert(),  # Set up shinyalert
                             actionButton("SRM_MO_Action_run", label = SRM_Name_SRM_MO_Action)    
-		                    )
-		                )
+                        )
 		              )
+		             )
 		             )
 		           ),
 		           
@@ -730,7 +748,7 @@ shinyUI(
 		                    sidebarLayout(
 		                      sidebarPanel(width = 3, Fluid = TRUE,
 		                                   uiOutput("SRM_AO_Dir_Folder"),
-                                       uiOutput("SRM_AO_Model_Name"),
+                                        uiOutput("SRM_AO_Model_Name"),
 		                                   uiOutput("SRM_OU_Species"),
 		                                   tags$hr(),
 		                                   
