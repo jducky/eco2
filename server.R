@@ -1721,8 +1721,9 @@ shinyServer(function(input, output) {
 	            
 	            # SPECIES_ID <- s # "S106" # S106 분비나무,  S002 구상나무, S010 요강나물, S012 변산바람꽂, S018 매자나무
 	            SPECIES_NAME <<- subset(DATA_SPECIES_NAME, get(NAME_SPECIES) == s, select = c(get(NAME_ID)))
-	            SPECIES_NAME <<- SPECIES_NAME[1,]
-	            SPECIES_ID <<- as.character(SPECIES_NAME$ID)
+#	            SPECIES_NAME <<- SPECIES_NAME[1,]
+#	            SPECIES_ID <<- as.character(SPECIES_NAME$ID)
+	            SPECIES_ID <<- SPECIES_NAME[1,]
 	            SPECIES_DATA <<- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
 	            SPECIES_DATA[,NAME_ID] <<- 1
 	            
@@ -1757,12 +1758,18 @@ shinyServer(function(input, output) {
 	                            Map <- paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")
 	                            R_SDM <- raster(file.path(org_path, Map))
 	                            R_SRM <- R_SDM
+	                            
+	                            file <- file.path(G$SE_Dir_Climate, "2000", "bio01.tif")
+	                            rm <- raster(file)
+	                            rm[!is.na(rm[])] <- 0
 
 	                            if (input$SRM_MO_Type == "Buffer") {
-	                                cbuffer_dist <- 10000
+	                                cbuffer_dist <- input$SRM_Buffer_Distance
 	                                circ <- circles(p=SPECIES_DATA_P[,c("x", "y")], d=cbuffer_dist, lonlat=TRUE, n=360, r=6378137, dissolve=TRUE)
 	                                r_circ <- predict(rm, circ, mask=TRUE)
-	                                writeRaster(r_circ, file = file.path(target_path, paste(as.name(paste("SRM-BUFFER_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                r_circ[is.na(r_circ[])] <- 0
+	                                r_circ <- r_circ + rm
+	                                writeRaster(r_circ, file = file.path(target_path, paste(as.name(paste("SRM-PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
   
 	                                R_SRM[R_SDM == 0 & r_circ == 0] <- 0
 	                                R_SRM[R_SDM == 0 & r_circ == 1] <- 0
@@ -1771,13 +1778,13 @@ shinyServer(function(input, output) {
 	                                writeRaster(R_SRM, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                                # plot(r_circ)
 	                            } else if (input$SRM_MO_Type == "Hull") {
-	                                occurrences <- cbind(z = SPECIES_NAME, SPECIES_DATA_P[, c("x", "y")])
-	                                hull_type <- "convex"  # "concave"
-	                                concave_distance_lim <- 5000
-	                                buffer_distance <- 10000
-	                                cluster_method <- "hierarchical" # "k-means" 
-	                                n_k_means <- NULL
-	                                split_distance <- 30000
+	                                occurrences <- cbind(z = SPECIES_ID, SPECIES_DATA_P[, c("x", "y")])
+	                                hull_type <- input$SRM_Hull_Type # "convex"  # "concave"
+	                                concave_distance_lim <- input$SRM_Hull_Concave_Distance # 5000
+	                                buffer_distance <- input$SRM_Hull_Buffer_Distance # 10000
+	                                cluster_method <- input$SRM_Hull_Cluster_Method # "k-means" # "hierarchical" # "k-means" 
+	                                n_k_means <- input$SRM_Hull_Number_Kmeans # 3 # NULL
+	                                split_distance <- input$SRM_Hull_Split_Distance # 30000
 	                            
 	                                hull_range <- rangemap_hull(occurrences = occurrences, hull_type = hull_type, 
 	                                                            buffer_distance = buffer_distance, split = TRUE, 
@@ -1785,13 +1792,18 @@ shinyServer(function(input, output) {
 	                            
 	                                hull_r <- rasterize(hull_range@species_range, rm)
 	                                hull_r[hull_r > 0] <- 1
-	                                writeRaster(hull_r, file = file.path(target_path, paste(as.name(paste("SRM-HULL_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                hull_r[is.na(hull_r[])] <- 0
+	                                hull_r <- hull_r + rm
+	                                writeRaster(hull_r, file = file.path(target_path, paste(as.name(paste("SRM-PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                
+	                                R_SRM[R_SDM == 0 & hull_r == 0] <- 0
+	                                R_SRM[R_SDM == 0 & hull_r == 1] <- 0
+	                                R_SRM[R_SDM == 1 & hull_r == 0] <- 0
+	                                R_SRM[R_SDM == 1 & hull_r == 1] <- 1
+	                                
+	                                writeRaster(R_SRM, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                                # plot(hull_r)
 	                            } else {
-	                                file <- "D:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif"
-	                                rm <- raster(file)
-	                                rm[!is.na(rm[])] <- 1 
-	                            
 	                                sbuffer_dist <- 10000
 	                                circ <- circles(p=SPECIES_DATA_P[,c("x", "y")], d=sbuffer_dist, lonlat=TRUE, n=360, r=6378137, dissolve=TRUE)
 	                                cm <- predict(rm, circ, mask=TRUE)
@@ -1802,8 +1814,8 @@ shinyServer(function(input, output) {
 	                                sm <- cm * rm
 	                            
 	                                sample_size <- 100
-	                                s <- sampleRandom(sm, size=sample_size, na.rm=TRUE, xy=TRUE)
-	                                SPECIES_DATA_A <- as.data.frame(s)
+	                                s_r <- sampleRandom(sm, size=sample_size, na.rm=TRUE, xy=TRUE)
+	                                SPECIES_DATA_A <- as.data.frame(s_r)
 	                                names(SPECIES_DATA_A)[names(SPECIES_DATA_A) == "layer"] <- "z"
 	                                SPECIES_DATA_A[,"z"] <- 0
 	                            
@@ -1811,7 +1823,16 @@ shinyServer(function(input, output) {
 	                                va <- data.frame(SPECIES_DATA_A[sample(nrow(SPECIES_DATA_A), va_sample_size), ])
 	                                vorm <- voronoiHull(p=SPECIES_DATA_P, a=va)
 	                                vo <- predict(rm, vorm, mask=T)
-	                                writeRaster(vo, file = file.path(target_path, paste(as.name(paste("SRM-VHULL_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                vo[is.na(vo[])] <- 0
+	                                vo <- vo + rm
+	                                writeRaster(vo, file = file.path(target_path, paste(as.name(paste("SRM-PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                                
+	                                R_SRM[R_SDM == 0 & vo == 0] <- 0
+	                                R_SRM[R_SDM == 0 & vo == 1] <- 0
+	                                R_SRM[R_SDM == 1 & vo == 0] <- 0
+	                                R_SRM[R_SDM == 1 & vo == 1] <- 1
+	                                
+	                                writeRaster(R_SRM, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                                # plot(vo)
 	                            }
 	                            
@@ -1883,7 +1904,89 @@ shinyServer(function(input, output) {
 	    )
 	})
 	
-		
+	output$SRM_OU_UI_plot <- renderUI({
+	    # setting Climate change scenarios, Future time, Species and current environmental path
+	    slist <- input$SRM_OU_Species
+	    dlist <- input$SRM_OU_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	    clist <- input$SRM_OU_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	    mlist <- input$SRM_OU_SDM_model # c("PA1_Full_GLM_byROC")
+	    ylist <- input$SRM_OU_Project_year
+	    #	  dtlist <- input$SRM_OU_Dispersal_type
+	    
+	    n <- 0
+	    ls <- length(slist)
+	    ld <- length(dlist)
+	    lc <- length(clist)
+	    lm <- length(mlist)
+	    ly <- length(ylist)
+	    #	  ldt <- length(dtlist)
+	    tl <- ls * ld * lc * lm * ly # * ldt
+	    
+	    nc <- 2
+	    if (tl <  2) {
+	        nr <- round(tl / nc) + 1
+	    } else {
+	        nr <- round((tl + 0.1) / nc)
+	    }
+	    
+	    ws <- nc * 500
+	    hs <- nr * 500
+	    plotOutput("SRM_AO_OU_plot", width = ws, height = hs)
+	})
+	
+	output$SRM_AO_OU_plot <- renderPlot({
+	    #####========================================================
+	    ##### Plot GAP output =========================================
+	    
+	    # setting Climate change scenarios, Future time, Species and current environmental path
+	    slist <- input$SRM_OU_Species
+	    dlist <- input$SRM_OU_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	    clist <- input$SRM_OU_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	    mlist <- input$SRM_OU_SDM_model # c("PA1_Full_GLM_byROC")
+	    ylist <- input$SRM_OU_Project_year
+	    
+	    ls <- length(slist)
+	    ld <- length(dlist)
+	    lc <- length(clist)
+	    lm <- length(mlist)
+	    ly <- length(ylist)
+	    tl <- ls * ld * lc * lm * ly
+	    
+	    nc <- 2
+	    if (tl <  2) {
+	        nr <- round(tl / nc) + 1
+	    } else {
+	        nr <- round((tl + 0.1) / nc)
+	    }
+	    
+	    par(mfrow = c(nr,nc), cex.main = 1.2)
+	    G$SRM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, "Species_Distribution", input$SRM_AO_Dir)
+	    
+	    for (s in slist) {
+	        dir_path <- file.path(G$SRM_AO_Dir_Folder, s, input$SRM_AO_Model_Name_Input)  # paste(input$SRM_AO_Model_Name_Input, sep = ""))
+	        for (d in dlist) {
+	            for (c in clist) {
+	                for (m in mlist) {
+	                    if (ly > 0) {
+	                        for (y in 1:ly) {
+	                            Map1 <- paste("SRM-PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
+	                            if (file.exists(file.path(dir_path, Map1))) {
+	                                R_Map1 <- raster(file.path(dir_path, Map1))
+	                                plot(R_Map1, main = Map1)
+	                            }
+	                            Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, ".grd", sep = "")
+	                            if (file.exists(file.path(dir_path, Map2))) {
+	                                R_Map2 <- raster(file.path(dir_path, Map2))
+	                                plot(R_Map2, main = Map2)
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    ##### End Plot output =========================================
+	})		
 	
 	
 	
