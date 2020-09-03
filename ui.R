@@ -723,6 +723,8 @@ shinyUI(
                         sidebarPanel(width = 3,
                             # Input: Checkbox if file has header ----
                             tags$p("VoronoiHull:"),
+                            sliderInput("SRM_VoronoiHull_Absence_sample_Buffer_Distance", label = "VoronoiHull Absence sampling Bufffer Distance", min = 1000, 
+                                        max = 100000, step = 1000, value = 10000),
                             radioButtons("SRM_VoronoiHull_sampling_Type", SRM_Name_VoronoiHull_sampling_Type,
                                         choices = c(SRM_Name_VoronoiHull_sampling_Type_list),
                                         selected = SRM_Name_VoronoiHull_sampling_Type_selected),

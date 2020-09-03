@@ -1804,7 +1804,7 @@ shinyServer(function(input, output) {
 	                                writeRaster(R_SRM, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, ".grd", sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                                # plot(hull_r)
 	                            } else {
-	                                sbuffer_dist <- 10000
+	                                sbuffer_dist <- input$SRM_VoronoiHull_Absence_sample_Buffer_Distance
 	                                circ <- circles(p=SPECIES_DATA_P[,c("x", "y")], d=sbuffer_dist, lonlat=TRUE, n=360, r=6378137, dissolve=TRUE)
 	                                cm <- predict(rm, circ, mask=TRUE)
 	                            
@@ -1812,14 +1812,22 @@ shinyServer(function(input, output) {
 	                                cm[is.na(cm[])] <- 1 
 	                                cm[cm == 0] <- NA
 	                                sm <- cm * rm
-	                            
-	                                sample_size <- 100
+	                                
+	                                if (input$SRM_VoronoiHull_sampling_Type == "ratio") {
+	                                    nsp <- nrow(SPECIES_DATA)
+	                                    nsa <- nsp * input$SRM_VoronoiHull_Absence_sample_ratio
+	                                    
+	                                } else{
+	                                    nsa <- input$SRM_VoronoiHull_Absence_sample_size
+	                                }
+	                                
+	                                sample_size <- nsa * 10
 	                                s_r <- sampleRandom(sm, size=sample_size, na.rm=TRUE, xy=TRUE)
 	                                SPECIES_DATA_A <- as.data.frame(s_r)
 	                                names(SPECIES_DATA_A)[names(SPECIES_DATA_A) == "layer"] <- "z"
 	                                SPECIES_DATA_A[,"z"] <- 0
 	                            
-	                                va_sample_size <- 100
+	                                va_sample_size <- nsa
 	                                va <- data.frame(SPECIES_DATA_A[sample(nrow(SPECIES_DATA_A), va_sample_size), ])
 	                                vorm <- voronoiHull(p=SPECIES_DATA_P, a=va)
 	                                vo <- predict(rm, vorm, mask=T)
