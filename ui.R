@@ -237,8 +237,11 @@ shinyUI(
 			    )
         )
       )
-		),       
-
+		),
+		
+		
+		tabPanel("DATA_Name",
+		tabsetPanel(
 		tabPanel(SP_Name,
 			tabsetPanel(
 				tabPanel(SP_Name_Info,
@@ -392,7 +395,9 @@ shinyUI(
 					)
 				)
             )
-        ),  
+        )
+		)
+		),
           
 		tabPanel(SDM_Name,
 			tabsetPanel(
