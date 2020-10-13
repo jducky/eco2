@@ -7,12 +7,12 @@ SE_Name_WE,0,Working Environment,작업환경
 SE_Name_WE_Project,0,Working Project,작업프로젝트
 SE_Name_WE_Project_Action,0,Save a Project Information,프로젝트정보 저장
 SE_Name_Dir_Project_Ecosystem,0,Introductuction,소개
-SE_Name_Dir_Project_SDM,0,Sensitive Species,개별(민감)종
+SE_Name_Dir_Project_SDM,0,Species Assessment,생물종 평가
 SE_Name_Dir_Project_SDM_OPTION,0,Modeling Options,모델링 옵션
 SE_Name_Dir_Project_SDM_OUTPUT,0,Modeling Outputs,모델링 결과
-SE_Name_Dir_Project_IS,0,Invasive Species,외래종
-SE_Name_Dir_Project_IS_OPTION,0,Modeling Options,모델링 옵션
-SE_Name_Dir_Project_IS_OUTPUT,0,Modeling Outputs,모델링 결과
+SE_Name_Dir_Project_HA,0,Habitat Assessment,서식지 평가
+SE_Name_Dir_Project_HA_OPTION,0,Modeling Options,모델링 옵션
+SE_Name_Dir_Project_HA_OUTPUT,0,Modeling Outputs,모델링 결과
 SE_Name_Dir_Project_VH,0,Vulnerable Habitat,취약서식지
 SE_Name_Dir_Project_VH_OPTION,0,Modeling Options,모델링 옵션
 SE_Name_Dir_Project_VH_OUTPUT,0,Modeling Outputs,모델링 결과
@@ -132,7 +132,7 @@ SRM_Name_VoronoiHull_sampling_Type_selected,0,ratio,ratio
 SRM_Name_SRM_MO_Action,0,Run,실행
 SRM_Name_Model_Out,0,Model Outputs,모형결과
 SRM_Name_Out_Plot,0,Species Range Plot,생물종 서식영역
-DM_Name,0,Dispersal Model,종확산모형
+DM_Name,0,Species Dispersal Model,종확산모형
 DM_Name_Model,0,Modeling,모형구동
 DM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
 DM_Name_Model_DM_Barrier,0,Dispersal Model Barrier Option,확산모형 장애물 옵션
@@ -190,110 +190,116 @@ DM_Name_Display_types,0,Model types,출력결과 모델
 DM_Name_Display_types_list,0,"c(""Species Distribution Model"" = ""SDM"", ""Dispersal Model"" = ""DM"")","c(""종분포모형"" = ""SDM"", ""종확산모형"" = ""DM"")"
 DM_Name_Display_types_selected,0,SDM,SDM
 DM_Name_Dir,0,DM Output Folder,DM 평가결과 폴더
-SS_Name,0,Senstive Species,기후변화민감종
-SS_Name_Analysis,0,Impact and Vulnerability Asessment,영향 및 취약성평가
-SS_Name_Out,0,Assessment Result,평가결과
-SS_Name_Out_ChangePlot,0,Distribution Change Result,분포변화 결과
-SS_Name_Out_IV_Table,0,Vulnerability Table,취약성 지수 결과
-SS_Name_Out_IV_GainLoss,0,Vulnerability Gain_Loss Ratio,취약성 면적변화비
-SS_Name_Out_IV_Pattern,0,Vulnerability Pattern,취약성 패턴
-SS_Name_Out_IV_Order,0,Vulnerability Order,취약성 순위
-SS_Name_DM_Models,0,DIspersal Types,확산모형
-SS_Name_DM_Models_list,1,DM_Models_list,DM_Models_list
-SS_Name_DM_Models_selected,0,BIOMOD2,BIOMOD2
-SS_Name_CD_Models,0,Climate Models,기후모델
-SS_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
-SS_Name_CD_Models_selected,0,KMA,KMA
-SS_Name_CD_Scenarios,0,Climate Scenarios,기후시나리오
-SS_Name_CD_Scenarios_list,1,CD_Scenarios_list,CD_Scenarios_list
-SS_Name_CD_Scenarios_selected,0,RCP4.5,RCP4.5
-SS_Name_CD_Year,0,Projecting Years,예측년도
-SS_Name_CD_Year_list,1,CD_Year_list,CD_Year_list
-SS_Name_CD_Year_selected,0,2000,2000
-SS_Name_models,0,Model types,모델유형
-SS_Name_models_list,1,SDM_models_list,SDM_models_list
-SS_Name_models_selected,0,GLM,GLM
-SS_Name_EMmodels,0,Ensemble,앙상블
-SS_Name_models_run,0,Run,실행
-SS_Name_models_out,0,Model types,모델유형
-SS_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
-SS_Name_models_out_selected,0,GLM,GLM
-SS_Name_CD_Models_out,0,Climate Models,기후모델
-SS_Name_CD_Models_out_list,1,CD_Models_list,CD_Models_list
-SS_Name_CD_Models_out_selected,0,KMA,KMA
-SS_Name_CD_Scenarios_out,0,Climate Scenarios,기후시나리오
-SS_Name_CD_Scenarios_out_list,1,CD_Scenarios_list,CD_Scenarios_list
-SS_Name_CD_Scenarios_out_selected,0,RCP4.5,RCP4.5
-SS_Name_CD_Year_out,0,Projecting Years,예측년도
-SS_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
-SS_Name_CD_Year_out_selected,0,2000,2000
-SS_Name_Group1_list,1,SS_Group1_list,SS_Group1_list
-SS_Name_Group11_selected,0,Species,Species
-SS_Name_Group12_selected,0,Climate_Model,Climate_Model
-SS_Name_Group13_selected,0,Climate_Scenario,Climate_Scenario
-SS_Name_Group14_selected,0,Model,Model
-SS_Name_Group15_selected,0,Year,Year
-SS_Name_Group2_list,1,SS_Group2_list,SS_Group2_list
-SS_Name_Group21_selected,0,Species,Species
-SS_Name_Group22_selected,0,Climate_Model,Climate_Model
-SS_Name_Group23_selected,0,Climate_Scenario,Climate_Scenario
-SS_Name_Group24_selected,0,Model,Model
-SS_Name_Group3_list,1,SS_Group3_list,SS_Group3_list
-SS_Name_Group31_selected,0,Climate_Model,Climate_Model
-SS_Name_Group32_selected,0,Climate_Scenario,Climate_Scenario
-SS_Name_Group33_selected,0,Model,Model
-SS_Name_Group34_selected,0,Year,Year
-SS_Name_Group35_selected,0,Species,Species
-SS_Name_MO_Dir,0,Input Folder,민감종평가 입력폴더
-SS_Name_AO_Dir,0,Output Folder,민감종평가 결과폴더
-IS_Name,0,Invasive Species,외래종
-IS_Name_Anlayis,0,Change Analysis,영향 평가
-IS_Name_Out,0,Model Outputs,평가결과
-IS_Name_Out_Species,0,Invasive Species Distribution,외래종 분포
-IS_Name_Out_SR,0,Invasive species Richness,외래종 풍부도
-IS_Name_Out_SI,0,Invasive species Introduction,외래종 유입
-IS_Name_Out_Map,0,Map,지도
-IS_Name_Out_SIDO,0,SIDO,시도
-IS_Name_Out_SGG,0,SIGUNGU,시군구
-IS_Name_Out_Stat,0,Statistics,통계
-IS_Name_DM_Models,0,DIspersal Types,확산유형
-IS_Name_DM_Models_list,1,DM_Models_list,DM_Models_list
-IS_Name_DM_Models_selected,0,BIOMOD2,BIOMOD2
-IS_Name_CD_Models,0,Climate Models,기후모델
-IS_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
-IS_Name_CD_Models_selected,0,KMA,KMA
-IS_Name_CD_Scenarios,0,Climate Scenarios,기후시나리오
-IS_Name_CD_Scenarios_list,1,CD_Scenarios_list,CD_Scenarios_list
-IS_Name_CD_Scenarios_selected,0,RCP4.5,RCP4.5
-IS_Name_CD_Year,0,Projecting Years,예측년도
-IS_Name_CD_Year_list,1,CD_Year_list,CD_Year_list
-IS_Name_CD_Year_selected,0,2000,2000
-IS_Name_models,0,Model types,모델유형
-IS_Name_models_list,1,SDM_models_list,SDM_models_list
-IS_Name_models_selected,0,GLM,GLM
-IS_Name_EMmodels,0,Ensemble,앙상블
-IS_Name_models_run,0,Run,실행
-IS_Name_models_out,0,Model types,모델유형
-IS_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
-IS_Name_models_out_selected,0,GLM,GLM
-IS_Name_Dir,0,Output Folder,외래종 평가결과 폴더
-IS_Name_Action,0,Assessing Impact and Vulnerabilty of Invasive Species Group,외래종 영향 및 취약성 평가 실행
-IS_Name_Action_Admin_Species,0,Reclassifying Species Analysis by Administration,행정구역별로 종별 결과 재분류
-IS_Name_Action_Admin_Group,0,Reclassifying Species Group Analysis by Administration,행정구역별로 종그룹 결과 재분류
-IS_Name_Admin,0,Select a Administration Type,행정구역유형을 선택하세요
-IS_Name_Admin_list,1,IS_Group_list,IS_Group_list
-IS_Name_Admin_selected,0,SD,SD
-IS_Name_CD_Models_out,0,Climate Models,기후모델
-IS_Name_CD_Models_out_list,1,CD_Models_list,CD_Models_list
-IS_Name_CD_Models_out_selected,0,KMA,KMA
-IS_Name_CD_Scenarios_out,0,Climate Scenarios,기후시나리오
-IS_Name_CD_Scenarios_out_list,1,CD_Scenarios_list,CD_Scenarios_list
-IS_Name_CD_Scenarios_out_selected,0,RCP4.5,RCP4.5
-IS_Name_CD_Year_out,0,Projecting Years,예측년도
-IS_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
-IS_Name_CD_Year_out_selected,0,2000,2000
-IS_Name_MO_Dir,0,Input Folder,외래종평가 입력폴더
-IS_Name_AO_Dir,0,Output Folder,외래종평가 결과폴더
+SA_Name,0,Species Assessment,생물종 평가
+SA_Name_Analysis,0,Impact and Vulnerability Asessment,영향 및 취약성평가
+SA_Name_Out,0,Assessment Result,평가결과
+SA_Name_Out_ChangePlot,0,Distribution Change Result,분포변화 결과
+SA_Name_Out_IV_Table,0,Vulnerability Table,취약성 지수 결과
+SA_Name_Out_IV_GainLoss,0,Vulnerability Gain_Loss Ratio,취약성 면적변화비
+SA_Name_Out_IV_Pattern,0,Vulnerability Pattern,취약성 패턴
+SA_Name_Out_IV_Order,0,Vulnerability Order,취약성 순위
+SA_Name_DM_Models,0,DIspersal Types,확산모형
+SA_Name_DM_Models_list,1,DM_Models_list,DM_Models_list
+SA_Name_DM_Models_selected,0,BIOMOD2,BIOMOD2
+SA_Name_CD_Models,0,Climate Models,기후모델
+SA_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
+SA_Name_CD_Models_selected,0,KMA,KMA
+SA_Name_CD_Scenarios,0,Climate Scenarios,기후시나리오
+SA_Name_CD_Scenarios_list,1,CD_Scenarios_list,CD_Scenarios_list
+SA_Name_CD_Scenarios_selected,0,RCP4.5,RCP4.5
+SA_Name_CD_Year,0,Projecting Years,예측년도
+SA_Name_CD_Year_list,1,CD_Year_list,CD_Year_list
+SA_Name_CD_Year_selected,0,2000,2000
+SA_Name_models,0,Model types,모델유형
+SA_Name_models_list,1,SDM_models_list,SDM_models_list
+SA_Name_models_selected,0,GLM,GLM
+SA_Name_EMmodels,0,Ensemble,앙상블
+SA_Name_models_run,0,Run,실행
+SA_Name_models_out,0,Model types,모델유형
+SA_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
+SA_Name_models_out_selected,0,GLM,GLM
+SA_Name_CD_Models_out,0,Climate Models,기후모델
+SA_Name_CD_Models_out_list,1,CD_Models_list,CD_Models_list
+SA_Name_CD_Models_out_selected,0,KMA,KMA
+SA_Name_CD_Scenarios_out,0,Climate Scenarios,기후시나리오
+SA_Name_CD_Scenarios_out_list,1,CD_Scenarios_list,CD_Scenarios_list
+SA_Name_CD_Scenarios_out_selected,0,RCP4.5,RCP4.5
+SA_Name_CD_Year_out,0,Projecting Years,예측년도
+SA_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
+SA_Name_CD_Year_out_selected,0,2000,2000
+SA_Name_Group1_list,1,SA_Group1_list,SA_Group1_list
+SA_Name_Group11_selected,0,Species,Species
+SA_Name_Group12_selected,0,Climate_Model,Climate_Model
+SA_Name_Group13_selected,0,Climate_Scenario,Climate_Scenario
+SA_Name_Group14_selected,0,Model,Model
+SA_Name_Group15_selected,0,Year,Year
+SA_Name_Group2_list,1,SA_Group2_list,SA_Group2_list
+SA_Name_Group21_selected,0,Species,Species
+SA_Name_Group22_selected,0,Climate_Model,Climate_Model
+SA_Name_Group23_selected,0,Climate_Scenario,Climate_Scenario
+SA_Name_Group24_selected,0,Model,Model
+SA_Name_Group3_list,1,SA_Group3_list,SA_Group3_list
+SA_Name_Group31_selected,0,Climate_Model,Climate_Model
+SA_Name_Group32_selected,0,Climate_Scenario,Climate_Scenario
+SA_Name_Group33_selected,0,Model,Model
+SA_Name_Group34_selected,0,Year,Year
+SA_Name_Group35_selected,0,Species,Species
+SA_Name_MO_Dir,0,Input Folder,민감종평가 입력폴더
+SA_Name_AO_Dir,0,Output Folder,민감종평가 결과폴더
+HA_Name,0,Habitat Assessment,서식지 평가
+HA_Name_Anlayis,0,Change Analysis,영향 평가
+HA_Name_Out,0,Model Outputs,평가결과
+HA_Name_Out_Species,0,Species Distribution,생물종 분포
+HA_Name_Out_SR,0,Species Richness,생물종 풍부도
+HA_Name_Out_SI,0,Species Introduction,생물종 유입
+HA_Name_Out_Map,0,Map,지도
+HA_Name_Out_SIDO,0,SIDO,시도
+HA_Name_Out_SGG,0,SIGUNGU,시군구
+HA_Name_Out_Stat,0,Statistics,통계
+HA_Name_DM_Models,0,DIspersal Types,확산유형
+HA_Name_DM_Models_list,1,DM_Models_list,DM_Models_list
+HA_Name_DM_Models_selected,0,BIOMOD2,BIOMOD2
+HA_Name_CD_Models,0,Climate Models,기후모델
+HA_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
+HA_Name_CD_Models_selected,0,KMA,KMA
+HA_Name_CD_Scenarios,0,Climate Scenarios,기후시나리오
+HA_Name_CD_Scenarios_list,1,CD_Scenarios_list,CD_Scenarios_list
+HA_Name_CD_Scenarios_selected,0,RCP4.5,RCP4.5
+HA_Name_CD_Year,0,Projecting Years,예측년도
+HA_Name_CD_Year_list,1,CD_Year_list,CD_Year_list
+HA_Name_CD_Year_selected,0,2000,2000
+HA_Name_models,0,Model types,모델유형
+HA_Name_models_list,1,SDM_models_list,SDM_models_list
+HA_Name_models_selected,0,GLM,GLM
+HA_Name_EMmodels,0,Ensemble,앙상블
+HA_Name_models_run,0,Run,실행
+HA_Name_models_out,0,Model types,모델유형
+HA_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
+HA_Name_models_out_selected,0,GLM,GLM
+HA_Name_Dir,0,Output Folder,평가결과 폴더
+HA_Name_Action,0,Assessing Impact and Vulnerabilty of Invasive Species Group,서식지 영향 및 취약성 평가 실행
+HA_Name_Action_Admin_Species,0,Reclassifying Species Analysis by Administration,행정구역별로 생물종 결과 재분류
+HA_Name_Action_Admin_Group,0,Reclassifying Species Group Analysis by Administration,행정구역별로 생물종그룹 결과 재분류
+HA_Name_Admin,0,Select a Administration Type,행정구역유형을 선택하세요
+HA_Name_Admin_list,1,HA_Group_list,HA_Group_list
+HA_Name_Admin_selected,0,SD,SD
+HA_Name_CD_Models_out,0,Climate Models,기후모델
+HA_Name_CD_Models_out_list,1,CD_Models_list,CD_Models_list
+HA_Name_CD_Models_out_selected,0,KMA,KMA
+HA_Name_CD_Scenarios_out,0,Climate Scenarios,기후시나리오
+HA_Name_CD_Scenarios_out_list,1,CD_Scenarios_list,CD_Scenarios_list
+HA_Name_CD_Scenarios_out_selected,0,RCP4.5,RCP4.5
+HA_Name_CD_Year_out,0,Projecting Years,예측년도
+HA_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
+HA_Name_CD_Year_out_selected,0,2000,2000
+HA_Name_MO_Dir,0,Input Folder,서식지평가 입력폴더
+HA_Name_AO_Dir,0,Output Folder,서식지평가 결과폴더
+HA_Name_SD_Habitat_Types,0,Habitat Type,서식지 유형
+HA_Name_SD_Habitat_Types_list,1,HA_Group1_list,HA_Group1_list
+HA_Name_SD_Habitat_Types_selected,0,Distribution,Distribution
+HA_Name_SD_Habitat_Plot_Types,0,Habitat Plot Type,서식지 출력 유형
+HA_Name_SD_Habitat_Plot_Types_list,1,HA_Group2_list,HA_Group2_list
+HA_Name_SD_Habitat_Plot_Types_selected,0,Map,Map
 VH_Name,0,Vulnerable Habitat,취약서식지
 VH_Name_Analysis,0,Change Analysis,영향 및 취약성평가
 VH_Name_Out,0,Model Outputs,평가결과

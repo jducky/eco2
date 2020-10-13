@@ -10,8 +10,8 @@
 #SDMTools
 #MigClim1.6.2
 
-packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
-libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
+packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
+libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
 
 # packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
 # libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
@@ -76,8 +76,8 @@ if (length(destfile) == 0 | !file.exists(destfile)) {
   G$SE_Species_Name <- as.character(system_env[11,2])
   G$SE_Species_Location_Longitude <- as.character(system_env[12,2])
   G$SE_Species_Location_Latitude <- as.character(system_env[13,2])
-  Input_img <- as.character(system_env[14,2])
-  Output_img <- as.character(system_env[15,2])
+  G$IMG_File <- as.character(system_env[14,2])
+  G$IMG_Info <- as.character(system_env[15,2])
 }
 
 
@@ -108,10 +108,18 @@ if (length(destfile) == 0 | !file.exists(destfile)) {
 
 G$SDM_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")
 G$SDM_AO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Species_Distribution", sep = "")
-G$IS_MI_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
-G$IS_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
-G$IS_AO_MI_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
-G$IS_AO_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
+G$HA_MI_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
+G$HA_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
+G$HA_AO_MI_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
+G$HA_AO_MO_Dir_Folder <- paste(isolate(G$SE_Dir_Project), "/Invasive_Species", sep = "")
+
+
+G$DIR_NAME_Species <- "Species_Assessment"
+G$DIR_NAME_Habitat <- "Habitat_Assessment"
+G$DIR_NAME_SDM <- "BIOMOD2"
+G$DIR_NAME_SRM <- "SRM_"
+G$DIR_NAME_DM <- "MIGCLIM_"
+
 
 Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[16,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
@@ -186,17 +194,23 @@ names(Hull_Cluster_Method_list) = as.character(Option_lists[,"Hull_Cluster_Metho
 Hull_VoronoiHull_sampling_Type_list = as.character(Option_lists[,"Hull_VoronoiHull_sampling_Type_value"][Option_lists[,"Hull_VoronoiHull_sampling_Type_value"] != ""])
 names(Hull_VoronoiHull_sampling_Type_list) = as.character(Option_lists[,"Hull_VoronoiHull_sampling_Type_name"][Option_lists[,"Hull_VoronoiHull_sampling_Type_name"] != ""])
 
-SS_Group1_list = as.character(Option_lists[,"SS_Group1_value"][Option_lists[,"SS_Group1_value"] != ""])
-names(SS_Group1_list) = as.character(Option_lists[,"SS_Group1_name"][Option_lists[,"SS_Group1_name"] != ""])
+SA_Group1_list = as.character(Option_lists[,"SA_Group1_value"][Option_lists[,"SA_Group1_value"] != ""])
+names(SA_Group1_list) = as.character(Option_lists[,"SA_Group1_name"][Option_lists[,"SA_Group1_name"] != ""])
 
-SS_Group2_list = as.character(Option_lists[,"SS_Group2_value"][Option_lists[,"SS_Group2_value"] != ""])
-names(SS_Group2_list) = as.character(Option_lists[,"SS_Group2_name"][Option_lists[,"SS_Group2_name"] != ""])
+SA_Group2_list = as.character(Option_lists[,"SA_Group2_value"][Option_lists[,"SA_Group2_value"] != ""])
+names(SA_Group2_list) = as.character(Option_lists[,"SA_Group2_name"][Option_lists[,"SA_Group2_name"] != ""])
 
-SS_Group3_list = as.character(Option_lists[,"SS_Group3_value"][Option_lists[,"SS_Group3_value"] != ""])
-names(SS_Group3_list) = as.character(Option_lists[,"SS_Group3_name"][Option_lists[,"SS_Group3_name"] != ""])
+SA_Group3_list = as.character(Option_lists[,"SA_Group3_value"][Option_lists[,"SA_Group3_value"] != ""])
+names(SA_Group3_list) = as.character(Option_lists[,"SA_Group3_name"][Option_lists[,"SA_Group3_name"] != ""])
 
-IS_Group_list = as.character(Option_lists[,"IS_Group_value"][Option_lists[,"IS_Group_value"] != ""])
-names(IS_Group_list) = as.character(Option_lists[,"IS_Group_name"][Option_lists[,"IS_Group_name"] != ""])
+HA_Group_list = as.character(Option_lists[,"HA_Group_value"][Option_lists[,"HA_Group_value"] != ""])
+names(HA_Group_list) = as.character(Option_lists[,"HA_Group_name"][Option_lists[,"HA_Group_name"] != ""])
+
+HA_Group1_list = as.character(Option_lists[,"HA_Group1_value"][Option_lists[,"HA_Group1_value"] != ""])
+names(HA_Group1_list) = as.character(Option_lists[,"HA_Group1_name"][Option_lists[,"HA_Group1_name"] != ""])
+
+HA_Group2_list = as.character(Option_lists[,"HA_Group2_value"][Option_lists[,"HA_Group2_value"] != ""])
+names(HA_Group2_list) = as.character(Option_lists[,"HA_Group2_name"][Option_lists[,"HA_Group2_name"] != ""])
 
 VH_Group_list = as.character(Option_lists[,"VH_Group_value"][Option_lists[,"VH_Group_value"] != ""])
 names(VH_Group_list) = as.character(Option_lists[,"VH_Group_name"][Option_lists[,"VH_Group_name"] != ""])
