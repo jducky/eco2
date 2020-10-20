@@ -71,7 +71,7 @@ SDM_Name_Model_Out_Contribution,0,Contribution,변수기여도
 SDM_Name_Model_Out_Probability,0,Probability Map,확률지도
 SDM_Name_Model_Out_Prediction,0,Predicted Map,예측지도
 SDM_Name_MO_Variables,0,SDM Variables,SDM 변수
-SDM_Name_MO_AO_Variables,0,Modeling Output Variables,모형결과변수
+SDM_Name_MO_AO_Variables,0,Modeling Input Variables,모형입력변수
 SDM_Name_MO_Variables_list,1,SDM_Variables_list,SDM_Variables_list
 SDM_Name_MO_Variables_selected,1,SDM_Variables_selected,SDM_Variables_selected
 SDM_Name_MO_AO_Variables_list,1,SDM_AO_Variables_list,SDM_AO_Variables_list
@@ -90,7 +90,7 @@ SDM_Name_models_list,1,SDM_models_list,SDM_models_list
 SDM_Name_models_selected,0,GLM,GLM
 SDM_Name_EMmodels,0,Ensemble,앙상블
 SDM_Name_models_run,0,Run,실행
-SDM_MO_AO_Variables_Create,0,Create,변수생성
+SDM_Name_MO_Variables_Create,0,Create Variables,변수생성
 SDM_Name_models_out,0,Model types,모델유형
 SDM_Name_models_out_list,0,SDM_models_out_list,SDM_models_out_list
 SDM_Name_models_out_selected,0,GLM,GLM
@@ -193,9 +193,9 @@ DM_Name_Dir,0,DM Output Folder,DM 평가결과 폴더
 SA_Name,0,Species Assessment,생물종 평가
 SA_Name_Analysis,0,Impact and Vulnerability Asessment,영향 및 취약성평가
 SA_Name_Out,0,Assessment Result,평가결과
-SA_Name_Out_ChangePlot,0,Distribution Change Result,분포변화 결과
-SA_Name_Out_IV_Table,0,Vulnerability Table,취약성 지수 결과
-SA_Name_Out_IV_GainLoss,0,Vulnerability Gain_Loss Ratio,취약성 면적변화비
+SA_Name_Out_ChangePlot,0,Distribution Change,분포변화
+SA_Name_Out_IV_Table,0,Vulnerability Table,취약성 지수
+SA_Name_Out_IV_GainLoss,0,Loss_Gain Area Ratio,면적변화비
 SA_Name_Out_IV_Pattern,0,Vulnerability Pattern,취약성 패턴
 SA_Name_Out_IV_Order,0,Vulnerability Order,취약성 순위
 SA_Name_DM_Models,0,DIspersal Types,확산모형
@@ -228,22 +228,11 @@ SA_Name_CD_Year_out,0,Projecting Years,예측년도
 SA_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
 SA_Name_CD_Year_out_selected,0,2000,2000
 SA_Name_Group1_list,1,SA_Group1_list,SA_Group1_list
-SA_Name_Group11_selected,0,Species,Species
-SA_Name_Group12_selected,0,Climate_Model,Climate_Model
-SA_Name_Group13_selected,0,Climate_Scenario,Climate_Scenario
-SA_Name_Group14_selected,0,Model,Model
-SA_Name_Group15_selected,0,Year,Year
+SA_Name_Group1_selected,0,Species,Species
 SA_Name_Group2_list,1,SA_Group2_list,SA_Group2_list
-SA_Name_Group21_selected,0,Species,Species
-SA_Name_Group22_selected,0,Climate_Model,Climate_Model
-SA_Name_Group23_selected,0,Climate_Scenario,Climate_Scenario
-SA_Name_Group24_selected,0,Model,Model
+SA_Name_Group2_selected,0,Species,Species
 SA_Name_Group3_list,1,SA_Group3_list,SA_Group3_list
-SA_Name_Group31_selected,0,Climate_Model,Climate_Model
-SA_Name_Group32_selected,0,Climate_Scenario,Climate_Scenario
-SA_Name_Group33_selected,0,Model,Model
-SA_Name_Group34_selected,0,Year,Year
-SA_Name_Group35_selected,0,Species,Species
+SA_Name_Group3_selected,0,Species,Species
 SA_Name_MO_Dir,0,Input Folder,민감종평가 입력폴더
 SA_Name_AO_Dir,0,Output Folder,민감종평가 결과폴더
 HA_Name,0,Habitat Assessment,서식지 평가
@@ -251,7 +240,10 @@ HA_Name_Anlayis,0,Change Analysis,영향 평가
 HA_Name_Out,0,Model Outputs,평가결과
 HA_Name_Out_Species,0,Species Distribution,생물종 분포
 HA_Name_Out_SR,0,Species Richness,생물종 풍부도
-HA_Name_Out_SI,0,Species Introduction,생물종 유입
+HA_Name_Out_SL,0,Species Loss,생물종 소실
+HA_Name_Out_SS,0,Species Stay,생물종 잔존
+HA_Name_Out_SG,0,Species Gain,생물종 유입
+HA_Name_Out_VI,0,Habitat Vulnerability,서식지 취약성
 HA_Name_Out_Map,0,Map,지도
 HA_Name_Out_SIDO,0,SIDO,시도
 HA_Name_Out_SGG,0,SIGUNGU,시군구
@@ -278,8 +270,8 @@ HA_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
 HA_Name_models_out_selected,0,GLM,GLM
 HA_Name_Dir,0,Output Folder,평가결과 폴더
 HA_Name_Action,0,Assessing Impact and Vulnerabilty of Invasive Species Group,서식지 영향 및 취약성 평가 실행
-HA_Name_Action_Admin_Species,0,Reclassifying Species Analysis by Administration,행정구역별로 생물종 결과 재분류
-HA_Name_Action_Admin_Group,0,Reclassifying Species Group Analysis by Administration,행정구역별로 생물종그룹 결과 재분류
+HA_Name_Action_Admin_Species,0,Reclassifying Species Analysis by Administration,서식지별로 생물종 결과 재분류
+HA_Name_Action_Admin_Group,0,Reclassifying Species Group Analysis by Administration,서식지별로 생물종그룹 결과 재분류
 HA_Name_Admin,0,Select a Administration Type,행정구역유형을 선택하세요
 HA_Name_Admin_list,1,HA_Group_list,HA_Group_list
 HA_Name_Admin_selected,0,SD,SD
@@ -300,61 +292,8 @@ HA_Name_SD_Habitat_Types_selected,0,Distribution,Distribution
 HA_Name_SD_Habitat_Plot_Types,0,Habitat Plot Type,서식지 출력 유형
 HA_Name_SD_Habitat_Plot_Types_list,1,HA_Group2_list,HA_Group2_list
 HA_Name_SD_Habitat_Plot_Types_selected,0,Map,Map
-VH_Name,0,Vulnerable Habitat,취약서식지
-VH_Name_Analysis,0,Change Analysis,영향 및 취약성평가
-VH_Name_Out,0,Model Outputs,평가결과
-VH_Name_Out_Species,0,Species Distribution,생물종 분포
-VH_Name_Out_Dir,0,Habitat Assessment Output Folder,평가결과 디렉토리
-VH_Name_Out_SR,0,Species Richness,생물종 풍부도
-VH_Name_Out_SL,0,Species Loss,생물종 소실
-VH_Name_Out_SS,0,Species Stay,생물종 유지
-VH_Name_Out_SI,0,Species Introduction,생물종 유입
-VH_Name_Out_VI1,0,Vulnerability 1,취약성평가 1
-VH_Name_Out_VI2,0,Vulnerability 2,취약성평가 2
-VH_Name_Out_VI3,0,Vulnerability 3,취약성평가 3
-VH_Name_Out_Map,0,Map,지도
-VH_Name_Out_SIDO,0,SIDO,시도
-VH_Name_Out_SGG,0,SIGUNGU,시군구
-VH_Name_Out_NP,0,National Park,국립공원
-VH_Name_Out_BR,0,Baekdu Range,백두대간
-VH_Name_Out_DMZ,0,DMZ,DMZ
-VH_Name_Out_Stat,0,Statistics,통계
-VH_Name_DM_Models,0,DIspersal Types,확산유형
-VH_Name_DM_Models_list,1,DM_Models_list,DM_Models_list
-VH_Name_DM_Models_selected,0,BIOMOD2,BIOMOD2
-VH_Name_CD_Models,0,Climate Models,기후모델
-VH_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
-VH_Name_CD_Models_selected,0,KMA,KMA
-VH_Name_CD_Scenarios,0,Climate Scenarios,기후시나리오
-VH_Name_CD_Scenarios_list,1,CD_Scenarios_list,CD_Scenarios_list
-VH_Name_CD_Scenarios_selected,0,RCP4.5,RCP4.5
-VH_Name_CD_Year,0,Projecting Years,예측년도
-VH_Name_CD_Year_list,1,CD_Year_list,CD_Year_list
-VH_Name_CD_Year_selected,0,2000,2000
-VH_Name_models,0,Model types,모델유형
-VH_Name_models_list,1,SDM_models_list,SDM_models_list
-VH_Name_models_selected,0,GLM,GLM
-VH_Name_EMmodels,0,Ensemble,앙상블
-VH_Name_models_run,0,Run,실행
-VH_Name_Dir,0,Output Folder,서식지 평가결과 폴더
-VH_Name_Action,0,Assessing Impact and Vulnerabilty,영향 및 취약성 평가 실행
-VH_Name_Action_Habitat,0,Grouping by Habitat,서식지별로 결과분석
-VH_Name_Habitat,0,Select a Habitat Type,서식지유형을 선택하세요
-VH_Name_Habitat_list,1,VH_Group_list,VH_Group_list
-VH_Name_Habitat_selected,0,SD,SD
-VH_Name_models_out,0,Model types,모델유형
-VH_Name_models_out_list,1,SDM_models_out_list,SDM_models_out_list
-VH_Name_models_out_selected,0,GLM,GLM
-VH_Name_CD_Models_out,0,Climate Models,기후모델
-VH_Name_CD_Models_out_list,1,CD_Models_list,CD_Models_list
-VH_Name_CD_Models_out_selected,0,KMA,KMA
-VH_Name_CD_Scenarios_out,0,Climate Scenarios,기후시나리오
-VH_Name_CD_Scenarios_out_list,1,CD_Scenarios_list,CD_Scenarios_list
-VH_Name_CD_Scenarios_out_selected,0,RCP4.5,RCP4.5
-VH_Name_CD_Year_out,0,Projecting Years,예측년도
-VH_Name_CD_Year_out_list,1,CD_Year_list,CD_Year_list
-VH_Name_CD_Year_out_selected,0,2000,2000
-VH_Name_MO_Dir,0,Input Folder,취약서식지평가 입력폴더
-VH_Name_AO_Dir,0,Output Folder,취약서식지평가 결과폴더
+HA_Name_VI_Types,0,Vulnerability Type,취약성 유형
+HA_Name_VI_Types_list,1,HA_VI_list,HA_VI_list
+HA_Name_VI_Types_selected,0,HA_VI1,HA_VI1
 HELP_Name,0,Help,도움말
 HELP_Name_Content,0,"MOTIVE Ecosystem (Climate Change Impact and Vulnerability Assessment Model for Ecosystem) was funded by the “Climate Change Response Technology Project” of the Ministry of Environment, the Republic of Korea (Project No.: 2014001310009)",MOTIVE Ecosystem (생태계 기후변화 영향 및 취약성평가모형)은 대한민국 환경부 기후변화 R&D 과제인 “Climate Change Response Technology Project” (Project No.: 2014001310009)의 결과물입니다.

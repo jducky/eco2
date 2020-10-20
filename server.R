@@ -11,18 +11,6 @@ shinyServer(function(input, output) {
 	global <- reactiveValues(response = FALSE)
 
   
-#	onclick("kor_link_top", SE$Language <<- "Korean")
-#	onclick("eng_link_top", SE$Language <<- "English")
-
-#	observeEvent(input$login, {
-#		showModal(modalDialog(
-#			title = "You have logged in.",
-#			paste0("It seems you have logged in as ",input$userid,'.'),
-#			easyClose = TRUE,
-#			footer = NULL
-#		))
-#	})
-
 	output$SE_Project <- renderUI({
 	  if (G_Project_info_CHK) {
 	    Project_list <- as.character(Project_info[,1])
@@ -361,13 +349,24 @@ shinyServer(function(input, output) {
 		rs <- input$SP_Info_rows_selected 
 		if (length(rs)) {
 			species_data <- inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[rs, , drop = FALSE], by = G$SE_Species_ID)
+			
+			
+			anglerIcon <- makeIcon(
+			  iconUrl = "leaf-red.png",
+			  iconWidth = 64, iconHeight = 64,
+			  iconAnchorX = 22, iconAnchorY = 94,
+			  shadowUrl = "leaf-shadow.png",
+			  shadowWidth = 50, shadowHeight = 64,
+			  shadowAnchorX = 4, shadowAnchorY = 62
+			)
+
 			leaflet(data = species_data) %>%
 			addTiles(
 					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
 
-			addMarkers(lng = species_data[, G$SE_Species_Location_Longitude], lat = species_data[, G$SE_Species_Location_Latitude], popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_ID]) %>%
+			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})
@@ -375,55 +374,80 @@ shinyServer(function(input, output) {
 	output$SP_LOC_Info <- DT::renderDataTable(inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[input$SP_Info_rows_selected, , drop = FALSE], by = G$SE_Species_ID), server = TRUE)
 	
 	output$SP_LOC_Map <- renderLeaflet({
-		rs <- input$SP_LOC_Info_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+		rs <- input$SP_LOC_Info_rows_selected
+		
 		if (length(rs)) {
-			species_data <- G_FILE_specieslocation[rs, , drop = FALSE]
+			species_data <<- G_FILE_specieslocation[rs, , drop = FALSE]
+			
+			anglerIcon <- makeIcon(
+			  iconUrl = "leaf-green.png",
+			  iconWidth = 64, iconHeight = 64,
+			  iconAnchorX = 22, iconAnchorY = 94,
+			  shadowUrl = "leaf-shadow.png",
+			  shadowWidth = 50, shadowHeight = 64,
+			  shadowAnchorX = 4, shadowAnchorY = 62
+			)
+			
 			leaflet(data = species_data) %>%
 			addTiles(
 					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
 	
-			  addMarkers(lng = species_data[, G$SE_Species_Location_Longitude], lat = species_data[, G$SE_Species_Location_Latitude], popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_ID]) %>%
+			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_ID], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
+	})  
+	
+	output$LD_Map <- renderLeaflet({
+	  
+    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+    r <- raster(file)
+		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+		r <- as.factor(r)
+		if (input$LD_Variables == "Landuse_ssp1" | input$LD_Variables == "Landuse_ssp2" | input$LD_Variables == "Landuse_ssp3") {
+		  col <- colorNumeric(c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), values(r), na.color = "transparent")
+		  pal <- colorFactor(palette = c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), domain = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), na.color = "transparent", ordered = T)
+	    leaflet() %>%
+		  addTiles(
+			  	urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+			  	attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+		  ) %>%
+		  
+		  	
+		  addRasterImage(r, colors = col, opacity = 0.8,) %>%
+		  addLegend(position = "topright", pal = pal, values = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), title = "Legend")  %>%
+		  setView(lng = 127.00, lat = 36.00, zoom = 7)
+		} else {
+		  pal <- colorNumeric(c("deepskyblue4", "aliceblue", "firebrick4"), values(r), na.color = "transparent")	
+		  leaflet() %>%
+		  addTiles(
+		    urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+		    attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+		  ) %>%		  
+		  addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+		  addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+		  setView(lng = 127.00, lat = 36.00, zoom = 7)
+		}
+		
 	})  
 	
 	output$LD_Summary <- renderPrint({
 	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
 	  r <- raster(file)
 	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-		summary(r)
+	  summary(r)
 	})
 	
 	output$LD_Histogram <- renderPlot({
 	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
 	  x <- raster(file)
-		hist(x, # breaks = bins, 
-			col="orange",
-			border="brown",
-			xlab = input$CD_Variables,
-			main = "Histogram")
+	  hist(x, # breaks = bins, 
+	       col="lightskyblue3",  # skyblue",
+	       border="white",
+	       xlab = input$LD_Variables,
+	       main = "Histogram")
 	})  
-	
-	output$LD_Map <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
-        r <- raster(file)
-		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-							na.color = "transparent")
-	
-		leaflet() %>%
-		addTiles(
-				urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-				attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-		) %>%        
-	
-		addRasterImage(r, colors = pal, opacity = 0.8,) %>%
-		addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
-		setView(lng = 127.00, lat = 36.00, zoom = 7)
-	})  
-	
 	
 	output$LD_Map_Landuse <- renderLeaflet({	
 	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
@@ -435,8 +459,9 @@ shinyServer(function(input, output) {
 	    }	
 	    r[r < 9999] <- 0
 	    r[r == 9999] <- 1
+
 	    
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	    pal <- colorFactor(c("gray90", "red3"), values(r),
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
@@ -460,7 +485,7 @@ shinyServer(function(input, output) {
 	    r[r == 9999] <- 1
 	    r <- as.integer(r)	
 	    
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	    pal <- colorNumeric(c("gray90", "red3"), values(r),
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
@@ -484,7 +509,7 @@ shinyServer(function(input, output) {
 	    r[r == 9999] <- 1
 	    r <- as.integer(r)	
 	    
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+	    pal <- colorNumeric(c("gray90", "red3"), values(r),
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
@@ -510,6 +535,25 @@ shinyServer(function(input, output) {
     )
 	})
 	
+	output$CD_Map <- renderLeaflet({
+	  #		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
+	  file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
+	  r <- raster(file)
+	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  pal <- colorNumeric(c("deepskyblue4", "aliceblue", "firebrick4"), values(r),
+	                      na.color = "transparent")
+	  
+	  leaflet() %>%
+	    addTiles(
+	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+	    ) %>%        
+	    
+	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
+	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+	    setView(lng = 128.00, lat = 36.00, zoom = 7)
+	})
+	
 	output$CD_Summary <- renderPrint({
 #		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
 		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
@@ -524,31 +568,12 @@ shinyServer(function(input, output) {
 		x <- raster(file)
 		crs(x) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		hist(x, # breaks = bins, 
-			col="orange",
-			border="brown",
+			col="lightskyblue3",
+			border="white",
 			xlab = input$CD_Variables,
 			main = "Histogram")
 	})
    
-	
-	output$CD_Map <- renderLeaflet({
-#		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
-		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
-		r <- raster(file)
-		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-		pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-							na.color = "transparent")
-	
-		leaflet() %>%
-		addTiles(
-				urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-				attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-		) %>%        
-	
-		addRasterImage(r, colors = pal, opacity = 0.8) %>%
-		addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-		setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
 	
 	output$SDM_SP_Info <- DT::renderDataTable({
 	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
@@ -1476,21 +1501,39 @@ shinyServer(function(input, output) {
 	output$SDM_OU_Validation_BoxPlot <- renderPlot({
 		rs <- input$SDM_OU_Validation_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs)) {
-			Eval_data <- G_FILE_species_evaluation[rs, , drop = FALSE]
+			Eval_data <<- G_FILE_species_evaluation[rs, , drop = FALSE]
+			
+#			plotly::plot_ly(data = reshape2::melt(Eval_data), type = "box", group = ~Type, y = ~Accuracy)
+			ggplot(Eval_data, aes(x=Type, y=Accuracy, fill=Type)) + geom_boxplot() + scale_fill_brewer(palette = "Set2") # + facet_grid(~College) 
+#			ggplot(HumorData, aes(x=Gender, y=Funniness, fill=Gender)) + geom_boxplot(notch=TRUE) + facet_grid(~College)
 	
-			boxplot(Accuracy~Type,
-				data=Eval_data,
-				main="Boxplots by Type",
-				xlab="Type",
-				ylab="Value",
-				varwidth = TRUE,
-				col="orange",
-				border="brown"
-			)
+#			boxplot(Accuracy~Type,
+#				data=Eval_data,
+#				main="Boxplots by Type",
+#				xlab="Type",
+#				ylab="Value",
+#				varwidth = TRUE,
+#				col="orange",
+#				border="brown"
+#			)
 		}
 	})
 	
 	output$SDM_OU_Contribution <- DT::renderDataTable({
+	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
+	  destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
+	  
+	  if (!file.exists(destfile)) {
+	    return(NULL)
+	  }
+	  
+	  new_import <- read.csv(destfile)
+	  data <- data.frame(new_import)
+	  rename(data, c("X" = "Label"))
+	  
+	})
+	
+	output$SDM_OU_Contribution_org <- DT::renderDataTable({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
 		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
 	
@@ -1506,7 +1549,7 @@ shinyServer(function(input, output) {
 		data[-c(1,2),]
 	})
 	
-	output$SDM_OU_Contribution_Radarchart <- renderPlot({
+	output$SDM_OU_Contribution_Radarchart <- renderChartJSRadar({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
 		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
 	
@@ -1515,28 +1558,50 @@ shinyServer(function(input, output) {
 		}
 	
 		new_import <- read.csv(destfile)
-		data <- data.frame(t(new_import[-1]))
-		colnames(data) <- new_import[, 1]
+		data <- data.frame(new_import)
+		rename(data, c("X" = "Label"))
 		# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
 #		data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
 #		data <- data[-c(1,2),]
 		rs <- input$SDM_OU_Contribution_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs) > 0) {
 			data <- data[rs, , drop = FALSE]
-			data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
-			coul <- brewer.pal(length(rs), "BuPu")
-			colors_border <- coul
-			colors_in <- alpha(coul,0.3)
-			radarchart(data, axistype=0 , maxmin=F,
-			           #custom polygon
-			           pcol=colors_border , pfcol=colors_in , plwd=4 , plty=1,
-			           #custom the grid
-			           cglcol="grey", cglty=1, axislabcol="black", cglwd=0.8, 
-			           #custom labels
-			           vlcex=0.8 
-      )
-			legend(x=1.2, y=1.2, legend = rownames(data[-c(1,2),]), bty = "n", pch = 20, col = colors_in, text.col = "grey", cex = 1.2, pt.cex = 3)
+#			chartJSRadar(scores = data, labs = rownames(data), maxScale = 1, showToolTipLabel = TRUE)
+			chartJSRadar(scores = data, maxScale = 1, showToolTipLabel = TRUE)
 		}
+	})
+	
+	output$SDM_OU_Contribution_Radarchart_org <- renderPlot({
+	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
+	  destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
+	  
+	  if (!file.exists(destfile)) {
+	    return(NULL)
+	  }
+	  
+	  new_import <- read.csv(destfile)
+	  data <- data.frame(t(new_import[-1]))
+	  colnames(data) <- new_import[, 1]
+	  # To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+	  #		data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
+	  #		data <- data[-c(1,2),]
+	  rs <- input$SDM_OU_Contribution_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs) > 0) {
+	    data <- data[rs, , drop = FALSE]
+	    data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
+	    coul <- brewer.pal(length(rs), "BuPu")
+	    colors_border <- coul
+	    colors_in <- alpha(coul,0.3)
+	    radarchart(data, axistype=0 , maxmin=F,
+	               #custom polygon
+	               pcol=colors_border , pfcol=colors_in , plwd=4 , plty=1,
+	               #custom the grid
+	               cglcol="grey", cglty=1, axislabcol="black", cglwd=0.8, 
+	               #custom labels
+	               vlcex=0.8 
+	    )
+	    legend(x=1.2, y=1.2, legend = rownames(data[-c(1,2),]), bty = "n", pch = 20, col = colors_in, text.col = "grey", cex = 1.2, pt.cex = 3)
+	  }
 	})
   
 	output$SDM_OU_Probability_map <- renderLeaflet({
@@ -1563,8 +1628,8 @@ shinyServer(function(input, output) {
 		x <- raster(file.path(dir_path, Map))
 	
 		hist(x, # breaks = bins, 
-			col="orange",
-			border="brown",
+		  col="lightskyblue3",  # skyblue",
+		  border="white",,
 			xlab = "Projected Value",
 			main = "Histogram")
 	})
@@ -1593,8 +1658,8 @@ shinyServer(function(input, output) {
 		x <- raster(file.path(dir_path, Map))
 	
 		hist(x, # breaks = bins, 
-			col="orange",
-			border="brown",
+		  col = G$COL_CODE_PLOT_Ramp2, 
+		  border = "white",
 			xlab = "Predicted Value",
 			main = "Histogram")
 	})
@@ -2836,6 +2901,18 @@ shinyServer(function(input, output) {
 							if (ylist[1] == "2000") {
 								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
+								R_gap <- raster(R_Map1)
+								R_loss <- raster(R_Map1)
+								R_stay <- raster(R_Map1)
+								R_gain <- raster(R_Map1)
+								R_gap[] <- 0
+								R_loss[] <- 0
+								R_stay <- raster(R_Map1)
+								R_gain[] <- 0
+								writeRaster(R_gap, file = file.path(dir_path, paste(as.name(paste("GAP_PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(R_loss, file = file.path(dir_path, paste(as.name(paste("LOSS_PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(R_stay, file = file.path(dir_path, paste(as.name(paste("STAY_PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+								writeRaster(R_gain, file = file.path(dir_path, paste(as.name(paste("GAIN_PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								for (y in 2:ly) {
 									incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", ylist[y]))
 									Map2 <- paste("PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_", m, G$IMG_File, sep = "")
@@ -2864,10 +2941,10 @@ shinyServer(function(input, output) {
 									R_stay[R_Map1 == 1 & R_Map2 == 0] <- 0
 									R_stay[R_Map1 == 1 & R_Map2 == 1] <- 1
 									
-									writeRaster(R_gap, file = file.path(dir_path, paste(as.name(paste("GAP_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-									writeRaster(R_loss, file = file.path(dir_path, paste(as.name(paste("LOSS_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-									writeRaster(R_stay, file = file.path(dir_path, paste(as.name(paste("STAY_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-									writeRaster(R_gain, file = file.path(dir_path, paste(as.name(paste("GAIN_", "PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+									writeRaster(R_gap, file = file.path(dir_path, paste(as.name(paste("GAP_PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+									writeRaster(R_loss, file = file.path(dir_path, paste(as.name(paste("LOSS_PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+									writeRaster(R_stay, file = file.path(dir_path, paste(as.name(paste("STAY_PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+									writeRaster(R_gain, file = file.path(dir_path, paste(as.name(paste("GAIN_PRED", "_", d, "_", c, "_", ylist[y], "_", s, "_",m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 								}
 							}
 						}
@@ -3028,7 +3105,7 @@ shinyServer(function(input, output) {
 									Tab_gap$Area_Stay_Ratio[n_tl] <- (Tab_gap$Area_Stay[n_tl] / Map0_Area) * 100
 									Tab_gap$Area_Gain_Ratio[n_tl] <- (Tab_gap$Area_Gain[n_tl] / Map0_Area) * 100
 									Tab_gap$Area_Gain_Ratio_Reverse[n_tl] <- Tab_gap$Area_Gain_Ratio[n_tl] * -1
-									Tab_gap$Area_Gain_Ratio_Outside[n_tl] <- (Tab_gap$Area_Gain[n_tl] / (T_Area - Tab_gap$Area[n_tl])) * 100
+									Tab_gap$Area_Gain_Ratio_Outside[n_tl] <- (Tab_gap$Area_Gain[n_tl] / (T_Area - Map0_Area)) * 100
 									Tab_gap$Area_Gain_Ratio_Outside_Reverse[n_tl] <- Tab_gap$Area_Gain_Ratio_Outside[n_tl] * -1
 									Tab_gap$Vulnerability_Area_Loss_Ratio[n_tl] <- 1 - Tab_gap$Area_Ratio[n_tl]
 									Tab_gap$Vulnerability_Area_LossIN_GainOUT_Ratio[n_tl] <- (Tab_gap$Area_Loss_Ratio[n_tl] / 100) - (Tab_gap$Area_Gain_Ratio_Outside[n_tl] / 100)
@@ -3066,7 +3143,7 @@ shinyServer(function(input, output) {
 									Tab_gap$Area_Stay_Ratio[n_tl] <- (Tab_gap$Area_Stay[n_tl] / Map0_Area) * 100
 									Tab_gap$Area_Gain_Ratio[n_tl] <- (Tab_gap$Area_Gain[n_tl] / Map0_Area) * 100
 									Tab_gap$Area_Gain_Ratio_Reverse[n_tl] <- Tab_gap$Area_Gain_Ratio[n_tl] * -1
-									Tab_gap$Area_Gain_Ratio_Outside[n_tl] <- (Tab_gap$Area_Gain[n_tl] / (T_Area - Tab_gap$Area[n_tl])) * 100
+									Tab_gap$Area_Gain_Ratio_Outside[n_tl] <- (Tab_gap$Area_Gain[n_tl] / (T_Area - Map0_Area)) * 100
 									Tab_gap$Area_Gain_Ratio_Outside_Reverse[n_tl] <- Tab_gap$Area_Gain_Ratio_Outside[n_tl] * -1
 									Tab_gap$Vulnerability_Area_Loss_Ratio[n_tl] <- 1 - Tab_gap$Area_Ratio[n_tl]
 									Tab_gap$Vulnerability_Area_LossIN_GainOUT_Ratio[n_tl] <- (Tab_gap$Area_Loss_Ratio[n_tl] / 100) - (Tab_gap$Area_Gain_Ratio_Outside[n_tl] / 100)
@@ -3304,14 +3381,19 @@ shinyServer(function(input, output) {
 			Group <- vindex[, input$SA_AO_IV_UI_plot1]
 			ggplot(vindex, aes(x = Area_Loss_Ratio, y = Area_Gain_Ratio_Reverse, color = Group)) +
 				geom_point(size = 6) +
-				labs(title = "Vulnerability (Area Loss Ratio)", x = "Loss", y = "Gain") +
 				geom_text(aes(label = Vulnerability_Area_Loss_Ratio), size = 3, hjust = 0.5, vjust = 3) + #, position =     "stack") +
 				# horizontal
 				geom_hline(yintercept = -50, color="orange", size=1) + 
 				# vertical
 				geom_vline(xintercept = 50, color="orange", size=1) +
 				# Add arrow
-				annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow())
+				annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow()) +
+			  labs(title= "Vulnerability Matrix", 
+			     subtitle="Loss and Gain Area Ratio", caption = "Vulnerability = (Loss Ratio + Reverse Gain Ratio) / 100", x = "Loss Ratio(Loss Area/Current Area)", y = "Reverse Gain Ratio(Gain Area/Current Area)") +
+			  theme(
+			    plot.title = element_text(color = "black", size = 20, face = "bold", hjust = 0.5),
+			    plot.subtitle = element_text(color = "mediumvioletred", size = 16, hjust = 0.5),
+			    plot.caption = element_text(color = "deepskyblue4", size = 12, face = "italic"))
 	  
 		}   
 	})
@@ -3328,16 +3410,21 @@ shinyServer(function(input, output) {
 			    vindex <- filter(vindex, Year %in% input$SA_AO_Project_year)
 
 			Group <- vindex[, input$SA_AO_IV_UI_plot1]
-			ggplot(vindex, aes(x = Area_LoSA_Ratio, y = Area_Gain_Ratio_Outside_Reverse, color = Group)) +
+			ggplot(vindex, aes(x = Area_Loss_Ratio, y = Area_Gain_Ratio_Outside_Reverse, color = Group)) +
 				geom_point(size = 6) +
-				labs(title = "Vulnerability (Area LossIN GainOUT Ratio)", x = "Loss", y = "Gain") +
 				geom_text(aes(label = Vulnerability_Area_LossIN_GainOUT_Ratio), size = 3, hjust = 0.5, vjust = 3) + #, position =     "stack") +
 				# horizontal
 				geom_hline(yintercept = -50, color="orange", size=1) + 
 				# vertical
 				geom_vline(xintercept = 50, color="orange", size=1) +
 				# Add arrow
-				annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow())
+				annotate("segment", x = 0, xend = 100, y = -100, yend = 0, colour = "purple", size = 2, alpha = 0.6, arrow = arrow()) +
+			  labs(title= "Vulnerability Matrix", 
+			     subtitle="Loss and Gain Area Ratio", caption = "Vulnerability = (Loss Ratio + Reverse GainOUT Ratio) / 100", x = "Loss Ratio(Loss Area/Current Area)", y = "Reverse GainOUT Ratio(Gain Area/Total Area outside Current Area)") +
+			  theme(
+			    plot.title = element_text(color = "black", size = 20, face = "bold", hjust = 0.5),
+			    plot.subtitle = element_text(color = "mediumvioletred", size = 16, hjust = 0.5),
+			    plot.caption = element_text(color = "deepskyblue4", size = 12, face = "italic"))
 			
 	  }
 	})
@@ -3357,8 +3444,13 @@ shinyServer(function(input, output) {
 			ggplot(vindex, aes(x = Year, y = Vulnerability_Area_Loss_Ratio, group = Group, color = Group, linetype = Group)) +
 			  geom_line() +
 				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
-				theme_ipsum() +
-				labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
+#				theme_ipsum() +
+			  labs(title= "Vulnerability Pattern", 
+			       subtitle="Vulnerability Change by Year", caption = "Vulnerability = (Loss Ratio + Reverse Gain Ratio) / 100", x = "Year", y = "Vulnerability") +
+			  theme(
+			    plot.title = element_text(color = "black", size = 20, face = "bold", hjust = 0.5),
+			    plot.subtitle = element_text(color = "mediumvioletred", size = 16, hjust = 0.5),
+			    plot.caption = element_text(color = "deepskyblue4", size = 12, face = "italic"))
 			
 	  }
 	})
@@ -3378,8 +3470,13 @@ shinyServer(function(input, output) {
 			ggplot(vindex, aes(x = Year, y = Vulnerability_Area_LossIN_GainOUT_Ratio, group = Group)) +
 				geom_line(aes(color = Group, linetype = Group)) +
 				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
-				theme_ipsum() +
-				labs(title = "Vulnerability (Area Loss Ratio)", x = "Year", y = "Vulnerability")
+#				theme_ipsum() +
+			  labs(title= "Vulnerability Pattern", 
+			     subtitle="Vulnerability Change by Year", caption = "Vulnerability = (Loss Ratio + Reverse GainOUT Ratio) / 100", x = "Year", y = "Vulnerability") +
+			  theme(
+			    plot.title = element_text(color = "black", size = 20, face = "bold", hjust = 0.5),
+			    plot.subtitle = element_text(color = "mediumvioletred", size = 16, hjust = 0.5),
+			    plot.caption = element_text(color = "deepskyblue4", size = 12, face = "italic"))
 			
 	  }
 	})
@@ -3395,20 +3492,26 @@ shinyServer(function(input, output) {
 	    vindex <- filter(vindex, Model %in% input$SA_AO_SDM_model)
 	    vindex <- filter(vindex, Year %in% input$SA_AO_Project_year)
 	    
-	    Group <- vindex[, input$SA_AO_IV_UI_plot3]
 	    vindex$X <- ifelse(vindex$Vulnerability_Area_Loss_Ratio < 0, "below", "above")  # above / below avg flag
 	    vindex <- vindex[order(vindex$Vulnerability_Area_Loss_Ratio), ]  # sort
-#	    vindex$Species <- factor(vindex$Species, ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
-	    vindex[, input$SA_AO_IV_UI_plot35] <- factor(vindex[, input$SA_AO_IV_UI_plot35], ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
+	    vindex[, input$SA_AO_IV_UI_plot3] <- factor(vindex[, input$SA_AO_IV_UI_plot3], ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
+	    Group <- vindex[, input$SA_AO_IV_UI_plot3]
 	    
 	    # Diverging Barcharts
 	    ggplot(vindex, aes(x=Group, y=Vulnerability_Area_Loss_Ratio, label=Vulnerability_Area_Loss_Ratio)) + 
 	      geom_bar(stat='identity', aes(fill=X), width=.5)  +
+#	      geom_text(aes(x=Group, y=Vulnerability_Area_Loss_Ratio, ymax=Vulnerability_Area_Loss_Ratio, label=Vulnerability_Area_Loss_Ratio, 
+#	                    hjust=ifelse(sign(Vulnerability_Area_Loss_Ratio)>0, 1, 0)), 
+#	                position = position_dodge(width=1)) +
 	      scale_fill_manual(name="Vulnerability", 
 	                        labels = c("Above Average", "Below Average"), 
 	                        values = c("above"="#00ba38", "below"="#f8766d")) + 
-	      labs(subtitle="Species Vulnerability Index", 
-	           title= "Diverging Bars") + 
+	      labs(title= "Vulnerability Order", 
+	           subtitle="Vulnerability Ordering by Group", caption = "Vulnerability = (Loss Ratio + Reverse Gain Ratio) / 100", x = input$SA_AO_IV_UI_plot3, y = "Vulnerability") +
+	      theme(
+	        plot.title = element_text(color = "black", size = 20, face = "bold", hjust = 0.5),
+	        plot.subtitle = element_text(color = "mediumvioletred", size = 16, hjust = 0.5),
+	        plot.caption = element_text(color = "deepskyblue4", size = 12, face = "italic")) +
 	      coord_flip()
 	    
 	  }
@@ -3425,10 +3528,10 @@ shinyServer(function(input, output) {
 	    vindex <- filter(vindex, Model %in% input$SA_AO_SDM_model)
 	    vindex <- filter(vindex, Year %in% input$SA_AO_Project_year)
 	    
-	    Group <- vindex[, input$SA_AO_IV_UI_plot3]
 	    vindex$X <- ifelse(vindex$Vulnerability_Area_LossIN_GainOUT_Ratio < 0, "below", "above")  # above / below avg flag
 	    vindex <- vindex[order(vindex$Vulnerability_Area_LossIN_GainOUT_Ratio), ]  # sort
-	    vindex[, input$SA_AO_IV_UI_plot35] <- factor(vindex[, input$SA_AO_IV_UI_plot35], ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
+	    vindex[, input$SA_AO_IV_UI_plot3] <- factor(vindex[, input$SA_AO_IV_UI_plot3], ordered = is.ordered(vindex)) #, levels = vindex$Species)  # convert to factor to retain sorted order in plot.
+	    Group <- vindex[, input$SA_AO_IV_UI_plot3]
 	    
 	    # Diverging Barcharts
 	    ggplot(vindex, aes(x=Group, y=Vulnerability_Area_LossIN_GainOUT_Ratio, label=Vulnerability_Area_LossIN_GainOUT_Ratio)) + 
@@ -3436,8 +3539,12 @@ shinyServer(function(input, output) {
 	      scale_fill_manual(name="Vulnerability", 
 	                        labels = c("Above Average", "Below Average"), 
 	                        values = c("above"="#00ba38", "below"="#f8766d")) + 
-	      labs(subtitle="Species Vulnerability Index", 
-	           title= "Diverging Bars") + 
+	      labs(title= "Vulnerability Order", 
+	           subtitle="Vulnerability Ordering by Group", caption = "Vulnerability = (Loss Ratio + Reverse GainOUT Ratio) / 100", x = input$SA_AO_IV_UI_plot3, y = "Vulnerability") +
+	      theme(
+	        plot.title = element_text(color = "black", size = 20, face = "bold", hjust = 0.5),
+	        plot.subtitle = element_text(color = "mediumvioletred", size = 16, hjust = 0.5),
+	        plot.caption = element_text(color = "deepskyblue4", size = 12, face = "italic")) +
 	      coord_flip()
 	    
 	  }
@@ -3662,6 +3769,83 @@ shinyServer(function(input, output) {
 	})
 	
 	observeEvent(input$HA_VA_Action_Admin_Species, {
+	  
+	  # setting Climate change scenarios, Future time, Species and current environmental path
+	  alist <- input$HA_VA_Admin
+	  dlist <- input$HA_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
+	  clist <- input$HA_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
+	  mlist <- input$HA_CA_SDM_model # c("PA1_Full_GLM_byROC")
+	  ylist <- input$HA_CA_Project_year
+	  slist <- input$HA_CA_Species
+	  vlist <- c("PRED", "LOSS_PRED", "STAY_PRED", "GAIN_PRED") 
+	  
+	  n <- 0
+	  la <- length(alist)
+	  ls <- length(slist)
+	  ld <- length(dlist)
+	  lc <- length(clist)
+	  lm <- length(mlist)
+	  ly <- length(ylist)
+	  lv <- length(vlist)
+	  
+	  tls <- la * ls * ld * lc * lm * ly * lv
+	  
+	  
+	  if (length(slist) > 0) {
+	    withProgress(message = paste("Species Analyzing by ", input$HA_VA_Admin), value = 0, {
+	      for (a in alist) {
+	        for (s in slist) {
+	          dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir, s, input$HA_MI_Dir_Folder)
+	          dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	          file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	          #	    poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	          poly <- readOGR(dsn=dir_path, layer=a)
+	          df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
+	          df <- cbind(df, SPECIES = s)
+	          for (d in dlist) {
+	            for (c in clist) {
+	              for (m in mlist) {
+	                for (y in ylist) {
+	                  for (v in vlist) {
+	                    incProgress(1/tls, detail = paste("Doing part", a, "_", s, "_", d, "_", c, "_", m, "_", y))
+	                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
+	                    r <- raster(img)
+	                    df1 <- raster::extract(r, poly, fun = sum, na.rm = TRUE, df=TRUE)
+	                    #write to a data frame
+	                    df1 <- data.frame(df1[-1])
+	                    colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                    df1[is.na(df1)] <- 0
+	                    df <- cbind(df, df1)
+	                  }
+	                }
+	              }
+	            }
+	          }
+	          #write to a CSV file
+	          write.csv(df, file = file.path(dir_path, paste(a, ".csv", sep="")))
+	          #	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	          if (s == slist[1]) {
+	            df_sp0 <- df
+	            df_sp <- df
+	          } else {
+	            df_sp <- rbind(df_sp, df)
+	          }
+	        }
+	        #	      dir_path <- G$HA_MO_Dir_Folder
+	        #	      write.csv(df_sp, file = file.path(dir_path, paste(a, ".csv", sep="")))
+	        #	      write.dbf(df_sp, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	      }
+	    })
+	    shinyalert(title = "You did it!", type = "success")
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Select Species.")
+	    ))
+	  }
+	})
+	
+	observeEvent(input$HA_VA_Action_Admin_Species_org, {
 
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  alist <- input$HA_VA_Admin
@@ -3670,7 +3854,7 @@ shinyServer(function(input, output) {
 	  mlist <- input$HA_CA_SDM_model # c("PA1_Full_GLM_byROC")
 	  ylist <- input$HA_CA_Project_year
 	  slist <- input$HA_CA_Species
-	  vlist <- c("PRED") # c("HA_SR", "HA_LOSS", "HA_STAY", "HA_GAIN", "HA_VI1", "HA_VI2", "HA_VI3") # c("HA_SR") # 
+	  vlist <- c("PRED", "LOSS_PRED", "STAY_PRED", "GAIN_PRED") # 
 	  
 	  n <- 0
 	  la <- length(alist)
@@ -3762,7 +3946,7 @@ shinyServer(function(input, output) {
 	    	    
 	    n <- 0
 	    la <- length(alist)
-	    ls <- length(slist)
+#	    ls <- length(slist)
 	    ld <- length(dlist)
 	    lc <- length(clist)
 	    lm <- length(mlist)
@@ -3802,8 +3986,8 @@ shinyServer(function(input, output) {
 	                }
 	                #write to a CSV file
 	                write.csv(df, file = file.path(dir_path, paste(a, ".csv", sep="")))
-	                file <- "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/SD.dbf"
-	                write.dbf(df, file)
+#	                file <- "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/SD.dbf"
+#	                write.dbf(df, file)
 #	                write.dbf(df, "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/test.dbf")
 	            })
 	            shinyalert(title = "You did it!", type = "success")
@@ -3872,6 +4056,10 @@ shinyServer(function(input, output) {
 		)
 	})
 	
+#-------------------------------------------------------------------		
+### HA_AO_SD_PLOT	
+#-------------------------------------------------------------------	
+	
 	output$HA_AO_SD_PLOT_Group_UI <- renderUI({
 	  
 	  if (input$HA_AO_SD_Habitat_Type == "SGG" && input$HA_AO_SD_Habitat_Plot_Type == "Statistics") {
@@ -3911,33 +4099,69 @@ shinyServer(function(input, output) {
 	    leafletOutput("HA_AO_SD_SGG_Map", width = "800", height = "600")
 	  } else if (input$HA_AO_SD_Habitat_Type == "SGG" && input$HA_AO_SD_Habitat_Plot_Type == "Statistics") {
 	    column(10, plotOutput("HA_AO_SD_SGG_Stat"))
+	  } else if (input$HA_AO_SD_Habitat_Type == "NP" && input$HA_AO_SD_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SD_NP_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SD_Habitat_Type == "NP" && input$HA_AO_SD_Habitat_Plot_Type == "Statistics") {
+	    column(10, plotOutput("HA_AO_SD_NP_Stat"))
+	  } else if (input$HA_AO_SD_Habitat_Type == "BR" && input$HA_AO_SD_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SD_BR_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SD_Habitat_Type == "BR" && input$HA_AO_SD_Habitat_Plot_Type == "Statistics") {
+	    column(10, plotOutput("HA_AO_SD_BR_Stat"))
+	  } else if (input$HA_AO_SD_Habitat_Type == "DMZ" && input$HA_AO_SD_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SD_DMZ_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SD_Habitat_Type == "DMZ" && input$HA_AO_SD_Habitat_Plot_Type == "Statistics") {
+	    column(10, plotOutput("HA_AO_SD_DMZ_Stat"))
+	  } else if (input$HA_AO_SD_Habitat_Type == "Habitat" && input$HA_AO_SD_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SD_Habitat_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SD_Habitat_Type == "Habitat" && input$HA_AO_SD_Habitat_Plot_Type == "Statistics") {
+	    column(10, plotOutput("HA_AO_SD_Habitat_Stat"))	    
 	  } else {
-	    column(10, plotOutput("HA_AO_SD_Stat"))
+	    
 	  }
 	  
 	})	  
 
 
 	output$HA_AO_SD_Map <- renderLeaflet({
-	  G$HA_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_AO_MI_Dir)
+	  G$HA_AO_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_AO_MI_Dir)
 	  dir_path <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
 	  Map <- paste("PRED", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_Project_year, "_", input$HA_AO_Species, "_", input$HA_AO_SDM_model, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
 	  
 	  MotiveEco_SDM_plot(r)
-
 	})
 	
 	output$HA_AO_SD_Stat <- renderPlot({
+	  G$HA_AO_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_AO_MI_Dir)
 	  dir_path <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
 	  Map <- paste("PRED", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_Project_year, "_", input$HA_AO_Species, "_", input$HA_AO_SDM_model, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  hist(r, # breaks = bins, 
-	       col="orange",
-	       border="brown",
-	       xlab = Map,
-	       main = "Histogram")
+	  hist(r, # breaks = bins,
+	       col = G$COL_CODE_PLOT_Ramp2, 
+	       border = "white",
+	       xlab = "Values", # Map,
+	       ylab = "면적(Km2)",
+	       main = "Histogram of Species Distribution")
 	})
 	
 	
@@ -3952,7 +4176,6 @@ shinyServer(function(input, output) {
 	    bins <- seq(from = 0, to = max, by = max/10)
 	    
 	    MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
-
 	})
 	
 	
@@ -3962,7 +4185,7 @@ shinyServer(function(input, output) {
 	    X_NAME <- names(df[5])
 	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	    
-	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "시도 외래종 분포", "시도", "면적(Km2)")
+	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
 	})
 	
 	output$HA_AO_SD_SGG_Map <- renderLeaflet({
@@ -3995,10 +4218,101 @@ shinyServer(function(input, output) {
 	    X_NAME <- names(df[8])
 	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	    
-	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "면적(Km2)")
+	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
+	})
+	
+	output$HA_AO_SD_NP_Map <- renderLeaflet({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
+	})
+	
+	output$HA_AO_SD_NP_Stat <- renderPlot({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "국립공원", "면적(Km2)")
+	})	
+	
+	output$HA_AO_SD_BR_Map <- renderLeaflet({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[4])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
 	})
 	
 	
+	output$HA_AO_SD_BR_Stat <- renderPlot({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "백두대간", "면적(Km2)")
+	})
+	
+	output$HA_AO_SD_DMZ_Map <- renderLeaflet({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[5])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
+	})
+	
+	output$HA_AO_SD_DMZ_Stat <- renderPlot({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  X_NAME <- names(df[6])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "DMZ", "면적(Km2)")
+	})
+	
+	output$HA_AO_SD_Habitat_Map <- renderLeaflet({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("Habitat", ".shp", sep = "")))
+	  x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
+	})
+	
+	output$HA_AO_SD_Habitat_Stat <- renderPlot({
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "서식지", "면적(Km2)")
+	})
+
+#-------------------------------------------------------------------		
+### HA_AO_SR_PLOT	
+#-------------------------------------------------------------------	
 	
 	output$HA_AO_SR_PLOT_Group_UI <- renderUI({
 	  
@@ -4039,8 +4353,44 @@ shinyServer(function(input, output) {
 	    leafletOutput("HA_AO_SR_SGG_Map", width = "800", height = "600")
 	  } else if (input$HA_AO_SR_Habitat_Type == "SGG" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
 	    jqui_resizabled(plotOutput("HA_AO_SR_SGG_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "NP" && input$HA_AO_SR_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SR_NP_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SR_Habitat_Type == "NP" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_NP_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "BR" && input$HA_AO_SR_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SR_BR_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SR_Habitat_Type == "BR" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_BR_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "DMZ" && input$HA_AO_SR_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SR_DMZ_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SR_Habitat_Type == "DMZ" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_DMZ_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "Habitat" && input$HA_AO_SR_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SR_Habitat_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SR_Habitat_Type == "Habitat" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_Habitat_Stat"))	    
 	  } else {
-#	    column(10, plotOutput("HA_AO_SR_Stat"))
+
 	  }
 	  
 	})
@@ -4059,6 +4409,16 @@ shinyServer(function(input, output) {
 	  
 	  if (input$HA_AO_SR_Habitat_Type == "SD" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
 	    DT::dataTableOutput("HA_AO_SR_SIDO_SP_Table")
+	  } else if (input$HA_AO_SR_Habitat_Type == "SGG" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SR_SGG_SP_Table")
+	  } else if (input$HA_AO_SR_Habitat_Type == "NP" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SR_NP_SP_Table")
+	  } else if (input$HA_AO_SR_Habitat_Type == "BR" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SR_BR_SP_Table")
+	  } else if (input$HA_AO_SR_Habitat_Type == "DMZ" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SR_DMZ_SP_Table")
+	  } else if (input$HA_AO_SR_Habitat_Type == "Habitat" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SR_Habitat_SP_Table")	    
 	  } else {
 	    
 	  }
@@ -4069,12 +4429,21 @@ shinyServer(function(input, output) {
 	  
 	  if (input$HA_AO_SR_Habitat_Type == "SD" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
 	    jqui_resizabled(plotOutput("HA_AO_SR_SIDO_SP_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "SGG" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	     jqui_resizabled(plotOutput("HA_AO_SR_SGG_SP_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "NP" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_NP_SP_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "BR" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_BR_SP_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "DMZ" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_DMZ_SP_Stat"))
+	  } else if (input$HA_AO_SR_Habitat_Type == "Habitat" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SR_Habitat_SP_Stat"))	    
 	  } else {
 	    
 	  }
 	  
 	})
-	
 	
   output$HA_AO_SR_Map <- renderLeaflet({
 
@@ -4089,13 +4458,13 @@ shinyServer(function(input, output) {
     r <- raster(file.path(dir_path, Map))
     crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
     hist(r, # breaks = bins, 
-         col="orange",
-         border="brown",
-         xlab = Map,
-         main = "Histogram")
+         col="lightskyblue3",  # skyblue",
+         border="white",
+         xlab = "Number of Species", # Map,
+         ylab = "면적(Km2)",
+         main = "Species Richness")
   })
-
-
+	
 	output$HA_AO_SR_SIDO_Map <- renderLeaflet({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
@@ -4115,21 +4484,10 @@ shinyServer(function(input, output) {
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
-	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "시도 외래종 분포", "시도", "외래종수")
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
 	})
-	
-	output$HA_AO_SR_SIDO_SP_UI <- renderUI({
-	    HA_Name_SR_list <- G$SIDO_List
-	    HA_Name_SR_selected <- HA_Name_SR_list[1]
-	    
-	    selectInput("HA_AO_SR_SIDO_SP_UI", "시도",
-	                choices = c(HA_Name_SR_list),
-	                selected = HA_Name_SR_selected
-	    )
-	})
-	
+
 	output$HA_AO_SR_SIDO_SP_Table <- DT::renderDataTable({
-	  #	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
 	  
@@ -4163,7 +4521,6 @@ shinyServer(function(input, output) {
 	    ))
 	  }	  
 	})
-  
 	
 	output$HA_AO_SR_SIDO_SP_Stat <- renderPlot({
 	  
@@ -4173,7 +4530,7 @@ shinyServer(function(input, output) {
 	    X_NAME <- names(df[6])
 	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	    
-	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "면적(Km2)")
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
 	  }
 	  
 	})
@@ -4211,21 +4568,10 @@ shinyServer(function(input, output) {
     X_NAME <- names(df[8])
 	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
-	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "외래종수")
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
-	
-	output$HA_AO_SR_SGG_SP_UI <- renderUI({
-	  SGG_list <- G$SGG_List
-	  SGG_selected <- SGG_list[1]
-	  
-	  selectInput("HA_AO_SR_SGG_SP_UI", "시군구",
-	              choices = c(SGG_list),
-	              selected = SGG_selected
-	  )
-	})
-	
+
 	output$HA_AO_SR_SGG_SP_Table <- DT::renderDataTable({
-	  #	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
 	  
@@ -4235,13 +4581,13 @@ shinyServer(function(input, output) {
 	  
 	  if (length(HA_AO_SR_SGG_SP_List) > 0) {
 	    if (length(HA_AO_SR_SGG_SP_List) == 1) {
-	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
 	      sindex <- read.csv(destfile)
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+#	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
-	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
 	      sindex <- read.csv(destfile)
 	      for (s in HA_AO_SR_SGG_SP_List[-1]) {
 	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SGG.csv")
@@ -4260,29 +4606,1634 @@ shinyServer(function(input, output) {
 	  }	  
 	})
 	
-	
 	output$HA_AO_SR_SGG_SP_Stat <- renderPlot({
 	  
 	  rs <- input$HA_AO_SR_SGG_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 	  if (length(rs)) {
 	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
-	    X_NAME <- names(df[6])
+	    X_NAME <- names(df[9])
 	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	    
-	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "면적(Km2)")
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
 	  }
 	  
 	})
+		
+	output$HA_AO_SR_NP_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SR_NP_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
+	})
 
-	output$HA_AO_SI_Map <- renderLeaflet({
+	output$HA_AO_SR_NP_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SR_NP_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SR_NP_SP_List) > 0) {
+	    if (length(HA_AO_SR_NP_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+#	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SR_NP_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "NP.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+#	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SR_NP_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SR_NP_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "국립공원", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SR_BR_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SR_BR_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
+	})
+	
+	output$HA_AO_SR_BR_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SR_BR_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SR_BR_SP_List) > 0) {
+	    if (length(HA_AO_SR_BR_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SR_BR_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "BR.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SR_BR_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SR_BR_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "백두대간", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SR_DMZ_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[5])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SR_DMZ_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  X_NAME <- names(df[6])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
+	})
+	
+	output$HA_AO_SR_DMZ_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SR_DMZ_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SR_DMZ_SP_List) > 0) {
+	    if (length(HA_AO_SR_DMZ_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SR_DMZ_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SR_DMZ_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SR_DMZ_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[7])
+	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "DMZ", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_SR_Habitat_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SR_Habitat_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
+	})
+	
+	output$HA_AO_SR_NP_Habitat_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SR_Habitat_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SR_Habitat_SP_List) > 0) {
+	    if (length(HA_AO_SR_Habitat_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SR_Habitat_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SR_Habitat_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SR_Habitat_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "서식지", "면적(Km2)")
+	  }
+	  
+	})		
+	
+	#-------------------------------------------------------------------		
+	### HA_AO_SL_PLOT	
+	#-------------------------------------------------------------------	
+	
+	output$HA_AO_SL_PLOT_Group_UI <- renderUI({
+	  
+	  if (input$HA_AO_SL_Habitat_Type == "SGG" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_SL_SGG_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_PLOT_UI <- renderUI({
+	  
+	  if (input$HA_AO_SL_Habitat_Type == "Distribution" && input$HA_AO_SL_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SL_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SL_Habitat_Type == "Distribution" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "SD" && input$HA_AO_SL_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SL_SIDO_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SL_Habitat_Type == "SD" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_SIDO_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "SGG" && input$HA_AO_SL_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SL_SGG_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SL_Habitat_Type == "SGG" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_SGG_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "NP" && input$HA_AO_SL_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SL_NP_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SL_Habitat_Type == "NP" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_NP_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "BR" && input$HA_AO_SL_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SL_BR_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SL_Habitat_Type == "BR" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_BR_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "DMZ" && input$HA_AO_SL_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SL_DMZ_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SL_Habitat_Type == "DMZ" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_DMZ_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "Habitat" && input$HA_AO_SL_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SL_Habitat_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SL_Habitat_Type == "Habitat" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_Habitat_Stat"))	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_PLOT_SP_UI <- renderUI({
+	  
+	  if (input$HA_AO_SL_Habitat_Type == "SD" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_SL_SIDO_SP_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_PLOT_SP_Table <- renderUI({
+	  
+	  if (input$HA_AO_SL_Habitat_Type == "SD" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SL_SIDO_SP_Table")
+	  } else if (input$HA_AO_SL_Habitat_Type == "SGG" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SL_SGG_SP_Table")
+	  } else if (input$HA_AO_SL_Habitat_Type == "NP" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SL_NP_SP_Table")
+	  } else if (input$HA_AO_SL_Habitat_Type == "BR" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SL_BR_SP_Table")
+	  } else if (input$HA_AO_SL_Habitat_Type == "DMZ" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SL_DMZ_SP_Table")   
+	  } else if (input$HA_AO_SL_Habitat_Type == "Habitat" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SL_Habitat_SP_Table")	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_PLOT_SP_Stat <- renderUI({
+	  
+	  if (input$HA_AO_SL_Habitat_Type == "SD" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_SIDO_SP_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "SGG" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_SGG_SP_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "NP" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_NP_SP_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "BR" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_BR_SP_Stat"))
+	  } else if (input$HA_AO_SL_Habitat_Type == "DMZ" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_DMZ_SP_Stat"))	 
+	  } else if (input$HA_AO_SL_Habitat_Type == "Habitat" && input$HA_AO_SL_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SL_Habitat_SP_Stat"))	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_Map <- renderLeaflet({
+	  
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  MotiveEco_gis_plot(dir_path, "HA_LOSS", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  
+	})
+	
+	output$HA_AO_SL_Stat <- renderPlot({
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  Map <- paste("HA_LOSS", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
+	  r <- raster(file.path(dir_path, Map))
+	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  hist(r, # breaks = bins, 
+	       col="lightskyblue3",  # skyblue",
+	       border="white",
+	       xlab = "Number of Species", # Map,
+	       ylab = "면적(Km2)",
+	       main = "Species Richness")
+	})
+	
+	output$HA_AO_SL_SIDO_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[4])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SL_SIDO_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  X_NAME <- names(df[5])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
+	})
+	
+	output$HA_AO_SL_SIDO_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SL_SIDO_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SL_SIDO_SP_List) > 0) {
+	    if (length(HA_AO_SL_SIDO_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SL_SIDO_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SD.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SL_SIDO_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SL_SIDO_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[6])
+	    V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_SGG_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  names(poly) <- c(names(x[-1]))
+	  X_NAME <- names(poly[7])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SL_SGG_UI <- renderUI({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  HA_Name_SD_list <- G$SIDO_List
+	  HA_Name_SD_selected <- HA_Name_SD_list[1]
+	  
+	  selectInput("HA_AO_SL_SGG_UI", "시도",
+	              choices = c(HA_Name_SD_list),
+	              selected = HA_Name_SD_selected
+	  )
+	})
+	
+	output$HA_AO_SL_SGG_Stat <- renderPlot({
+	  
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  df <- df[which(df$SD_KOR==input$HA_AO_SL_SGG_UI), ]
+	  X_NAME <- names(df[8])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
+	})
+	
+	output$HA_AO_SL_SGG_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SL_SGG_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SL_SGG_SP_List) > 0) {
+	    if (length(HA_AO_SL_SGG_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SL_SGG_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SL_SGG_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SL_SGG_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[9])
+	    V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_NP_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SL_NP_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
+	})
+	
+	output$HA_AO_SL_NP_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SL_NP_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SL_NP_SP_List) > 0) {
+	    if (length(HA_AO_SL_NP_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SL_NP_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "NP.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SL_NP_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SL_NP_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "국립공원", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SL_BR_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SL_BR_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
+	})
+	
+	output$HA_AO_SL_BR_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SL_BR_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SL_BR_SP_List) > 0) {
+	    if (length(HA_AO_SL_BR_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SL_BR_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "BR.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SL_BR_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SL_BR_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "백두대간", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SL_DMZ_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[5])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SL_DMZ_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  X_NAME <- names(df[6])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
+	})
+	
+	output$HA_AO_SL_DMZ_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SL_DMZ_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SL_DMZ_SP_List) > 0) {
+	    if (length(HA_AO_SL_DMZ_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SL_DMZ_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SL_DMZ_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SL_DMZ_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[7])
+	    V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "DMZ", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_SL_Habitat_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SL_Habitat_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
+	})
+	
+	output$HA_AO_SL_NP_Habitat_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SL_Habitat_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SL_Habitat_SP_List) > 0) {
+	    if (length(HA_AO_SL_Habitat_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SL_Habitat_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SL_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SL_Habitat_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SL_Habitat_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "서식지", "면적(Km2)")
+	  }
+	  
+	})
+	
+	#-------------------------------------------------------------------		
+	### HA_AO_SS_PLOT	
+	#-------------------------------------------------------------------	
+	
+	output$HA_AO_SS_PLOT_Group_UI <- renderUI({
+	  
+	  if (input$HA_AO_SS_Habitat_Type == "SGG" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_SS_SGG_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SS_PLOT_UI <- renderUI({
+	  
+	  if (input$HA_AO_SS_Habitat_Type == "Distribution" && input$HA_AO_SS_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SS_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SS_Habitat_Type == "Distribution" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "SD" && input$HA_AO_SS_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SS_SIDO_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SS_Habitat_Type == "SD" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_SIDO_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "SGG" && input$HA_AO_SS_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SS_SGG_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SS_Habitat_Type == "SGG" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_SGG_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "NP" && input$HA_AO_SS_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SS_NP_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SS_Habitat_Type == "NP" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_NP_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "BR" && input$HA_AO_SS_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SS_BR_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SS_Habitat_Type == "BR" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_BR_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "DMZ" && input$HA_AO_SS_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SS_DMZ_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SS_Habitat_Type == "DMZ" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_DMZ_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "Habitat" && input$HA_AO_SS_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SS_Habitat_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SS_Habitat_Type == "Habitat" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_Habitat_Stat"))		    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SS_PLOT_SP_UI <- renderUI({
+	  
+	  if (input$HA_AO_SS_Habitat_Type == "SD" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_SS_SIDO_SP_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SS_PLOT_SP_Table <- renderUI({
+	  
+	  if (input$HA_AO_SS_Habitat_Type == "SD" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SS_SIDO_SP_Table")
+	  } else if (input$HA_AO_SS_Habitat_Type == "SGG" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SS_SGG_SP_Table")
+	  } else if (input$HA_AO_SS_Habitat_Type == "NP" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SS_NP_SP_Table")
+	  } else if (input$HA_AO_SS_Habitat_Type == "BR" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SS_BR_SP_Table")
+	  } else if (input$HA_AO_SS_Habitat_Type == "DMZ" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SS_DMZ_SP_Table")  
+	  } else if (input$HA_AO_SS_Habitat_Type == "Habitat" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SS_Habitat_SP_Table")	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SS_PLOT_SP_Stat <- renderUI({
+	  
+	  if (input$HA_AO_SS_Habitat_Type == "SD" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_SIDO_SP_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "SGG" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_SGG_SP_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "NP" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_NP_SP_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "BR" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_BR_SP_Stat"))
+	  } else if (input$HA_AO_SS_Habitat_Type == "DMZ" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_DMZ_SP_Stat"))	  
+	  } else if (input$HA_AO_SS_Habitat_Type == "Habitat" && input$HA_AO_SS_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SS_Habitat_SP_Stat"))		    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SS_Map <- renderLeaflet({
+	  
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  MotiveEco_gis_plot(dir_path, "HA_STAY", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  
+	})
+	
+	output$HA_AO_SS_Stat <- renderPlot({
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  Map <- paste("HA_STAY", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
+	  r <- raster(file.path(dir_path, Map))
+	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  hist(r, # breaks = bins, 
+	       col="lightskyblue3",  # skyblue",
+	       border="white",
+	       xlab = "Number of Species", # Map,
+	       ylab = "면적(Km2)",
+	       main = "Species Richness")
+	})
+	
+	output$HA_AO_SS_SIDO_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[4])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SS_SIDO_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  X_NAME <- names(df[5])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
+	})
+	
+	output$HA_AO_SS_SIDO_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SS_SIDO_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SS_SIDO_SP_List) > 0) {
+	    if (length(HA_AO_SS_SIDO_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SS_SIDO_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SD.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SS_SIDO_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SS_SIDO_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[6])
+	    V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_SS_SGG_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  names(poly) <- c(names(x[-1]))
+	  X_NAME <- names(poly[7])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SS_SGG_UI <- renderUI({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  HA_Name_SD_list <- G$SIDO_List
+	  HA_Name_SD_selected <- HA_Name_SD_list[1]
+	  
+	  selectInput("HA_AO_SS_SGG_UI", "시도",
+	              choices = c(HA_Name_SD_list),
+	              selected = HA_Name_SD_selected
+	  )
+	})
+	
+	output$HA_AO_SS_SGG_Stat <- renderPlot({
+	  
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  df <- df[which(df$SD_KOR==input$HA_AO_SS_SGG_UI), ]
+	  X_NAME <- names(df[8])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
+	})
+	
+	output$HA_AO_SS_SGG_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SS_SGG_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SS_SGG_SP_List) > 0) {
+	    if (length(HA_AO_SS_SGG_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SS_SGG_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SS_SGG_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SS_SGG_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[9])
+	    V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_SS_NP_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SS_NP_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
+	})
+	
+	output$HA_AO_SS_NP_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SS_NP_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SS_NP_SP_List) > 0) {
+	    if (length(HA_AO_SS_NP_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SS_NP_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "NP.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SS_NP_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SS_NP_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "국립공원", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SS_BR_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SS_BR_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
+	})
+	
+	output$HA_AO_SS_BR_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SS_BR_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SS_BR_SP_List) > 0) {
+	    if (length(HA_AO_SS_BR_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SS_BR_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "BR.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SS_BR_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SS_BR_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "백두대간", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SS_DMZ_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[5])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SS_DMZ_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  X_NAME <- names(df[6])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
+	})
+	
+	output$HA_AO_SS_DMZ_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SS_DMZ_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SS_DMZ_SP_List) > 0) {
+	    if (length(HA_AO_SS_DMZ_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SS_DMZ_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SS_DMZ_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SS_DMZ_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[7])
+	    V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "DMZ", "면적(Km2)")
+	  }
+	  
+	})		
+	
+	output$HA_AO_SS_Habitat_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SS_Habitat_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
+	})
+	
+	output$HA_AO_SS_NP_Habitat_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SS_Habitat_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SS_Habitat_SP_List) > 0) {
+	    if (length(HA_AO_SS_Habitat_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SS_Habitat_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SS_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SS_Habitat_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SS_Habitat_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "서식지", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	
+	#-------------------------------------------------------------------		
+	### HA_AO_SG_PLOT	
+	#-------------------------------------------------------------------	
+	
+	output$HA_AO_SG_PLOT_Group_UI <- renderUI({
+	  
+	  if (input$HA_AO_SG_Habitat_Type == "SGG" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_SG_SGG_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SG_PLOT_UI <- renderUI({
+	  
+	  if (input$HA_AO_SG_Habitat_Type == "Distribution" && input$HA_AO_SG_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SG_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SG_Habitat_Type == "Distribution" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "SD" && input$HA_AO_SG_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SG_SIDO_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SG_Habitat_Type == "SD" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_SIDO_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "SGG" && input$HA_AO_SG_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SG_SGG_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SG_Habitat_Type == "SGG" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_SGG_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "NP" && input$HA_AO_SG_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SG_NP_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SG_Habitat_Type == "NP" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_NP_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "BR" && input$HA_AO_SG_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SG_BR_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SG_Habitat_Type == "BR" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_BR_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "DMZ" && input$HA_AO_SG_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SG_DMZ_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SG_Habitat_Type == "DMZ" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_DMZ_Stat"))	
+	  } else if (input$HA_AO_SG_Habitat_Type == "Habitat" && input$HA_AO_SG_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SG_Habitat_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_SG_Habitat_Type == "Habitat" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_Habitat_Stat"))		    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SG_PLOT_SP_UI <- renderUI({
+	  
+	  if (input$HA_AO_SG_Habitat_Type == "SD" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_SG_SIDO_SP_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SG_PLOT_SP_Table <- renderUI({
+	  
+	  if (input$HA_AO_SG_Habitat_Type == "SD" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SG_SIDO_SP_Table")
+	  } else if (input$HA_AO_SG_Habitat_Type == "SGG" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SG_SGG_SP_Table")
+	  } else if (input$HA_AO_SG_Habitat_Type == "NP" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SG_NP_SP_Table")
+	  } else if (input$HA_AO_SG_Habitat_Type == "BR" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SG_BR_SP_Table")
+	  } else if (input$HA_AO_SG_Habitat_Type == "DMZ" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SG_DMZ_SP_Table")   
+	  } else if (input$HA_AO_SG_Habitat_Type == "Habitat" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_SG_Habitat_SP_Table")  	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SG_PLOT_SP_Stat <- renderUI({
+	  
+	  if (input$HA_AO_SG_Habitat_Type == "SD" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_SIDO_SP_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "SGG" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_SGG_SP_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "NP" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_NP_SP_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "BR" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_BR_SP_Stat"))
+	  } else if (input$HA_AO_SG_Habitat_Type == "DMZ" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_DMZ_SP_Stat"))	  
+	  } else if (input$HA_AO_SG_Habitat_Type == "Habitat" && input$HA_AO_SG_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_SG_Habitat_SP_Stat"))	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_SG_Map <- renderLeaflet({
 	  
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  MotiveEco_gis_plot(dir_path, "HA_GAIN", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
 	  
 	})
 	
+	output$HA_AO_SG_Stat <- renderPlot({
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  Map <- paste("HA_GAIN", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
+	  r <- raster(file.path(dir_path, Map))
+	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  hist(r, # breaks = bins, 
+	       col="lightskyblue3",  # skyblue",
+	       border="white",
+	       xlab = "Number of Species", # Map,
+	       ylab = "면적(Km2)",
+	       main = "Species Richness")
+	})
 	
-	output$HA_AO_SI_SIDO_Map <- renderLeaflet({
+	output$HA_AO_SG_SIDO_Map <- renderLeaflet({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
@@ -4295,50 +6246,39 @@ shinyServer(function(input, output) {
 	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
 	})
 	
-	output$HA_AO_SI_SIDO_Stat <- renderPlot({
+	output$HA_AO_SG_SIDO_Stat <- renderPlot({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
 	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
-	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "시도 외래종 분포", "시도", "외래종수")
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
 	})
 	
-	output$HA_AO_SI_SIDO_SP_UI <- renderUI({
-	  HA_Name_SI_list <- G$SIDO_List
-	  HA_Name_SI_selected <- HA_Name_SI_list[1]
-	  
-	  selectInput("HA_AO_SI_SIDO_SP_UI", "시도",
-	              choices = c(HA_Name_SI_list),
-	              selected = HA_Name_SI_selected
-	  )
-	})
-	
-	output$HA_AO_SI_SIDO_SP_Table <- DT::renderDataTable({
-	  #	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	output$HA_AO_SG_SIDO_SP_Table <- DT::renderDataTable({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
 	  
 	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
 	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
-	  HA_AO_SI_SIDO_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  HA_AO_SG_SIDO_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
 	  
-	  if (length(HA_AO_SI_SIDO_SP_List) > 0) {
-	    if (length(input$AO_Species) == 1) {
-	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	  if (length(HA_AO_SG_SIDO_SP_List) > 0) {
+	    if (length(HA_AO_SG_SIDO_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
 	      sindex <- read.csv(destfile)
-	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
-	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
 	      sindex <- read.csv(destfile)
-	      for (s in HA_AO_SR_SIDO_SP_List[-1]) {
+	      for (s in HA_AO_SG_SIDO_SP_List[-1]) {
 	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SD.csv")
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SI_SIDO_SP_UI), ]
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -4350,21 +6290,20 @@ shinyServer(function(input, output) {
 	  }	  
 	})
 	
-	
-	output$HA_AO_SI_SIDO_SP_Stat <- renderPlot({
+	output$HA_AO_SG_SIDO_SP_Stat <- renderPlot({
 	  
-	  rs <- input$HA_AO_SI_SIDO_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  rs <- input$HA_AO_SG_SIDO_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
 	  if (length(rs)) {
 	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
 	    X_NAME <- names(df[6])
-	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	    
-	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "면적(Km2)")
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
 	  }
 	  
 	})
 	
-	output$HA_AO_SI_SGG_Map <- renderLeaflet({
+	output$HA_AO_SG_SGG_Map <- renderLeaflet({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
@@ -4377,3475 +6316,968 @@ shinyServer(function(input, output) {
 	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
 	})
 	
-	output$HA_AO_SI_SGG_UI <- renderUI({
+	output$HA_AO_SG_SGG_UI <- renderUI({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
-	  HA_Name_SGG_list <- G$SIDO_List
-	  HA_Name_SGG_selected <- HA_Name_SGG_list[1]
+	  HA_Name_SD_list <- G$SIDO_List
+	  HA_Name_SD_selected <- HA_Name_SD_list[1]
 	  
-	  selectInput("HA_AO_SI_SGG_UI", "시도",
-	              choices = c(HA_Name_SGG_list),
-	              selected = HA_Name_SGG_selected
+	  selectInput("HA_AO_SG_SGG_UI", "시도",
+	              choices = c(HA_Name_SD_list),
+	              selected = HA_Name_SD_selected
 	  )
 	})
 	
-	output$HA_AO_SI_SGG_Stat <- renderPlot({
+	output$HA_AO_SG_SGG_Stat <- renderPlot({
 	  
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$HA_AO_SI_SGG_UI), ]
+	  df <- df[which(df$SD_KOR==input$HA_AO_SG_SGG_UI), ]
 	  X_NAME <- names(df[8])
 	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
-	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "시군구 외래종 분포", "시군구", "외래종수")
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
 	
-	
-	output$VH_MI_Dir_Folder <- renderUI({
-	  VH_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
-	  VH_MI_Dir_Folder_selected <- VH_MI_Dir_Folder_list[1]
-	  selectInput("VH_MI_Dir", "Working Species Distribution Folders",
-	              choices = c(VH_MI_Dir_Folder_list),
-	              selected = VH_MI_Dir_Folder_selected
-	  )
+	output$HA_AO_SG_SGG_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
 	  
-	})
-	
-	output$VH_MI_Dir_Folder_Name <- renderUI({
-	    G$VH_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir)
-	    VH_Name_Species_list <- list.dirs(path = G$VH_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    VH_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir, VH_Name_Species_list[1]), full.names = FALSE, recursive = FALSE)
-	    VH_MI_Dir_Folder_Name_selected <- VH_MI_Dir_Folder_Name_list[1]
-	    selectInput("VH_MI_Dir_Folder", "Working SDM Types",
-	                choices = c(VH_MI_Dir_Folder_Name_list),
-	                selected = VH_MI_Dir_Folder_Name_selected
-	    )
-	    
-	})
-	
-	observeEvent(input$VH_CA_Species_Sel_All, {
-	    G$VH_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir)
-	    VH_Name_Species_list <- list.dirs(path = G$VH_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    G$VH_Name_Species_selected <<- VH_Name_Species_list
-	})
-	
-	observeEvent(input$VH_CA_Species_Sel_None, {
-	    G$HA_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir)
-	    VH_Name_Species_list <- list.dirs(path = G$VH_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    G$VH_Name_Species_selected <<- ""  #Name_Species_list[1]
-	})
-	
-	output$VH_CA_Species <- renderUI({
-	    G$VH_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir)
-	    VH_Name_Species_list <- list.dirs(path = G$VH_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    checkboxGroupInput("VH_CA_Species", "Select a species",
-	                       choices = c(VH_Name_Species_list),
-	                       selected = G$VH_Name_Species_selected
-	    )
-	})
-	
-	output$VH_CA_SDM_model <- renderUI({
-	    G$VH_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir)
-	    VH_Name_Species_list <- list.dirs(path = G$VH_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    destfile <- file.path(G$VH_MI_Dir_Folder, VH_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(VH_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
-	    all_eval <- read.csv(destfile)
-	    G_FILE_species_evaluation <<- all_eval
-	    VH_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
-	    VH_Name_Models_selected <- VH_Name_Models_list[1]
-	    checkboxGroupInput("VH_CA_SDM_model", "Select models",
-	                       choices = c(VH_Name_Models_list),
-	                       selected = VH_Name_Models_selected
-	    )
-	})
-	
-	observeEvent(input$VH_MO_Dir_Folder, {
-	  showModal(modalDialog(
-	    title = "Message",
-	    "A folder path and name is recommended in english!"
-	  ))
-	  volumes <- c(main = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"))
-	  shinyDirChoose(input, 'VH_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
-	  G$VH_MO_Dir_Folder <<- parseDirPath(volumes, input$VH_MO_Dir_Folder)
-	  output$VH_MO_Dir_Folder <- renderText({G$VH_MO_Dir_Folder})
-	  G$VH_AO_MO_Dir_Folder <<- G$VH_MO_Dir_Folder
-	  output$VH_AO_MO_Dir_Folder <- renderText({G$VH_AO_MO_Dir_Folder})
-	})
-
-	observeEvent(input$VH_VA_Action_Analysis, {
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SG_SGG_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
 	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  #		dtlist <- input$VH_CA_Dispersal_type
-	  mlist <- input$VH_CA_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_CA_Project_year
-	  slist <- input$VH_CA_Species
-	  
-	  n <- 0
-	  ls <- length(slist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  #		ldt <- length(dtlist)
-	  tl <- ld * lc * lm * ly
-	  
-	  sr_list <- NULL
-	  loss_list <- NULL
-	  stay_list <- NULL
-	  gain_list <- NULL
-	  
-	  withProgress(message = 'Runing Vulnerable Habitat Impact and Vulnerability Analysis.........', value = 0, {
-	    G$VH_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir)  
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
-	            if(y == ylist[1]) {
-	              for (s in slist) {
-	                dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
-	                img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                sr_list <- c(sr_list, img)
-	              }
-	              save_path <- G$VH_MO_Dir_Folder
-	              sr_list <- grep("PRED", sr_list, value = TRUE)
-	              sr_stack <- stack(sr_list)
-	              sr_raster <- overlay(sr_stack, fun=sum)
-	              sr_raster1 <- sr_raster
-	              loss_raster <- sr_raster
-	              loss_raster[] <- NULL
-	              stay_raster <- sr_raster
-	              gain_raster <- sr_raster
-	              gain_raster[] <- NULL
-	              writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("VH_LOSS_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("VH_STAY_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("VH_GAIN_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              vi1_raster <- sr_raster
-	              vi1_raster[] <- NULL
-	              vi2_raster <- sr_raster
-	              vi2_raster[] <- NULL
-	              vi3_raster <- sr_raster
-	              vi3_raster[] <- NULL
-	              writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              sr_list <- NULL
-	            } else {
-	              #							    incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
-	              for (s in slist) {
-	                dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
-	                img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                sr_list <- c(sr_list, img)
-	                img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                loss_list <- c(loss_list, img)
-	                img <- file.path(dir_path, paste("STAY_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                stay_list <- c(stay_list, img)
-	                img <- file.path(dir_path, paste("GAIN_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                gain_list <- c(gain_list, img)
-	              }
-	              save_path <- G$VH_MO_Dir_Folder
-	              sr_list <- grep("PRED", sr_list, value = TRUE)
-	              sr_stack <- stack(sr_list)
-	              sr_raster <- overlay(sr_stack, fun=sum)
-	              sr_raster2 <- sr_raster
-	              losssr_raster <- sr_raster2 - sr_raster1
-	              writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              writeRaster(losssr_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              
-	              loss_list <- grep("LOSS", loss_list, value = TRUE)
-	              loss_stack <- stack(loss_list)
-	              loss_raster <- overlay(loss_stack, fun=sum)
-	              writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("VH_LOSS_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              
-	              stay_list <- grep("STAY", stay_list, value = TRUE)
-	              stay_stack <- stack(stay_list)
-	              stay_raster <- overlay(stay_stack, fun=sum)
-	              writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("VH_STAY_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              
-	              gain_list <- grep("GAIN", gain_list, value = TRUE)
-	              gain_stack <- stack(gain_list)
-	              gain_raster <- overlay(gain_stack, fun=sum)
-	              writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("VH_GAIN_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              
-	              vi2_raster <- sr_raster
-	              vi2_raster <- loss_raster / sr_raster1
-	              vi2_raster[sr_raster1 == 0] <- 0
-	              writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")),overwrite = TRUE)
-	              
-	              vi3_raster <- sr_raster
-	              vi3_raster <- (1 - (loss_raster / sr_raster1)) + (gain_raster / (length(slist) - sr_raster1))
-	              vi3_raster[sr_raster1 == 0] <- 0
-	              writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	              
-	              sr_list <- NULL
-	              loss_list <- NULL
-	              stay_list <- NULL
-	              gain_list <- NULL
-	            }				    
-	          }
-	        }
+	  if (length(HA_AO_SG_SGG_SP_List) > 0) {
+	    if (length(HA_AO_SG_SGG_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SG_SGG_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
 	      }
-	    }
-	    
-	    #####
-	    
-	    #		    destfile <- file.path(G$VH_MO_Dir_Folder, "HabitatAssessment_Options.csv")
-	    
-	    VH_variables <- setNames(data.frame(matrix(ncol = 8, nrow = 5000)), c("input$SDM_Folder", "VH_CA_Species_Number", "input$VH_CA_Species", "input$VH_CA_Dispersal_type", "input$VH_CA_Climate_model", "input$VH_CA_Climate_scenario", 
-	                                                                          "input$VH_CA_Project_year", "input$VH_CA_SDM_model"
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
 	    ))
-	    
-	    VH_variables[1:length(G$VH_MI_Dir_Folder), "input$SDM_Folder"] <- G$VH_MI_Dir_Folder
-	    VH_variables[1:1, "VH_CA_Species_Number"] <- length(input$VH_CA_Species)
-	    VH_variables[1:length(input$VH_CA_Species), "input$VH_CA_Species"] <- input$VH_CA_Species
-	    VH_variables[1:length(input$VH_CA_Dispersal_type), "input$VH_CA_Dispersal_type"] <- input$VH_MI_Dir_Folder
-	    VH_variables[1:length(input$VH_CA_Climate_model), "input$VH_CA_Climate_model"] <- input$VH_CA_Climate_model
-	    VH_variables[1:length(input$VH_CA_Climate_scenario), "input$VH_CA_Climate_scenario"] <- input$VH_CA_Climate_scenario
-	    VH_variables[1:length(input$VH_CA_Project_year), "input$VH_CA_Project_year"] <- input$VH_CA_Project_year
-	    VH_variables[1:length(input$VH_CA_SDM_model), "input$VH_CA_SDM_model"] <- input$VH_CA_SDM_model
-	    
-	    VH_variables[is.na(VH_variables)] <- ""
-	    write.csv(VH_variables, file = file.path(G$VH_MO_Dir_Folder, "VulnerableHabitat_Options.csv"))
-	    
-	    #####		    
-	    
-	    
-	  })
+	  }	  
 	})
 	
-	observeEvent(input$VH_VA_Action_Habitat, {
+	output$HA_AO_SG_SGG_SP_Stat <- renderPlot({
 	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  alist <- input$VH_VA_Habitat
-	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  #	  dtlist <- input$VH_CA_Dispersal_type
-	  mlist <- input$VH_CA_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_CA_Project_year
-	  slist <- input$VH_CA_Species
-	  vlist <- c("VH_SR", "VH_LOSS", "VH_STAY", "VH_GAIN", "VH_VI1", "VH_VI2", "VH_VI3") # c("VH_SR") # 
-	  
-	  n <- 0
-	  la <- length(alist)
-	  ls <- length(slist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  lv <- length(vlist)
-	  
-	  tls <- la * ld * lc * lm * ly * lv
-	  tlg <- la * ld * lc * lm * ly * ls 
-	  
-	  
-	  if(TRUE) { 
-	    # Individual Species
+	  rs <- input$HA_AO_SG_SGG_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[9])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	    
-	    for (a in alist) {
-	      withProgress(message = paste("Species Analyzing by ", input$VH_VA_Admin), value = 0, {
-	        for (s in slist) {
-	          dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir, s, input$VH_MI_Dir_Folder)
-	          dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
-	          file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	          #	    poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
-	          poly <- readOGR(dsn=dir_path, layer=a)
-	          df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
-	          df <- cbind(df, SPECIES = s)
-	          for (d in dlist) {
-	            for (c in clist) {
-	              for (m in mlist) {
-	                for (y in ylist) {
-	                  for (v in "PRED") {
-	                    incProgress(1/tls, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", s))
-	                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                    r <- raster(img)
-	                    df1 <- raster::extract(r, poly, fun = sum, na.rm = TRUE, df=TRUE)
-	                    #write to a data frame
-	                    df1 <- data.frame(df1[-1])
-	                    colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
-	                    df1[is.na(df1)] <- 0
-	                    df <- cbind(df, df1)
-	                  }
-	                }
-	              }
-	            }
-	          }
-	          #write to a CSV file
-	          write.csv(df, file = file.path(dir_path, paste("VH_", a, ".csv", sep="")))
-	          write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	        }
-	      })
-	    }
-	    
-	  } else { 
-	    # Species Group
-	    dir_path <- G$VH_MO_Dir_Folder
-	    for (a in alist) {
-	      
-	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
-	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	      #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
-	      poly <- readOGR(dsn=dir_path, layer=a)
-	      df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
-	      withProgress(message = paste("Species Group Analyzing by ", input$VH_VA_Admin), value = 0, {
-	        for (d in dlist) {
-	          for (c in clist) {
-	            for (m in mlist) {
-	              for (y in ylist) {
-	                for (v in vlist) {
-	                  incProgress(1/tlg, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
-	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, G$IMG_File, sep = ""))
-	                  r <- raster(img)
-	                  df1 <- raster::extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
-	                  #write to a data frame
-	                  df1 <- data.frame(df1[-1])
-	                  colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
-	                  df1[is.na(df1)] <- 0
-	                  df <- cbind(df, df1)
-	                }
-	              }
-	            }
-	          }
-	        }
-	        #write to a CSV file
-	        write.csv(df, file = file.path(dir_path, paste("VH_", a, ".csv", sep="")))
-	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	      })
-	    }
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
 	  }
+	  
 	})
 	
+	output$HA_AO_SG_NP_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
 	
-	observeEvent(input$VH_VA_Action_Analysis_old, {
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  #	dtlist <- input$VH_CA_Dispersal_type
-	  mlist <- input$VH_CA_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_CA_Project_year
-	  slist <- input$VH_CA_Species
+	output$HA_AO_SG_NP_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
-	  n <- 0
-	  ls <- length(slist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
+	})
+	
+	output$HA_AO_SG_NP_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
 	  
-	  tl <- ld * lc * lm * ly
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SG_NP_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
 	  
-	  sr_list <- NULL
-	  loss_list <- NULL
-	  stay_list <- NULL
-	  gain_list <- NULL
-	  
-	  withProgress(message = 'Runing Vulnerable Habitat Impact and Vulnerability Analysis.........', value = 0, {
-	    G$VH_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_MI_Dir)  
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
-#	            if (length(ylist) > 1) {
-	              if(y == ylist[1]) {
-	                for (s in slist) {
-	                  dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
-	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                  sr_list <- c(sr_list, img)
-	                }
-	                save_path <- G$VH_MO_Dir_Folder
-	                sr_list <- grep("PRED", sr_list, value = TRUE)
-	                sr_stack <- stack(sr_list)
-	                sr_raster <- overlay(sr_stack, fun=sum)
-	                sr_raster1 <- sr_raster
-	                writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                vi1_raster <- sr_raster
-	                vi1_raster[] <- 0
-	                vi2_raster <- sr_raster
-	                vi2_raster[] <- 0
-	                vi3_raster <- sr_raster
-	                vi3_raster[] <- 0
-	                writeRaster(vi1_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                sr_list <- NULL
-	              } else {					  
-	                for (s in slist) {
-#	                  incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y))
-	                  dir_path <- file.path(G$VH_MI_Dir_Folder, s, input$VH_MI_Dir_Folder)
-	                  img <- file.path(dir_path, paste("PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                  sr_list <- c(sr_list, img)
-	                  img <- file.path(dir_path, paste("LOSS_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                  loss_list <- c(loss_list, img)
-	                  img <- file.path(dir_path, paste("STAY_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                  stay_list <- c(stay_list, img)
-	                  img <- file.path(dir_path, paste("GAIN_", "PRED", "_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                  gain_list <- c(gain_list, img)
-	                }
-	                save_path <- G$VH_MO_Dir_Folder
-	                sr_list <- grep("PRED", sr_list, value = TRUE)
-	                sr_stack <- stack(sr_list)
-	                sr_raster <- overlay(sr_stack, fun=sum)
-	                sr_raster2 <- sr_raster
-	                losssr_raster <- sr_raster2 - sr_raster1
-	                writeRaster(sr_raster, file = file.path(save_path, paste(as.name(paste("VH_SR_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                writeRaster(losssr_raster, file = file.path(save_path, paste(as.name(paste("VH_VI1_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                
-	                loss_list <- grep("LOSS", loss_list, value = TRUE)
-	                loss_stack <- stack(loss_list)
-	                loss_raster <- overlay(loss_stack, fun=sum)
-	                writeRaster(loss_raster, file = file.path(save_path, paste(as.name(paste("VH_LOSS_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                
-	                stay_list <- grep("STAY", stay_list, value = TRUE)
-	                stay_stack <- stack(stay_list)
-	                stay_raster <- overlay(stay_stack, fun=sum)
-	                writeRaster(stay_raster, file = file.path(save_path, paste(as.name(paste("VH_STAY_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                
-	                gain_list <- grep("GAIN", gain_list, value = TRUE)
-	                gain_stack <- stack(gain_list)
-	                gain_raster <- overlay(gain_stack, fun=sum)
-	                writeRaster(gain_raster, file = file.path(save_path, paste(as.name(paste("VH_GAIN_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                
-	                vi2_raster <- sr_raster
-	                vi2_raster <- loss_raster / sr_raster1
-	                writeRaster(vi2_raster, file = file.path(save_path, paste(as.name(paste("VH_VI2_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                vi3_raster <- sr_raster
-	                vi3_raster <- (1 - (loss_raster / sr_raster1)) + (gain_raster / (length(slist) - sr_raster1))
-	                writeRaster(vi3_raster, file = file.path(save_path, paste(as.name(paste("VH_VI3_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
-	                
-	                sr_list <- NULL
-	                loss_list <- NULL
-	                stay_list <- NULL
-	                gain_list <- NULL
-	              }				    
-#	            } 
-	          }
-	        }
+	  if (length(HA_AO_SG_NP_SP_List) > 0) {
+	    if (length(HA_AO_SG_NP_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SG_NP_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "NP.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
 	      }
-	    }
-	      
-	      #		    destfile <- file.path(G$VH_MO_Dir_Folder, "VulnerableHabitat_Options.csv")
-	      
-	      VH_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 5000)), c("input$SDM_Folder", "input$VH_CA_Species", "input$VH_CA_Dispersal_type", "input$VH_CA_Climate_model", "input$VH_CA_Climate_scenario", 
-	                                                                          "input$VH_CA_Project_year", "input$VH_CA_SDM_model"
-	      ))
-	      
-	      VH_variables[1:length(G$VH_MI_Dir_Folder), "input$SDM_Folder"] <- G$VH_MI_Dir_Folder
-	      VH_variables[1:length(input$VH_CA_Species), "input$VH_CA_Species"] <- input$VH_CA_Species
-	      VH_variables[1:length(input$VH_CA_Dispersal_type), "input$VH_CA_Dispersal_type"] <- input$VH_MI_Dir_Folder
-	      VH_variables[1:length(input$VH_CA_Climate_model), "input$VH_CA_Climate_model"] <- input$VH_CA_Climate_model
-	      VH_variables[1:length(input$VH_CA_Climate_scenario), "input$VH_CA_Climate_scenario"] <- input$VH_CA_Climate_scenario
-	      VH_variables[1:length(input$VH_CA_Project_year), "input$VH_CA_Project_year"] <- input$VH_CA_Project_year
-	      VH_variables[1:length(input$VH_CA_SDM_model), "input$VH_CA_SDM_model"] <- input$VH_CA_SDM_model
-	      
-	      VH_variables[is.na(VH_variables)] <- ""
-	      write.csv(VH_variables, file = file.path(G$VH_MO_Dir_Folder, "VulnerableHabitat_Options.csv"))
-	      
-	      #####			      
-	      
-	  })
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
 	})
 	
-	observeEvent(input$VH_VA_Action_Habitat_old, {
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  alist <- input$VH_VA_Habitat
-	  dlist <- input$VH_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  #	dtlist <- input$VH_CA_Dispersal_type
-	  mlist <- input$VH_CA_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_CA_Project_year
-	  slist <- input$VH_CA_Species
-	  vlist <- c("VH_SR", "VH_LOSS", "VH_STAY", "VH_GAIN", "VH_VI1", "VH_VI2", "VH_VI3") # c("VH_SR") # 
+	output$HA_AO_SG_NP_SP_Stat <- renderPlot({
 	  
-	  n <- 0
-	  la <- length(alist)
-	  ls <- length(slist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  lv <- length(vlist)
-	  
-	  tl <- la * ld * lc * lm * ly * lv
-	  
-	  withProgress(message = paste("Grouping by ", input$VH_VA_Habitat), value = 0, {
+	  rs <- input$HA_AO_SG_NP_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	    
-	    dir_path <- G$VH_MO_Dir_Folder
-	    
-	    for (a in alist) {
-	      
-	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
-	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	      poly <- readShapePoly(file.path(G$SE_Dir_GIS, paste(a, ".shp", sep = "")))
-	      df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
-	      
-	      for (d in dlist) {
-	        for (c in clist) {
-	          for (m in mlist) {
-	            for (y in ylist) {
-	              if (length(ylist) > 1) {
-	                if(y == ylist[1]) {
-	                  incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", vlist[1]))
-	                  img <- file.path(dir_path, paste(vlist[1], "_",  d, "_", c, "_", m, "_", y, G$IMG_File, sep = ""))
-	                  r <- raster(img)
-	                  df1 <- raster::extract(r, poly, fun = max, na.rm = FALSE, df = TRUE)
-	                  #write to a data frame
-	                  df1 <- data.frame(df1)
-	                  df1[is.na(df1)] <- 0
-	                  df <- cbind(df, df1[-1])
-	                } else {
-	                  for (v in vlist) {
-	                    incProgress(1/tl, detail = paste("Doing part", d, "_", c, "_", m, "_", y, "_", v))
-	                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, G$IMG_File, sep = ""))
-	                    r <- raster(img)
-	                    df1 <- raster::extract(r, poly, fun = max, na.rm = FALSE, df=TRUE)
-	                    #write to a data frame
-	                    df1 <- data.frame(df1[-1])
-	                    df1[is.na(df1)] <- 0
-	                    df <- cbind(df, df1)
-	                  }
-	                }
-	              } 
-	            }
-	          }
-	        }
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "국립공원", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SG_BR_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_SG_BR_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
+	})
+	
+	output$HA_AO_SG_BR_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SG_BR_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SG_BR_SP_List) > 0) {
+	    if (length(HA_AO_SG_BR_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SG_BR_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "BR.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
 	      }
-	      
-	      #write to a CSV file
-	      write.csv(df, file = file.path(dir_path, paste("VH_", a, ".csv", sep="")))
-	      write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	    }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SG_BR_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SG_BR_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	    
-	  })
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "백두대간", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_SG_DMZ_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[5])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
 	})
 	
-	
-	output$VH_AO_MI_Dir_Folder <- renderUI({
-	  VH_AO_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
-	  VH_AO_MI_Dir_Folder_selected <- VH_AO_MI_Dir_Folder_list[1]
-	  selectInput("VH_AO_MI_Dir", "Working Species Distribution Folders",
-	              choices = c(VH_AO_MI_Dir_Folder_list),
-	              selected = VH_AO_MI_Dir_Folder_selected
-	  )
+	output$HA_AO_SG_DMZ_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  X_NAME <- names(df[6])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
 	})
 	
-	output$VH_AO_MO_Dir_Folder <- renderUI({
-	  VH_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"), full.names = FALSE, recursive = FALSE)
-	  VH_AO_MO_Dir_Folder_selected <- VH_AO_MO_Dir_Folder_list[1]
-	  selectInput("VH_AO_MO_Dir", "Working Vulnerable Habitat Folders",
-	              choices = c(VH_AO_MO_Dir_Folder_list),
-	              selected = VH_AO_MO_Dir_Folder_selected
-	  )
+	output$HA_AO_SG_DMZ_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SG_DMZ_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SG_DMZ_SP_List) > 0) {
+	    if (length(HA_AO_SG_DMZ_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SG_DMZ_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
 	})
 	
-	output$VH_AO_MI_Dir_Folder_Name <- renderUI({
-	  VH_AO_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_AO_MI_Dir, input$VH_AO_Species[1]), full.names = FALSE, recursive = FALSE)
-	  VH_AO_MI_Dir_Folder_Name_selected <- VH_AO_MI_Dir_Folder_Name_list[1]
-	  selectInput("VH_AO_MI_Dir_Folder", "Working SDM Types",
-	              choices = c(VH_AO_MI_Dir_Folder_Name_list),
-	              selected = VH_AO_MI_Dir_Folder_Name_selected
-	  )
+	output$HA_AO_SG_DMZ_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SG_DMZ_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[7])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "DMZ", "면적(Km2)")
+	  }
+	  
 	})		
 	
-	output$VH_AO_Species <- renderUI({
-	    G$VH_AO_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_AO_MI_Dir)
-		VH_Name_Species_list <- list.dirs(path = G$VH_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		VH_Name_Species_selected <- VH_Name_Species_list[1]
-		selectInput("VH_AO_Species", "Select a species",
-			choices = c(VH_Name_Species_list),
-			selected = VH_Name_Species_selected
-		)
-	})
-	
-	
-	output$VH_AO_SDM_model <- renderUI({
-	    G$VH_AO_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$VH_AO_MI_Dir)
-		destfile <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$VH_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
-		all_eval <- read.csv(destfile)
-		G_FILE_species_evaluation <<- all_eval
-		VH_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
-		VH_Name_Models_selected <- VH_Name_Models_list[1]
-		radioButtons("VH_AO_SDM_model", "Select models",
-			choices = c(VH_Name_Models_list),
-			selected = VH_Name_Models_selected
-		)
-	})
-	
-	output$VH_AO_SD_Map <- renderLeaflet({
-	    
-	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, input$VH_AO_MI_Dir_Folder)
-	    Map <- paste("PRED", "_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_Project_year, "_", input$VH_AO_Species, "_", input$VH_AO_SDM_model, G$IMG_File, sep = "")
-	    r <- raster(file.path(dir_path, Map))
-	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                        na.color = "transparent")
-	    
-	    leaflet() %>%
-	        addTiles(
-	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	        ) %>%        
-	        
-	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
-	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	        setView(lng = 127.00, lat = 36.00, zoom = 7)
-	})  
-	
-	output$VH_AO_SD_Summary <- renderPrint({
-	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
-	    Map <- paste("PRED", "_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_Project_year, "_", input$VH_AO_Species, "_", input$VH_AO_SDM_model, G$IMG_File, sep = "")
-	    r <- raster(file.path(dir_path, Map))
-	    summary(r)
-	})
-	
-	output$VH_AO_SD_Histogram <- renderPlot({
-	    dir_path <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
-	    Map <- paste("PRED", "_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_Project_year, "_", input$VH_AO_Species, "_", input$VH_AO_SDM_model, G$IMG_File, sep = "")
-	    x <- raster(file.path(dir_path, Map))
-	    
-	    hist(x, # breaks = bins, 
-	         col="orange",
-	         border="brown",
-	         xlab = "Predicted Value",
-	         main = "Histogram")
-	})
-	
-	output$VH_AO_SD_SIDO_Map <- renderLeaflet({
-	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
-	  poly <- readOGR(file.path(VH_AO_SD_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
+	output$HA_AO_SG_Habitat_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
 	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Km2", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
 	})
 	
-	output$VH_AO_SD_SIDO_Stat <- renderPlot({
-	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
-	  df <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	output$HA_AO_SG_Habitat_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
 	})
 	
-	output$VH_AO_SD_SGG_Map <- renderLeaflet({
-	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
-	  poly <- readOGR(file.path(VH_AO_SD_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
+	output$HA_AO_SG_NP_Habitat_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
 	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_SG_Habitat_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_SG_Habitat_SP_List) > 0) {
+	    if (length(HA_AO_SG_Habitat_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_SG_Habitat_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SG_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_SG_Habitat_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_SG_Habitat_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "서식지", "면적(Km2)")
+	  }
+	  
+	})		
+	
+	#-------------------------------------------------------------------		
+	### HA_AO_VI_PLOT	
+	#-------------------------------------------------------------------	
+	
+	output$HA_AO_VI_TYPE_Group_UI <- renderUI({
+	  
+	  if (input$HA_AO_VI_Habitat_Type == "Habitat") {
+	    uiOutput("HA_AO_VI_TYPE_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_TYPE_UI <- renderUI({
+ 
+	  radioButtons("HA_AO_VI_TYPE_UI", NULL,
+	              choices = c(HA_Name_VI_Types_list),
+	              selected = HA_Name_VI_Types_selected,
+	              inline = TRUE)
+	  
+	})
+	
+	output$HA_AO_VI_PLOT_Group_UI <- renderUI({
+	  
+	  if (input$HA_AO_VI_Habitat_Type == "SGG" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_VI_SGG_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_PLOT_UI <- renderUI({
+	  
+	  if (input$HA_AO_VI_Habitat_Type == "Distribution" && input$HA_AO_VI_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_VI_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_VI_Habitat_Type == "Distribution" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "SD" && input$HA_AO_VI_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_VI_SIDO_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_VI_Habitat_Type == "SD" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_SIDO_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "SGG" && input$HA_AO_VI_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_VI_SGG_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_VI_Habitat_Type == "SGG" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_SGG_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "NP" && input$HA_AO_VI_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_VI_NP_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_VI_Habitat_Type == "NP" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_NP_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "BR" && input$HA_AO_VI_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_VI_BR_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_VI_Habitat_Type == "BR" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_BR_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "DMZ" && input$HA_AO_VI_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_VI_DMZ_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_VI_Habitat_Type == "DMZ" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_DMZ_Stat"))	
+	  } else if (input$HA_AO_VI_Habitat_Type == "Habitat" && input$HA_AO_VI_Habitat_Plot_Type == "Map") {
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_VI_Habitat_Map", width = "800", height = "600")
+	  } else if (input$HA_AO_VI_Habitat_Type == "Habitat" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_Habitat_Stat"))		    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_PLOT_SP_UI <- renderUI({
+	  
+	  if (input$HA_AO_VI_Habitat_Type == "SD" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    uiOutput("HA_AO_VI_SIDO_SP_UI")
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_PLOT_SP_Table <- renderUI({
+	  
+	  if (input$HA_AO_VI_Habitat_Type == "SD" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_VI_SIDO_SP_Table")
+	  } else if (input$HA_AO_VI_Habitat_Type == "SGG" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_VI_SGG_SP_Table")
+	  } else if (input$HA_AO_VI_Habitat_Type == "NP" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_VI_NP_SP_Table")
+	  } else if (input$HA_AO_VI_Habitat_Type == "BR" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_VI_BR_SP_Table")
+	  } else if (input$HA_AO_VI_Habitat_Type == "DMZ" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_VI_DMZ_SP_Table")   
+	  } else if (input$HA_AO_VI_Habitat_Type == "Habitat" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    DT::dataTableOutput("HA_AO_VI_Habitat_SP_Table")  	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_PLOT_SP_Stat <- renderUI({
+	  
+	  if (input$HA_AO_VI_Habitat_Type == "SD" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_SIDO_SP_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "SGG" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_SGG_SP_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "NP" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_NP_SP_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "BR" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_BR_SP_Stat"))
+	  } else if (input$HA_AO_VI_Habitat_Type == "DMZ" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_DMZ_SP_Stat"))	  
+	  } else if (input$HA_AO_VI_Habitat_Type == "Habitat" && input$HA_AO_VI_Habitat_Plot_Type == "Statistics") {
+	    jqui_resizabled(plotOutput("HA_AO_VI_Habitat_SP_Stat"))	    
+	  } else {
+	    
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_Map <- renderLeaflet({
+	  
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  MotiveEco_gis_plot(dir_path, input$HA_AO_VI_TYPE_UI, input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  
+	})
+	
+	output$HA_AO_VI_Stat <- renderPlot({
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  Map <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
+	  r <- raster(file.path(dir_path, Map))
+	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  hist(r, # breaks = bins, 
+	       col="lightskyblue3",  # skyblue",
+	       border="white",
+	       xlab = "Number of Species", # Map,
+	       ylab = "면적(Km2)",
+	       main = "Species Richness")
+	})
+	
+	output$HA_AO_VI_SIDO_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[4])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
 	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Km2", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
 	})
 	
-	output$VH_AO_SD_SGG_UI <- renderUI({
-	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
-	  df <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
+	output$HA_AO_VI_SIDO_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  X_NAME <- names(df[5])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
-	  selectInput("VH_AO_SD_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
+	})
+	
+	output$HA_AO_VI_SIDO_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_VI_SIDO_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_VI_SIDO_SP_List) > 0) {
+	    if (length(HA_AO_VI_SIDO_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_VI_SIDO_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SD.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_VI_SIDO_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_VI_SIDO_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[6])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_SGG_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  names(poly) <- c(names(x[-1]))
+	  X_NAME <- names(poly[7])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_VI_SGG_UI <- renderUI({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  HA_Name_SD_list <- G$SIDO_List
+	  HA_Name_SD_selected <- HA_Name_SD_list[1]
+	  
+	  selectInput("HA_AO_VI_SGG_UI", "시도",
+	              choices = c(HA_Name_SD_list),
+	              selected = HA_Name_SD_selected
 	  )
 	})
 	
-	output$VH_AO_SD_SGG_Stat <- renderPlot({
-	  VH_AO_SD_Dir_Folder <- file.path(G$VH_AO_MI_Dir_Folder, input$VH_AO_Species, "BIOMOD2")
-	  df <- read.csv(file.path(VH_AO_SD_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_SD_SGG_UI), ]
-	  #	  names(df) <- c(names(x[-1]))
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("PRED_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
+	output$HA_AO_VI_SGG_Stat <- renderPlot({
 	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  df <- df[which(df$SD_KOR==input$HA_AO_VI_SGG_UI), ]
+	  X_NAME <- names(df[8])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
+	
+	output$HA_AO_VI_SGG_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_VI_SGG_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_VI_SGG_SP_List) > 0) {
+	    if (length(HA_AO_VI_SGG_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_VI_SGG_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "SGG.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SIDO_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_VI_SGG_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_VI_SGG_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[9])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
+	  }
+	  
+	})
+	
+	output$HA_AO_VI_NP_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_VI_NP_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
+	})
+	
+	output$HA_AO_VI_NP_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_VI_NP_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_VI_NP_SP_List) > 0) {
+	    if (length(HA_AO_VI_NP_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_VI_NP_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "NP.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_NP_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_VI_NP_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_VI_NP_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "국립공원", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_VI_BR_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_VI_BR_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
+	})
+	
+	output$HA_AO_VI_BR_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_VI_BR_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_VI_BR_SP_List) > 0) {
+	    if (length(HA_AO_VI_BR_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_BR_SP_List[1], input$HA_AO_MI_Dir_Folder, "BR.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_VI_BR_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "BR.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_BR_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_VI_BR_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_VI_BR_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "백두대간", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	output$HA_AO_VI_DMZ_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[5])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_VI_DMZ_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
+	  X_NAME <- names(df[6])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
+	})
+	
+	output$HA_AO_VI_DMZ_SP_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_VI_DMZ_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_VI_DMZ_SP_List) > 0) {
+	    if (length(HA_AO_VI_DMZ_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_DMZ_SP_List[1], input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_VI_DMZ_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "DMZ.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_DMZ_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_VI_DMZ_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_VI_DMZ_SP_Table_rows_selected  # G_FILE_specieSSocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[7])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "DMZ", "면적(Km2)")
+	  }
+	  
+	})		
+	
+	output$HA_AO_VI_Habitat_Map <- renderLeaflet({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".shp", sep = "")))
+	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[3])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Species")
+	})
+	
+	output$HA_AO_VI_Habitat_Stat <- renderPlot({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
+	  X_NAME <- names(df[4])
+	  V_NAME <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
+	})
+	
+	output$HA_AO_VI_NP_Habitat_Table <- DT::renderDataTable({
+	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_AO_VI_Habitat_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  if (length(HA_AO_VI_Habitat_SP_List) > 0) {
+	    if (length(HA_AO_VI_Habitat_SP_List) == 1) {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } else {
+	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_Habitat_SP_List[1], input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	      sindex <- read.csv(destfile)
+	      for (s in HA_AO_VI_Habitat_SP_List[-1]) {
+	        destfile <- file.path(G$HA_AO_MI_Dir_Folder, s, input$HA_AO_MI_Dir_Folder, "Habitat.csv")
+	        sindex0 <- read.csv(destfile)
+	        sindex <- rbind(sindex, sindex0)
+	      }
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_VI_Habitat_SP_UI), ]
+	      G_FILE_species_sindex <<- sindex
+	      sindex
+	    } 
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }	  
+	})
+	
+	output$HA_AO_VI_Habitat_SP_Stat <- renderPlot({
+	  
+	  rs <- input$HA_AO_VI_Habitat_SP_Table_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    df <- G_FILE_species_sindex[rs, , drop = FALSE]
+	    X_NAME <- names(df[5])
+	    V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	    
+	    MotiveEco_BND_SP_stat(df, X_NAME, V_NAME, "생물종 분포", "서식지", "면적(Km2)")
+	  }
+	  
+	})	
+	
+	
 
-	output$VH_AO_SR_Map <- renderLeaflet({
-	   
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  #    slist <- input$VH_AO_Species
-	  olist <- c("VH_SR")  # input$VH_AO_Output_option1
-	  dlist <- input$VH_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  mlist <- input$VH_AO_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_AO_Project_year
-	  #	dtlist <- input$SS_AO_Dispersal_type
-	  
-	  #    ls <- length(slist)
-	  lo <- length(olist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  
-	  tl <- lo * ld * lc * lm * ly
-	  nc <- 2
-	  if (tl <  2) {
-	    nr <- round(tl / nc) + 1
-	  } else {
-	    nr <- round((tl + 0.1) / nc)
-	  }
-	  
-	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  for (o in olist) {
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              r <- raster(file.path(G$VH_AO_MO_Dir_Folder, Map1))
-	              #                plot(R_Map1, main = Map1)
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	  
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  
-	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                      na.color = "transparent")
-	  
-	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
-	
-	output$VH_AO_SR_SIDO_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SR_SIDO_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SR_SGG_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SR_SGG_UI <- renderUI({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
-	  
-	  selectInput("VH_AO_SR_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
-	  )
-	})
-	
-	output$VH_AO_SR_SGG_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_SR_SGG_UI), ]
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
 
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SR_NP_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SR_NP_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "국립공원 생물종 분포") + labs(x = "국립공원") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SR_BR_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[2])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SR_BR_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "백두대간 생물종 분포") + labs(x = "백두대간") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SR_DMZ_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SR_DMZ_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_SR_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "DMZ 생물종 분포") + labs(x = "DMZ") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SL_Map <- renderLeaflet({
-	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  #    slist <- input$VH_AO_Species
-	  olist <- c("VH_LOSS")  # input$VH_AO_Output_option1
-	  dlist <- input$VH_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  mlist <- input$VH_AO_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_AO_Project_year
-	  #	dtlist <- input$SS_AO_Dispersal_type
-	  
-	  #    ls <- length(slist)
-	  lo <- length(olist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  
-	  tl <- lo * ld * lc * lm * ly
-	  nc <- 2
-	  if (tl <  2) {
-	    nr <- round(tl / nc) + 1
-	  } else {
-	    nr <- round((tl + 0.1) / nc)
-	  }
-	  
-	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  for (o in olist) {
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              r <- raster(file.path(G$VH_AO_MO_Dir_Folder, Map1))
-	              #                plot(R_Map1, main = Map1)
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	  
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  
-	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                      na.color = "transparent")
-	  
-	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
-	
-	output$VH_AO_SL_SIDO_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SL_SIDO_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SL_SGG_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SL_SGG_UI <- renderUI({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)  
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
-	  
-	  selectInput("VH_AO_SL_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
-	  )
-	})
-	
-	output$VH_AO_SL_SGG_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_SL_SGG_UI), ]
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SL_NP_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SL_NP_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "국립공원 생물종 분포") + labs(x = "국립공원") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SL_BR_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[2])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SL_BR_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "백두대간 생물종 분포") + labs(x = "백두대간") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SL_DMZ_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SL_DMZ_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_LOSS_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "DMZ 생물종 분포") + labs(x = "DMZ") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SS_Map <- renderLeaflet({
-	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  #    slist <- input$VH_AO_Species
-	  olist <- c("VH_STAY")  # input$VH_AO_Output_option1
-	  dlist <- input$VH_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  mlist <- input$VH_AO_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_AO_Project_year
-	  #	dtlist <- input$SS_AO_Dispersal_type
-	  
-	  #    ls <- length(slist)
-	  lo <- length(olist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  
-	  tl <- lo * ld * lc * lm * ly
-	  nc <- 2
-	  if (tl <  2) {
-	    nr <- round(tl / nc) + 1
-	  } else {
-	    nr <- round((tl + 0.1) / nc)
-	  }
-	  
-	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  for (o in olist) {
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              r <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              #                plot(R_Map1, main = Map1)
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	  
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  
-	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                      na.color = "transparent")
-	  
-	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
-	
-	output$VH_AO_SS_SIDO_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SS_SIDO_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SS_SGG_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SS_SGG_UI <- renderUI({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
-	  
-	  selectInput("VH_AO_SS_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
-	  )
-	})
-	
-	output$VH_AO_SS_SGG_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_SS_SGG_UI), ]
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SS_NP_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SS_NP_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "국립공원 생물종 분포") + labs(x = "국립공원") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SS_BR_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[2])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SS_BR_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "백두대간 생물종 분포") + labs(x = "백두대간") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SS_DMZ_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SS_DMZ_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_STAY_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "DMZ 생물종 분포") + labs(x = "DMZ") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SI_Map <- renderLeaflet({
-	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  #    slist <- input$VH_AO_Species
-	  olist <- c("VH_GAIN")  # input$VH_AO_Output_option1
-	  dlist <- input$VH_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  mlist <- input$VH_AO_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_AO_Project_year
-	  #	dtlist <- input$SS_AO_Dispersal_type
-	  
-	  #    ls <- length(slist)
-	  lo <- length(olist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  
-	  tl <- lo * ld * lc * lm * ly
-	  nc <- 2
-	  if (tl <  2) {
-	    nr <- round(tl / nc) + 1
-	  } else {
-	    nr <- round((tl + 0.1) / nc)
-	  }
-	  
-	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  for (o in olist) {
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              r <- raster(file.path(G$VH_AO_MO_Dir_Folder, Map1))
-	              #                plot(R_Map1, main = Map1)
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	  
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  
-	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                      na.color = "transparent")
-	  
-	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
-	
-	output$VH_AO_SI_SIDO_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SI_SIDO_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SI_SGG_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)  
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SI_SGG_UI <- renderUI({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
-	  
-	  selectInput("VH_AO_SI_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
-	  )
-	})
-	
-	output$VH_AO_SI_SGG_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_SI_SGG_UI), ]
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SI_NP_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SI_NP_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "국립공원 생물종 분포") + labs(x = "국립공원") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SI_BR_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[2])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SI_BR_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "백두대간 생물종 분포") + labs(x = "백두대간") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_SI_DMZ_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 2, 4, 6, 8, 10, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_SI_DMZ_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_GAIN_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "DMZ 생물종 분포") + labs(x = "DMZ") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI1_Map <- renderLeaflet({
-	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  #    slist <- input$VH_AO_Species
-	  olist <- c("VH_VI1")  # input$VH_AO_Output_option1
-	  dlist <- input$VH_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  mlist <- input$VH_AO_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_AO_Project_year
-	  #	dtlist <- input$SS_AO_Dispersal_type
-	  
-	  #    ls <- length(slist)
-	  lo <- length(olist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  
-	  tl <- lo * ld * lc * lm * ly
-	  nc <- 2
-	  if (tl <  2) {
-	    nr <- round(tl / nc) + 1
-	  } else {
-	    nr <- round((tl + 0.1) / nc)
-	  }
-	  
-	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  for (o in olist) {
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              r <- raster(file.path(G$VH_AO_MO_Dir_Folder, Map1))
-	              #                plot(R_Map1, main = Map1)
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	  
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  
-	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                      na.color = "transparent")
-	  
-	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
-	
-	output$VH_AO_VI1_SIDO_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(-10, -5, 0, 5, 10, 15, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI1_SIDO_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI1_SGG_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(-10, -5, 0, 5, 10, 15, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI1_SGG_UI <- renderUI({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
-	  
-	  selectInput("VH_AO_VI1_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
-	  )
-	})
-	
-	output$VH_AO_VI1_SGG_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_VI1_SGG_UI), ]
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI1_NP_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(-10, -5, 0, 5, 10, 15, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI1_NP_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "국립공원 생물종 분포") + labs(x = "국립공원") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI1_BR_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[2])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(-10, -5, 0, 5, 10, 15, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI1_BR_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "백두대간 생물종 분포") + labs(x = "백두대간") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI1_DMZ_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(-10, -5, 0, 5, 10, 15, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI1_DMZ_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_VI1_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "DMZ 생물종 분포") + labs(x = "DMZ") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI2_Map <- renderLeaflet({
-	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  #    slist <- input$VH_AO_Species
-	  olist <- c("VH_VI2")  # input$VH_AO_Output_option1
-	  dlist <- input$VH_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  mlist <- input$VH_AO_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_AO_Project_year
-	  #	dtlist <- input$SS_AO_Dispersal_type
-	  
-	  #    ls <- length(slist)
-	  lo <- length(olist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  
-	  tl <- lo * ld * lc * lm * ly
-	  nc <- 2
-	  if (tl <  2) {
-	    nr <- round(tl / nc) + 1
-	  } else {
-	    nr <- round((tl + 0.1) / nc)
-	  }
-	  
-	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  for (o in olist) {
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              r <- raster(file.path(G$VH_AO_MO_Dir_Folder, Map1))
-	              #                plot(R_Map1, main = Map1)
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	  
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  
-	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                      na.color = "transparent")
-	  
-	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
-	
-	output$VH_AO_VI2_SIDO_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.2, 0.4, 0.6, 0.8, 1, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI2_SIDO_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI2_SGG_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.2, 0.4, 0.6, 0.8, 1, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI2_SGG_UI <- renderUI({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
-	  
-	  selectInput("VH_AO_VI2_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
-	  )
-	})
-	
-	output$VH_AO_VI2_SGG_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_VI2_SGG_UI), ]
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI2_NP_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.2, 0.4, 0.6, 0.8, 1, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI2_NP_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "국립공원 생물종 분포") + labs(x = "국립공원") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI2_BR_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[2])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.2, 0.4, 0.6, 0.8, 1, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI2_BR_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "백두대간 생물종 분포") + labs(x = "백두대간") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI2_DMZ_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.2, 0.4, 0.6, 0.8, 1, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI2_DMZ_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_VI2_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "DMZ 생물종 분포") + labs(x = "DMZ") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI3_Map <- renderLeaflet({
-	  
-	  # setting Climate change scenarios, Future time, Species and current environmental path
-	  #    slist <- input$VH_AO_Species
-	  olist <- c("VH_VI3")  # input$VH_AO_Output_option1
-	  dlist <- input$VH_AO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	  clist <- input$VH_AO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  mlist <- input$VH_AO_SDM_model # c("PA1_Full_GLM_byROC")
-	  ylist <- input$VH_AO_Project_year
-	  #	dtlist <- input$SS_AO_Dispersal_type
-	  
-	  #    ls <- length(slist)
-	  lo <- length(olist)
-	  ld <- length(dlist)
-	  lc <- length(clist)
-	  lm <- length(mlist)
-	  ly <- length(ylist)
-	  
-	  tl <- lo * ld * lc * lm * ly
-	  nc <- 2
-	  if (tl <  2) {
-	    nr <- round(tl / nc) + 1
-	  } else {
-	    nr <- round((tl + 0.1) / nc)
-	  }
-	  
-	  #    par(mfrow = c(nr,nc), cex.main = 1.2)
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  for (o in olist) {
-	    for (d in dlist) {
-	      for (c in clist) {
-	        for (m in mlist) {
-	          for (y in ylist) {
-	            if (ly > 0) {
-	              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	              #                R_Map1 <- raster(file.path(isolate(G$VH_AO_MO_Dir_Folder), Map1))
-	              r <- raster(file.path(G$VH_AO_MO_Dir_Folder, Map1))
-	              #                plot(R_Map1, main = Map1)
-	            }
-	          }
-	        }
-	      }
-	    }
-	  }
-	  
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-	  
-	  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                      na.color = "transparent")
-	  
-	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
-	})
-	
-	output$VH_AO_VI3_SIDO_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SD", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  names(poly) <- c(names(x)[-1])
-	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.4, 0.8, 1.2, 1.6, 2.0, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI3_SIDO_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SD", ".csv", sep = "")))
-	  X_NAME <- names(df[5])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시도 생물종 분포") + labs(x = "시도") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI3_SGG_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.4, 0.8, 1.2, 1.6, 2.0, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = 7)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI3_SGG_UI <- renderUI({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  VH_Name_SD_list <- c("강원도", "경기도", "경상남도", "경상북도", "광주시",  "대구시",  "대전시",  "부산시",  "서울시",  "세종시",  "울산시",  "인천시",  "전라남도", "전라북도", "제주도",  "충청남도", "충청북도") # unique(df$SD_KOR)
-	  VH_Name_SD_selected <- VH_Name_SD_list[1]
-	  
-	  selectInput("VH_AO_VI3_SGG_UI", "시도",
-	              choices = c(VH_Name_SD_list),
-	              selected = VH_Name_SD_selected
-	  )
-	})
-	
-	output$VH_AO_VI3_SGG_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_SGG", ".csv", sep = "")))
-	  df <- df[which(df$SD_KOR==input$VH_AO_VI3_SGG_UI), ]
-	  X_NAME <- names(df[8])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "시군구 생물종 분포") + labs(x = "시군구") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI3_NP_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.4, 0.8, 1.2, 1.6, 2.0, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI3_NP_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_NP", ".csv", sep = "")))
-	  X_NAME <- names(df[4])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "국립공원 생물종 분포") + labs(x = "국립공원") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI3_BR_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("BR", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[2])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.4, 0.8, 1.2, 1.6, 2.0, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI3_BR_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_BR", ".csv", sep = "")))
-	  X_NAME <- names(df[3])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "백두대간 생물종 분포") + labs(x = "백두대간") + labs(y = "생물종수")
-	})
-	
-	output$VH_AO_VI3_DMZ_Map <- renderLeaflet({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  poly <- readOGR(file.path(G$VH_AO_MO_Dir_Folder, paste("DMZ", ".shp", sep = "")))
-	  x <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  names(poly) <- c(names(x[-1]))
-	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep = "")
-	  
-	  bins <- c(0, 0.4, 0.8, 1.2, 1.6, 2.0, Inf)
-	  pal <- colorBin("YlOrRd", domain = poly[[V_NAME]], bins = bins)
-	  
-	  labels <- sprintf(
-	    "<strong>%s</strong><br/>%g Species", # people / mi<sup>2</sup>",
-	    poly[[X_NAME]], poly[[V_NAME]]
-	  ) %>% lapply(htmltools::HTML)
-	  
-	  leaflet(poly) %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7) %>%
-	    addProviderTiles("MapBox", options = providerTileOptions(
-	      id = "mapbox.light",
-	      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%   
-	    addPolygons(
-	      fillColor = ~pal(poly[[V_NAME]]),
-	      weight = 2,
-	      opacity = 1,
-	      color = "grey",
-	      dashArray = "3",
-	      fillOpacity = 0.7,
-	      highlight = highlightOptions(
-	        weight = 5,
-	        color = "#666",
-	        dashArray = "",
-	        fillOpacity = 0.7,
-	        bringToFront = TRUE),
-	      label = labels,
-	      labelOptions = labelOptions(
-	        style = list("font-weight" = "normal", padding = "3px 8px"),
-	        textsize = "15px",
-	        direction = "auto")) %>%
-	    addLegend(pal = pal, values = ~poly[[V_NAME]], opacity = 0.7, title = NULL,
-	              position = "bottomright")
-	})
-	
-	output$VH_AO_VI3_DMZ_Stat <- renderPlot({
-	  G$VH_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$VH_AO_MO_Dir)
-	  df <- read.csv(file.path(G$VH_AO_MO_Dir_Folder, paste("VH_DMZ", ".csv", sep = "")))
-	  X_NAME <- names(df[6])
-	  V_NAME <- paste("VH_VI3_", input$VH_AO_Climate_model, "_", input$VH_AO_Climate_scenario, "_", input$VH_AO_SDM_model, "_", input$VH_AO_Project_year, sep="")
-	  
-	  ggplot(data=df, aes(x=df[[X_NAME]], y=df[[V_NAME]])) + #, fill=df[[X_NAME]])) +
-	    geom_bar(stat="identity", position=position_dodge()) +
-	    geom_text(aes(label=df[[V_NAME]]), vjust=1.6, color="white",
-	              position = position_dodge(0.9), size=3.5) +
-	    scale_fill_brewer(palette="Paired") +
-	    theme_minimal() +
-	    labs(title = "DMZ 생물종 분포") + labs(x = "DMZ") + labs(y = "생물종수")
-	})
 
 	
 })

@@ -6,12 +6,15 @@
 #install.packages("remotes")
 #remotes::install_github("marlonecobos/rangemap")
 
+#install.packages("colourpicker")
+#remotes::install_github("daattali/colourpicker")
+
 # Install zip file in the MOTIVE Ecosystem program folder
 #SDMTools
 #MigClim1.6.2
 
-packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
-libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS", "tcltk")
+packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
+libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
 
 # packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
 # libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "tiff", "sf", "biomod2", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "shinydashboard", "shinyBS")
@@ -119,7 +122,10 @@ G$DIR_NAME_Habitat <- "Habitat_Assessment"
 G$DIR_NAME_SDM <- "BIOMOD2"
 G$DIR_NAME_SRM <- "SRM_"
 G$DIR_NAME_DM <- "MIGCLIM_"
-
+G$COL_CODE_PLOT_Ramp2 <- c("azure2", "darkolivegreen")  # c("coral4", "azure", "darkolivegreen4") deepskyblue4 dimgray
+G$COL_CODE_PLOT_Ramp3 <- c("azure", "darkolivegreen")  # c("dimgray", "azure", "darkolivegreen4")
+G$COL_CODE_STAT_BND <- "lightskyblue3" # "lightseagreen" # "steelblue"
+G$COL_CODE_STAT_SP <- "lightseagreen" #"mediumseagreen" #"darkolivegreen4"
 
 Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[16,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
@@ -212,8 +218,8 @@ names(HA_Group1_list) = as.character(Option_lists[,"HA_Group1_name"][Option_list
 HA_Group2_list = as.character(Option_lists[,"HA_Group2_value"][Option_lists[,"HA_Group2_value"] != ""])
 names(HA_Group2_list) = as.character(Option_lists[,"HA_Group2_name"][Option_lists[,"HA_Group2_name"] != ""])
 
-VH_Group_list = as.character(Option_lists[,"VH_Group_value"][Option_lists[,"VH_Group_value"] != ""])
-names(VH_Group_list) = as.character(Option_lists[,"VH_Group_name"][Option_lists[,"VH_Group_name"] != ""])
+HA_VI_list = as.character(Option_lists[,"HA_VI_value"][Option_lists[,"HA_VI_value"] != ""])
+names(HA_VI_list) = as.character(Option_lists[,"HA_VI_name"][Option_lists[,"HA_VI_name"] != ""])
 
 
 for (v in 1: nrow(Variable_lists)) {
@@ -234,14 +240,18 @@ destfile <- file.path(isolate(G$SE_Dir_GIS), "SGG.dbf")
 SGG_lists <- read.dbf(destfile)
 G$SGG_List <-  as.character(SGG_lists[,"SGG_KOR"])
 
-#
+
+
+
+
+#------------------------------
 # MOTIVE Ecosystem Functions
-#
+#------------------------------
 
 MotiveEco_SDM_plot <- function(r)
 {
   crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+  pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
                       na.color = "transparent")
   
   leaflet() %>%
@@ -259,7 +269,18 @@ MotiveEco_SDM_plot <- function(r)
 MotiveEco_BND_stat <- function(df, x, y, title, xname, yname)
 {
   ggplot(data=df, aes(x=df[[x]], y=df[[y]])) + 
-    geom_bar(stat="identity", position=position_dodge()) +
+    geom_bar(stat="identity", fill=G$COL_CODE_STAT_BND, position=position_dodge()) +
+    geom_text(aes(label=df[[y]]), vjust=1.6, color="white",
+              position = position_dodge(0.9), size=3.5) +
+    scale_fill_brewer(palette="Paired") +
+    theme_minimal() +
+    labs(title = title) + labs(x = xname) + labs(y = yname)
+}
+
+MotiveEco_BND_SP_stat <- function(df, x, y, title, xname, yname)
+{
+  ggplot(data=df, aes(x=df[[x]], y=df[[y]])) + 
+    geom_bar(stat="identity", fill=G$COL_CODE_STAT_SP, position=position_dodge()) +
     geom_text(aes(label=df[[y]]), vjust=1.6, color="white",
               position = position_dodge(0.9), size=3.5) +
     scale_fill_brewer(palette="Paired") +
@@ -270,7 +291,7 @@ MotiveEco_BND_stat <- function(df, x, y, title, xname, yname)
 
 MotiveEco_bnd_plot <- function(p, x, y, b, unit)
 {
-  pal <- colorBin("YlOrRd", domain = p[[y]], bins = b)
+  pal <- colorBin(G$COL_CODE_PLOT_Ramp3, domain = p[[y]], bins = b)
   labels <- sprintf(
     paste("<strong>%s</strong><br/>%g ", unit),  #"<strong>%s</strong><br/>%g Km2", 
     p[[x]], p[[y]]
@@ -332,7 +353,7 @@ MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl)
   }
   
   crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")	  
-  pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
+  pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
                       na.color = "transparent")
   
   leaflet() %>%

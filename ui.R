@@ -7,7 +7,17 @@ shinyUI(
 
   dashboardPage(
     skin = "blue",
-    dashboardHeader(title = "MOTIVE Ecosystem"),
+    dashboardHeader(
+      title = tags$a(tags$img(src="MOTIVE_Ecosystem.png", height=30, width=200),)
+#      tags$li(class = "dropdown", 
+#              style = "padding: 10px 1200px 0px 0px;",
+#              tags$p("foo"))
+      
+#      title = "MOTIVE Ecosystem",
+#      img(src="MOTIVE.png", height=25, width=125),
+#      img(src="Ecosystem.png", height=50, width=160, style="margin-top:7px;")
+      
+      ),
     dashboardSidebar(
       width = 350,
       sidebarMenu(
@@ -67,21 +77,49 @@ shinyUI(
       shinyjs::useShinyjs(),
       
       fluidPage( div(
-        h4(SE_Name_System, style = "display: inline-block; color: white; font-size: 200%; margin-left: 20px; position: absolute; line-height: 8vh;"), 
+#        h4(SE_Name_System, style = "display: inline-block; color: white; font-size: 200%; margin-left: 20px; position: absolute; line-height: 8vh;"), 
         div( style = "display: inline-block; margin-left: 80%; margin-top: 10px; font-size: 110%; color: white;",
                   
 #             a("   한국어", style = "cursor:pointer; margin-right: 5px; color: white;" ),
 #             a("English", style = "cursor:pointer; margin-right: 5px; color: white; " ),
 #             a("CONTACT US", style = "cursor:pointer; margin-right: 5px; color: white; " ),
 #             a("LOGOUT", style = "cursor:pointer; margin-right: 5px; color: white;" )
-            a(SE_Name_System_institute, style = "cursor:pointer; margin-right: 5px; color: white;" )
+            a(SE_Name_System_institute, style = "cursor:pointer; margin-right: 5px; color: azure;" )
 
         ),
-        style = "background-image: url(eco_title.png); height: 10vh; position: relative;"),
+#        style = "background-image: url(eco_title.png); height: 10vh; position: relative;"),
+
+
+#        img(src="MOTIVE.png", height=25, width=125),
+#        img(src="Ecosystem.png", height=50, width=160, style="margin-top:7px;"),
+#        style = "background:#17366e; color:#fff; height:70px; width:120%; margin-left:-30px; margin-top:-15px; padding-left:30px; padding-top:12px;"
+#        ),
+        style = "background-image: url(eco_title.png); height: 7vh; position: center;"
+        ),
+
         tags$script(HTML(
           'document.querySelector("body").classList.add("sidebar-collapse");'
         )),
+
+
+tags$head(tags$style(HTML(
+  '.myClass { 
+        font-size: 15px;
+        line-height: 50px;
+        text-align: left;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        padding: 0 15px;
+        overflow: hidden;
+        color: white;
+      }
+    '))),
+tags$script(HTML('
+      $(document).ready(function() {
+        $("header").find("nav").append(\'<span class="myClass"> Climate Change Impact and Vulnerability Assessment for Ecosystem </span>\');
+      })
+     ')),
         
+                
         theme = shinytheme("yeti"),
         # shinythemes::themeSelector(),
         
@@ -166,14 +204,16 @@ shinyUI(
           '))),
 
 #	fluidPage(h4(SE_Name_System),
-	tags$hr(),
+#	tags$hr(),
   setBackgroundColor("ghostwhite"),
 
-	tabsetPanel(
+#	tabsetPanel(
+	  navbarPage(NULL, theme = shinytheme("flatly"),
 		tabPanel(SE_Name,
-      tabsetPanel(
+#      tabsetPanel(
+        tabBox(title = NULL, width = 12,
         tabPanel(SE_Name_Dir_Project_SDM,
-          tags$hr(),
+#          tags$hr(),
 				  sidebarLayout(
 				    sidebarPanel(width = 3, Fluid = TRUE,
 				      uiOutput("SE_Dir_Project_SDM"),
@@ -182,13 +222,15 @@ shinyUI(
               br()
 				    ),
             mainPanel(
-              tabsetPanel(
-                tabPanel(SE_Name_Dir_Project_SDM_OPTION,
-                  tags$hr(),
+				      tabsetPanel(
+#				      navbarPage(NULL, theme = shinytheme("flatly"),
+#              tabBox(title = NULL, width = 12,           
+                tabPanel(SE_Name_Dir_Project_SDM_OPTION, icon = icon("list-ul"), 
+                  tags$br(),
                   tableOutput("SE_Dir_Project_SDM_Species_Model_Options")
                 ),
-                tabPanel(SE_Name_Dir_Project_SDM_OUTPUT,
-                  tags$hr(),
+                tabPanel(SE_Name_Dir_Project_SDM_OUTPUT, icon = icon("file"), 
+                  tags$br(),
                   textOutput("SE_Dir_Project_SDM_Species_Model_Output")
                 )
               )
@@ -196,20 +238,22 @@ shinyUI(
 				  )
         ),
         tabPanel(SE_Name_Dir_Project_HA,
-          tags$hr(),
+#          tags$hr(),
           sidebarLayout(
             sidebarPanel(width = 3, Fluid = TRUE,                     
 				      uiOutput("SE_Dir_Project_HA"),
 				      br()
             ),
 				    mainPanel(
-				      tabsetPanel(				      
-				        tabPanel(SE_Name_Dir_Project_HA_OPTION,
-				          tags$hr(),
+#				      tabsetPanel(
+#				      navbarPage(NULL, theme = shinytheme("flatly"),
+				      tabsetPanel(          
+				        tabPanel(SE_Name_Dir_Project_HA_OPTION, icon = icon("list-ul"),
+				          tags$br(),
 				          tableOutput("SE_Dir_Project_HA_Species_Model_Options")
 				        ),
-				        tabPanel(SE_Name_Dir_Project_HA_OUTPUT,
-				          tags$hr(),
+				        tabPanel(SE_Name_Dir_Project_HA_OUTPUT, icon = icon("file"),
+				          tags$br(),
 				          textOutput("SE_Dir_Project_HA_Species_Model_Output")
 				        )
 				      )
@@ -220,26 +264,27 @@ shinyUI(
 		),       
 
 		tabPanel(SP_Name,
-			tabsetPanel(
-				tabPanel(SP_Name_Info,
+				tabsetPanel(
+#		    tabBox(title = NULL, width = 12,
+				tabPanel(SP_Name_Info, icon = icon("tree"),
 					tags$head(
 						# Include our custom CSS
 						includeCSS("styles.css"),
 						includeScript("gomap.js")
 					),
-					tags$hr(),
+					tags$br(),
 					fluidRow(
 						column(6, DT::dataTableOutput("SP_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
 						column(6, leafletOutput("SP_Map", width = "500", height = "600"))
 					)
 				),
-				tabPanel(SP_Name_Location,
+				tabPanel(SP_Name_Location, icon = icon("globe-asia"),
 					tags$head(
 						# Include our custom CSS
 						includeCSS("styles.css"),
 						includeScript("gomap.js")
 					),
-					tags$hr(),
+					tags$br(),
 					column(6, DT::dataTableOutput("SP_LOC_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
 					column(6, leafletOutput("SP_LOC_Map", width = "500", height = "600"))
 				)             
@@ -247,7 +292,7 @@ shinyUI(
 		),  
 
 		tabPanel(LD_Name, fluid = TRUE,
-			tags$hr(),
+#			tags$hr(),
 			sidebarLayout(
 				sidebarPanel(width = 3, Fluid = TRUE,
 					selectInput("LD_Variables", LD_Name_Variables,
@@ -270,7 +315,7 @@ shinyUI(
 						selected = LD_Name_Year_selected),
 					
 					# Input: Checkbox if file has header ----
-					tags$hr(),
+					tags$br(),
 					checkboxGroupInput("LD_MO_Barrier_LanduseType", DM_Name_DM_MO_Barrier_LanduseType,
 					                   choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
 					                   selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
@@ -284,46 +329,49 @@ shinyUI(
 				# Main panel for displaying outputs ----
 				mainPanel(
 					tabsetPanel(
-						tabPanel(LD_Name_Map, 
+#					tabBox(title = NULL, width = 12,  
+						tabPanel(LD_Name_Map, icon = icon("layer-group"),
 							tags$head(
 							# Include our custom CSS
 							includeCSS("styles.css"),
 							includeScript("gomap.js")
 							),
-							tags$hr(),
+							tags$br(),
 							column(6, leafletOutput("LD_Map", width = "800", height = "650"))
 						),
-						tabPanel(LD_Name_Summary,
-							tags$hr(),
-							column(10, verbatimTextOutput("LD_Summary")),
+						tabPanel(LD_Name_Summary, icon = icon("list-alt"),
+							tags$br(),
+							tags$br(),
+							tags$br(),
+#							column(10, verbatimTextOutput("LD_Summary")),
 							column(10, plotOutput("LD_Histogram"))
 						),
-						tabPanel(LD_Name_Map_Landuse, 
+						tabPanel(LD_Name_Map_Landuse, icon = icon("layer-group"), 
 						         tags$head(
 						             # Include our custom CSS
 						             includeCSS("styles.css"),
 						             includeScript("gomap.js")
 						         ),
-						         tags$hr(),
-						         column(6, leafletOutput("LD_Map_Landuse", width = "800", height = "650"))
+						  tags$br(),
+						  column(6, leafletOutput("LD_Map_Landuse", width = "800", height = "650"))
 						),
-						tabPanel(LD_Name_Map_Forestfire, 
+						tabPanel(LD_Name_Map_Forestfire, icon = icon("layer-group"), 
 						         tags$head(
 						             # Include our custom CSS
 						             includeCSS("styles.css"),
 						             includeScript("gomap.js")
 						         ),
-						         tags$hr(),
-						         column(6, leafletOutput("LD_Map_Forestfire", width = "800", height = "650"))
+						  tags$br(),
+						  column(6, leafletOutput("LD_Map_Forestfire", width = "800", height = "650"))
 						),
-						tabPanel(LD_Name_Map_Landslide, 
+						tabPanel(LD_Name_Map_Landslide, icon = icon("layer-group"), 
 						         tags$head(
 						             # Include our custom CSS
 						             includeCSS("styles.css"),
 						             includeScript("gomap.js")
 						         ),
-						         tags$hr(),
-						         column(6, leafletOutput("LD_Map_Landslide", width = "800", height = "650"))
+						  tags$br(),
+						  column(6, leafletOutput("LD_Map_Landslide", width = "800", height = "650"))
 						)
 					)
 				)
@@ -331,8 +379,8 @@ shinyUI(
 		),  
 
 		tabPanel(CD_Name, fluid = TRUE,
-			tags$hr(),
-            sidebarLayout(
+#			tags$hr(),
+      sidebarLayout(
 				sidebarPanel(width = 3, Fluid = TRUE,
           uiOutput("CD_Variables_select"),
 
@@ -355,18 +403,20 @@ shinyUI(
 				# Main panel for displaying outputs ----
 				mainPanel(
 					tabsetPanel(
-						tabPanel(CD_Name_Map, 
+						tabPanel(CD_Name_Map, icon = icon("layer-group"),
 							tags$head(
 								# Include our custom CSS
 								includeCSS("styles.css"),
 								includeScript("gomap.js")
 							),
-							tags$hr(),
+							tags$br(),
 							column(6, leafletOutput("CD_Map", width = "800", height = "650"))
 						),
-						tabPanel(CD_Name_Summary,
-							tags$hr(),
-							column(10, verbatimTextOutput("CD_Summary")),
+						tabPanel(CD_Name_Summary, icon = icon("list-alt"),
+						  tags$br(),
+						  tags$br(),
+						  tags$br(),
+#							column(10, verbatimTextOutput("CD_Summary")),
 							column(10, plotOutput("CD_Histogram"))
 						)
 					)
@@ -375,18 +425,19 @@ shinyUI(
         ),  
           
 		tabPanel(SDM_Name,
-			tabsetPanel(
+#			tabsetPanel(
+		  tabBox(title = NULL, width = 12, 
 				tabPanel(SDM_Name_Model,
 					tabsetPanel(
-						tabPanel(SDM_Name_Model_Species,
+						tabPanel(SDM_Name_Model_Species, icon = icon("tree"),
+						  tags$br(),
 							fluidRow(
-								tags$hr(),
 								column(6, DT::dataTableOutput("SDM_SP_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
 								column(4, verbatimTextOutput("SDM_SP_Selection"))
 							)
 						),
-						tabPanel(SDM_Name_Model_Variable,
-							tags$hr(),
+						tabPanel(SDM_Name_Model_Variable, icon = icon("list-ul"),
+							tags$br(),
 							fluidRow(
 								# Sidebar panel for inputs ----
 								sidebarPanel(width = 3,
@@ -406,12 +457,12 @@ shinyUI(
 										selected = SDM_Name_CD_Year_selected)
 								),	
 								sidebarPanel(width = 3,
-                  tags$p("Modeling Output Variables Options:"),
-                  checkboxGroupInput("SDM_MO_AO_Variables", SDM_Name_MO_AO_Variables,
+                  tags$p("Modeling Input Variables Options:"),
+                  checkboxGroupInput("SDM_MO_AO_Variables", NULL, # SDM_Name_MO_AO_Variables,
                                      choices = c(SDM_Name_MO_AO_Variables_list),
                                      selected = SDM_Name_MO_AO_Variables_selected),
                   useShinyalert(),  # Set up shinyalert
-                  actionButton("SDM_MO_AO_Variables_Create", label = SDM_MO_AO_Variables_Create),
+                  actionButton("SDM_MO_AO_Variables_Create", label = SDM_Name_MO_Variables_Create, icon = icon("layer-group")),
                   tags$hr(),
                   tags$p("Species Distribution:"),
 								  uiOutput("SDM_AO_MI_Dir_Folder"),
@@ -429,12 +480,12 @@ shinyUI(
 								),
 								sidebarPanel(width = 3,
                   tags$p("Data Options:"),
-                  uiOutput("SDM_MO_Variables_Select"),
+                  uiOutput("SDM_MO_Variables_Select")
 								)
 							)
 						),
-						tabPanel(SDM_Name_Model_SDM,  
-							tags$hr(),
+						tabPanel(SDM_Name_Model_SDM, icon = icon("list-ul"),  
+							tags$br(),
 							fluidRow(
 								# Sidebar panel for inputs ----
 								sidebarPanel(width = 3,
@@ -484,7 +535,7 @@ shinyUI(
 								  checkboxInput("BIOMOD_SaveObj", "BIOMOD_SaveObj", TRUE),
 								  checkboxInput("BIOMOD_rescal.all.models", "BIOMOD_rescal.all.models", TRUE),
 								  checkboxInput("BIOMOD_do.full.models", "BIOMOD_do.full.models", TRUE),
-								  tags$hr(),
+								  tags$br(),
 								  tags$p("Model Projection Options:"),
 								  selectInput("BIOMOD_selected.models", "BIOMOD_selected.models",
 								               choices = "all",
@@ -538,14 +589,16 @@ shinyUI(
 										choices = c(SDM_Name_models_list),
 										selected = c(SDM_Name_models_selected)
 									),
-									tags$hr(), 
+									tags$br(), 
 									checkboxInput("SDM_MO_SDM_EMmodel", label = SDM_Name_EMmodels, value = FALSE),
-									tags$hr(),
-									shinyDirButton("SDM_MO_Dir_Folder", SDM_Name_Dir, SDM_Name_Dir),
+									tags$br(),
+									tags$br(),
+									tags$br(),
+									shinyDirButton("SDM_MO_Dir_Folder", SDM_Name_Dir, NULL, icon = icon("folder-open")),
 									verbatimTextOutput("SDM_MO_Dir_Folder", placeholder = TRUE),
-									tags$hr(),
+									tags$br(),
 									useShinyalert(),  # Set up shinyalert
-									actionButton("SDM_MO_SDM_run", label = SDM_Name_models_run)            
+									actionButton("SDM_MO_SDM_run", label = SDM_Name_models_run, icon = icon("running"))
 								)
 							)
 						)
@@ -553,15 +606,15 @@ shinyUI(
 				),
 
 				tabPanel(SDM_Name_Model_Out, fluid = TRUE,
-					tags$hr(),
+#					tags$hr(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
 						  uiOutput("SDM_AO_Dir_Folder"),
 							uiOutput("SDM_OU_Species"),
-							tags$hr(),
+							tags$br(),
 
 							uiOutput("SDM_OU_Projection_model"),
-							tags$hr(),
+							tags$br(),
 
 							uiOutput("SDM_OU_Prediction_model"),
 							tags$hr(),
@@ -585,49 +638,51 @@ shinyUI(
                         # Main panel for displaying outputs ----
 						mainPanel(
 							tabsetPanel(
-								tabPanel(SDM_Name_Model_Out_Validation,
-									tags$hr(),
+								tabPanel(SDM_Name_Model_Out_Validation, icon = icon("file-signature"),
+									tags$br(),
 									fluidRow(
 										column(8, DT::dataTableOutput("SDM_OU_Validation"), style = "overflow-y: scroll;overflow-x: scroll;")
 									),
-									tags$hr(),
+									tags$br(),
+                  br(),
 									fluidRow(
 										column(8, plotOutput("SDM_OU_Validation_BoxPlot"))
 									)
 								),
-								tabPanel(SDM_Name_Model_Out_Contribution,
-									tags$hr(),
+								tabPanel(SDM_Name_Model_Out_Contribution, icon = icon("file-signature"),
+									tags$br(),
 									fluidRow(
 										column(8, DT::dataTableOutput("SDM_OU_Contribution"), style = "overflow-y: scroll;overflow-x: scroll;")
 									),
-									tags$hr(),
+									tags$br(),
+									br(),
 									fluidRow(
-										column(8,plotOutput("SDM_OU_Contribution_Radarchart"))
+										column(8,chartJSRadarOutput("SDM_OU_Contribution_Radarchart", width = "450", height = "300"))
 									)
 								),
-								tabPanel(SDM_Name_Model_Out_Probability, 
+								tabPanel(SDM_Name_Model_Out_Probability, icon = icon("layer-group"), 
 									tags$head(
 										# Include our custom CSS
 										includeCSS("styles.css"),
 										includeScript("gomap.js")
 									),
-									tags$hr(),
+									tags$br(),
 									leafletOutput("SDM_OU_Probability_map", width = "800", height = "600"),
 									tags$hr(),
-									column(10, verbatimTextOutput("SDM_OU_PROJ_Summary")),
-									column(10, plotOutput("SDM_OU_PROJ_Histogram"))
+#									column(10, verbatimTextOutput("SDM_OU_PROJ_Summary")),
+									column(9, plotOutput("SDM_OU_PROJ_Histogram"))
 								),
-								tabPanel(SDM_Name_Model_Out_Prediction, 
+								tabPanel(SDM_Name_Model_Out_Prediction, icon = icon("layer-group"), 
 									tags$head(
 										# Include our custom CSS
 										includeCSS("styles.css"),
 										includeScript("gomap.js")
 									),
-									tags$hr(),
+									tags$br(),
 									leafletOutput("SDM_OU_Predicted_map", width = "800", height = "600"),
 									tags$hr(),
-									column(10, verbatimTextOutput("SDM_OU_PRED_Summary")),
-									column(10, plotOutput("SDM_OU_PRED_Histogram"))
+#									column(10, verbatimTextOutput("SDM_OU_PRED_Summary")),
+									column(9, plotOutput("SDM_OU_PRED_Histogram"))
 								)
 							)
 						)
@@ -637,17 +692,18 @@ shinyUI(
 		),  
 	
 		tabPanel(SRM_Name,
-		         tabsetPanel(
+		         #			tabsetPanel(
+		         tabBox(title = NULL, width = 12,
 		           tabPanel(SRM_Name_Model, fluid = TRUE,
 		             tabsetPanel(
-		               tabPanel(SRM_Name_Model_SDM,
-		                  tags$hr(),      
+		               tabPanel(SRM_Name_Model_SDM, icon = icon("list-ul"),
+		                  tags$br(),      
                         fluidRow(
                         sidebarPanel(width = 3, Fluid = TRUE,
                             uiOutput("SRM_SDM_Dir_Folder"),
-                            tags$hr(),
-                            actionButton("SRM_MO_Species_sel_all", label = "Select All"),
-                            actionButton("SRM_MO_Species_sel_none", label = "Unselect All"),
+                            tags$br(),
+                            actionButton("SRM_MO_Species_sel_all", label = "Select All", icon = icon("check-circle")),
+                            actionButton("SRM_MO_Species_sel_none", label = "Unselect All", icon = icon("circle")),
                             uiOutput("SRM_MO_Species")
 		                  ),
                         sidebarPanel(width = 3, Fluid = TRUE,             
@@ -669,8 +725,8 @@ shinyUI(
                         )
 		                )
 		              ),
-                      tabPanel(SRM_Name_Model_SRM,
-                        tags$hr(),      
+                      tabPanel(SRM_Name_Model_SRM, icon = icon("list-ul"),
+                        tags$br(),      
                         fluidRow(
                         sidebarPanel(width = 3,
                             # Input: Checkbox if file has header ----
@@ -683,7 +739,7 @@ shinyUI(
                             tags$p("Buffer:"),
                             sliderInput("SRM_Buffer_Distance", label = "Bufffer Distance", min = 1000, 
                                         max = 100000, step = 1000, value = 10000),
-                            tags$hr(),
+                            tags$br(),
                             tags$p("Hull:"),
                             radioButtons("SRM_Hull_Type", SRM_Name_Hull_Type,
                                         choices = c(SRM_Name_Hull_Type_list),
@@ -713,12 +769,14 @@ shinyUI(
                             sliderInput("SRM_VoronoiHull_Absence_sample_size", label = "VoronoiHull Absence sampling size", min = 10, 
                                         max = 1000, step = 10, value = 100),
                             br(),
-                            tags$hr(),
+                            tags$br(),
+                            tags$br(),
+                            tags$br(),
                             textInput("SRM_MO_Dir_Folder_Name", "SRM Model Foler Name",
                                       value = ""),
-                            tags$hr(),
+                            tags$br(),
                             useShinyalert(),  # Set up shinyalert
-                            actionButton("SRM_MO_Action_run", label = SRM_Name_SRM_MO_Action)    
+                            actionButton("SRM_MO_Action_run", label = SRM_Name_SRM_MO_Action, icon = icon("running"))    
                         )
 		              )
 		             )
@@ -726,13 +784,13 @@ shinyUI(
 		           ),
 		           
 		           tabPanel(SRM_Name_Model_Out, fluid = TRUE,
-		                    tags$hr(),
+#		                    tags$hr(),
 		                    sidebarLayout(
 		                      sidebarPanel(width = 3, Fluid = TRUE,
 		                                   uiOutput("SRM_AO_Dir_Folder"),
                                         uiOutput("SRM_AO_Model_Name"),
 		                                   uiOutput("SRM_OU_Species"),
-		                                   tags$hr(),
+		                                   tags$br(),
 		                                   
 		                                   uiOutput("SRM_OU_SDM_model"),
 		                                   
@@ -758,8 +816,8 @@ shinyUI(
 		                      # Main panel for displaying outputs ----
 		                      mainPanel(
 		                        tabsetPanel(
-		                          tabPanel(SRM_Name_Out_Plot,
-		                                  tags$hr(),
+		                          tabPanel(SRM_Name_Out_Plot, icon = icon("layer-group"),
+		                                  tags$br(),
 		                                   uiOutput("SRM_OU_UI_plot")
 		                          )
 		                        )
@@ -772,17 +830,18 @@ shinyUI(
 
 
 tabPanel(DM_Name,
-         tabsetPanel(
+         #			tabsetPanel(
+         tabBox(title = NULL, width = 12,
            tabPanel(DM_Name_Model, fluid = TRUE,
                     tabsetPanel(
-                      tabPanel(DM_Name_Model_SDM,
-                               tags$hr(),      
+                      tabPanel(DM_Name_Model_SDM, icon = icon("list-ul"),
+                               tags$br(),      
                                fluidRow(
                                  sidebarPanel(width = 3, Fluid = TRUE,
                                               uiOutput("DM_SDM_Dir_Folder"),
                                               tags$hr(),
-                                              actionButton("DM_MO_Species_sel_all", label = "Select All"),
-                                              actionButton("DM_MO_Species_sel_none", label = "Unselect All"),
+                                              actionButton("DM_MO_Species_sel_all", label = "Select All", icon = icon("check-circle")),
+                                              actionButton("DM_MO_Species_sel_none", label = "Unselect All", icon = icon("circle")),
                                               uiOutput("DM_MO_Species")
                                  ),
                                  sidebarPanel(width = 3, Fluid = TRUE,             
@@ -804,8 +863,8 @@ tabPanel(DM_Name,
                                  )
                                )
                       ),
-                      tabPanel(DM_Name_Model_DM_Barrier,
-                               tags$hr(),
+                      tabPanel(DM_Name_Model_DM_Barrier, icon = icon("list-ul"),
+                               tags$br(),
                                sidebarLayout(
                                  sidebarPanel(width = 3, Fluid = TRUE,
                                               tags$p("DM_Barrier:"),
@@ -840,53 +899,53 @@ tabPanel(DM_Name,
                                  ),
                                  mainPanel(
                                    tabsetPanel(
-                                     tabPanel(DM_Name_Map_Landuse, 
+                                     tabPanel(DM_Name_Map_Landuse, icon = icon("layer-group"), 
                                               tags$head(
                                                 # Include our custom CSS
                                                 includeCSS("styles.css"),
                                                 includeScript("gomap.js")
                                               ),
-                                              tags$hr(),
+                                              tags$br(),
                                               column(6, leafletOutput("DM_Map_Landuse", width = "800", height = "650"))
                                      ),
-                                     tabPanel(DM_Name_Map_Forestfire, 
+                                     tabPanel(DM_Name_Map_Forestfire, icon = icon("layer-group"), 
                                               tags$head(
                                                 # Include our custom CSS
                                                 includeCSS("styles.css"),
                                                 includeScript("gomap.js")
                                               ),
-                                              tags$hr(),
+                                              tags$br(),
                                               column(6, leafletOutput("DM_Map_Forestfire", width = "800", height = "650"))
                                      ),
-                                     tabPanel(DM_Name_Map_Landslide, 
+                                     tabPanel(DM_Name_Map_Landslide, icon = icon("layer-group"), 
                                               tags$head(
                                                 # Include our custom CSS
                                                 includeCSS("styles.css"),
                                                 includeScript("gomap.js")
                                               ),
-                                              tags$hr(),
+                                              tags$br(),
                                               column(6, leafletOutput("DM_Map_Landslide", width = "800", height = "650"))
                                      ),
-                                     tabPanel(DM_Name_Map_Total, 
+                                     tabPanel(DM_Name_Map_Total, icon = icon("layer-group"), 
                                               tags$head(
                                                 # Include our custom CSS
                                                 includeCSS("styles.css"),
                                                 includeScript("gomap.js")
                                               ),
-                                              tags$hr(),
+                                              tags$br(),
                                               column(6, leafletOutput("DM_Map_Total", width = "800", height = "650"))
                                      )
                                    )
                                  )
                                )
                       ),
-                      tabPanel(DM_Name_Model_DM,
-                               tags$hr(),
+                      tabPanel(DM_Name_Model_DM, icon = icon("list-ul"),
+                               tags$br(),
                                fluidRow(
                                  sidebarPanel(width = 3,
                                               sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
                                                           max = 10, value = 10),
-                                              tags$hr(),
+                                              tags$br(),
                                               tags$p("DM_dispKernel:"),
                                               verbatimTextOutput("DM_MO_DM_dispKernel"),
                                               sliderInput("DM_MO_DM_dispKernel1", label = "Dispersal Proportion of 1st Pixel", min = 0.01, 
@@ -904,7 +963,7 @@ tabPanel(DM_Name,
                                               tags$p("DM_Succession:"),
                                               sliderInput("DM_MO_DM_iniMatAge", label = "DM_iniMatAge (the initial maturity age)", min = 0, 
                                                           max = 10, value = 5),
-                                              tags$hr(),
+                                              tags$br(),
                                               tags$p("DM_propaguleProd:"),
                                               verbatimTextOutput("DM_MO_DM_propaguleProd"),
                                               sliderInput("DM_MO_DM_propaguleProd1", label = "Propagule Production Proportion 1st year after iniMatAge", min = 0.01, 
@@ -929,12 +988,12 @@ tabPanel(DM_Name,
                                               checkboxInput("DM_MO_DM_fullOutput", "DM_fullOutput", FALSE),
                                               checkboxInput("DM_MO_DM_keepTempFiles", "DM_keepTempFiles", FALSE),
                                               br(),
-                                              tags$hr(),
+                                              tags$br(),
                                               textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
                                                         value = ""),
-                                              tags$hr(),
+                                              tags$br(),
                                               useShinyalert(),  # Set up shinyalert
-                                              actionButton("DM_MO_Action_run", label = DM_Name_DM_MO_Action)
+                                              actionButton("DM_MO_Action_run", label = DM_Name_DM_MO_Action, icon = icon("running"))
                                  )
                                )
                       )
@@ -942,13 +1001,13 @@ tabPanel(DM_Name,
            ),
            
            tabPanel(DM_Name_Model_Out, fluid = TRUE,
-                    tags$hr(),
+#                    tags$hr(),
                     sidebarLayout(
                       sidebarPanel(width = 3, Fluid = TRUE,
                                    uiOutput("DM_AO_Dir_Folder"),
                                    uiOutput("DM_AO_Model_Name"),
                                    uiOutput("DM_OU_Species"),
-                                   tags$hr(),
+                                   tags$br(),
                                    
                                    uiOutput("DM_OU_SDM_model"),
                                    
@@ -974,12 +1033,12 @@ tabPanel(DM_Name,
                       # Main panel for displaying outputs ----
                       mainPanel(
                         tabsetPanel(
-                          tabPanel(DM_Name_Out_Plot,
-                                   tags$hr(),
+                          tabPanel(DM_Name_Out_Plot, icon = icon("layer-group"), 
+                                   tags$br(),
                                    uiOutput("DM_OU_UI_plot")
                           ),
-                          tabPanel(DM_Name_Out_SDMDM_Plot,
-                                   tags$hr(),
+                          tabPanel(DM_Name_Out_SDMDM_Plot, icon = icon("layer-group"), 
+                                   tags$br(),
                                    uiOutput("DM_OU_SDMDM_UI_plot")
                           )
                         )
@@ -991,16 +1050,17 @@ tabPanel(DM_Name,
 ), 
      
 		tabPanel(SA_Name,
-			tabsetPanel(
+		         #			tabsetPanel(
+		         tabBox(title = NULL, width = 12,
 				tabPanel(SA_Name_Analysis, fluid = TRUE,
-                    tags$hr(),
+                    tags$br(),
 					fluidRow(
 						sidebarPanel(width = 3, Fluid = TRUE,
               uiOutput("SA_MO_Dir_Folder"),
               uiOutput("SA_MO_Dir_Folder_Name"),
-              tags$hr(),
-              actionButton("SA_CA_Species_Sel_All", label = "Select All"),
-              actionButton("SA_CA_Species_Sel_None", label = "Select None"),
+              tags$br(),
+              actionButton("SA_CA_Species_Sel_All", label = "Select All", icon = icon("check-circle")),
+              actionButton("SA_CA_Species_Sel_None", label = "Select None", icon = icon("circle")),
 							uiOutput("SA_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,             
@@ -1021,29 +1081,31 @@ tabPanel(DM_Name,
 						),
 						sidebarPanel(width = 4,
 							uiOutput("SA_CA_SDM_model"),
-							tags$hr(),
-							tags$hr(),
+							tags$br(),
+							tags$br(),
 							br(),
-							actionButton("SA_CA_Action_change", label = "Analayzing the change of Species Distribution"),
-							tags$hr(),
+							actionButton("SA_CA_Action_change", label = "Analayzing the change of Species Distribution", icon = icon("running")),
 							br(),
-							actionButton("SA_CA_Action_Vindex", label = "Calculating the Climate Vulnerability Index of Species")
+							tags$br(),
+							tags$br(),
+							tags$br(),
+							actionButton("SA_CA_Action_Vindex", label = "Calculating the Climate Vulnerability Index of Species", icon = icon("running"))
 						)
 					)
 				),
 	
 				tabPanel(SA_Name_Out, fluid = TRUE,
-					tags$hr(),
+					tags$br(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
                             uiOutput("SA_AO_Dir_Folder"),
                             uiOutput("SA_AO_Model_Name"),	
 #							uiOutput("SA_AO_Species"),
-                            tags$hr(),
-                            actionButton("SA_AO_Species_Sel_All", label = "Select All"),
-                            actionButton("SA_AO_Species_Sel_None", label = "Select None"),
+                            tags$br(),
+                            actionButton("SA_AO_Species_Sel_All", label = "Select All", icon = icon("check-circle")),
+                            actionButton("SA_AO_Species_Sel_None", label = "Select None", icon = icon("circle")),
                             uiOutput("SA_AO_Species"),
-							tags$hr(),
+							tags$br(),
 							uiOutput("SA_AO_SDM_model"),
 							
 							# Input: Checkbox if file has header ----
@@ -1065,55 +1127,55 @@ tabPanel(DM_Name,
 						# Main panel for displaying outputs ----
 						mainPanel(
 							tabsetPanel(
-								tabPanel(SA_Name_Out_ChangePlot,
-									tags$hr(),
+								tabPanel(SA_Name_Out_ChangePlot, icon = icon("layer-group"),
+									tags$br(),
 									uiOutput("SA_AO_UI_plot")
 								),
-								tabPanel(SA_Name_Out_IV_Table,
-                                tags$hr(),
+								tabPanel(SA_Name_Out_IV_Table, icon = icon("file-signature"),
+                                tags$br(),
                   radioButtons("SA_AO_IV_Data", "Vulnerable Index File",
                                 choices = c("Target Species" = "Species","Total Species" = "Total"),
                                 selected = "Species"
                   ),
-									tags$hr(),
+									tags$br(),
 									fluidRow(
 										column(12, DT::dataTableOutput("SA_AO_IV_Table"), style = "overflow-y: scroll;overflow-x: scroll;")
 									)
                 ),
-                tabPanel(SA_Name_Out_IV_GainLoss,
+                tabPanel(SA_Name_Out_IV_GainLoss, icon = icon("chart-area"),
 									fluidRow(
-										tags$hr(),
+										tags$br(),
                     selectInput("SA_AO_IV_UI_plot1", "Select the 5th group",
                                 choices = c(SA_Name_Group1_list),
-                                selected = SA_Name_Group15_selected
+                                selected = SA_Name_Group1_selected
                     ),
 										tags$br(),
-										column(6, plotOutput("SA_AO_IV_Plot11")),
-										column(6, plotOutput("SA_AO_IV_Plot12"))
+										column(6, plotOutput("SA_AO_IV_Plot11", height = '500px')),
+										column(6, plotOutput("SA_AO_IV_Plot12", height = '500px'))
 									)
                 ),
-								tabPanel(SA_Name_Out_IV_Pattern,
+								tabPanel(SA_Name_Out_IV_Pattern, icon = icon("chart-line"),
 									fluidRow(
-										tags$hr(),
+										tags$br(),
 									  selectInput("SA_AO_IV_UI_plot2", "Select the 4th group",
 									              choices = c(SA_Name_Group2_list),
-									              selected = SA_Name_Group24_selected
+									              selected = SA_Name_Group2_selected
 									  ),
-										tags$hr(),
-										column(6, plotOutput("SA_AO_IV_Plot21")),
-										column(6, plotOutput("SA_AO_IV_Plot22"))
+										tags$br(),
+										column(6, plotOutput("SA_AO_IV_Plot21", height = '500px')),
+										column(6, plotOutput("SA_AO_IV_Plot22", height = '500px'))
 									)
 								),
-								tabPanel(SA_Name_Out_IV_Order,
+								tabPanel(SA_Name_Out_IV_Order, icon = icon("bar-chart-o"),
                   fluidRow(
-                    tags$hr(),
+                    tags$br(),
                     selectInput("SA_AO_IV_UI_plot3", "Select the 5th group",
                                 choices = c(SA_Name_Group3_list),
-                                selected = SA_Name_Group35_selected
+                                selected = SA_Name_Group3_selected
                     ),
-                    tags$hr(),
-                    column(6, plotOutput("SA_AO_IV_Plot31")),
-                    column(6, plotOutput("SA_AO_IV_Plot32"))
+                    tags$br(),
+                    column(6, plotOutput("SA_AO_IV_Plot31", height = '500px')),
+                    column(6, plotOutput("SA_AO_IV_Plot32", height = '500px'))
                   )
                 )
 							)
@@ -1124,16 +1186,17 @@ tabPanel(DM_Name,
 		),      
 
 		tabPanel(HA_Name,
-			tabsetPanel(
+		         #			tabsetPanel(
+		         tabBox(title = NULL, width = 12,
 				tabPanel(HA_Name_Anlayis, fluid = TRUE,
-					tags$hr(),
+					tags$br(),
 					fluidRow(
 						sidebarPanel(width = 3, Fluid = TRUE,
                             uiOutput("HA_MI_Dir_Folder"),
                             uiOutput("HA_MI_Dir_Folder_Name"),
-						    tags$hr(),
-						    actionButton("HA_CA_Species_Sel_All", label = "Select All"),
-						    actionButton("HA_CA_Species_Sel_None", label = "Select None"),
+						    tags$br(),
+						    actionButton("HA_CA_Species_Sel_All", label = "Select All", icon = icon("check-circle")),
+						    actionButton("HA_CA_Species_Sel_None", label = "Select None", icon = icon("circle")),
 							uiOutput("HA_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                      
@@ -1154,37 +1217,41 @@ tabPanel(DM_Name,
 						),
 						sidebarPanel(width = 4,
 							uiOutput("HA_CA_SDM_model"),
-							tags$hr(),
-							tags$hr(),
+							tags$br(),
+							tags$br(),
 							br(),
-							shinyDirButton("HA_MO_Dir_Folder", HA_Name_AO_Dir, HA_Name_AO_Dir),
+							shinyDirButton("HA_MO_Dir_Folder", HA_Name_AO_Dir, NULL, icon = icon("folder-open")),
 							verbatimTextOutput("HA_MO_Dir_Folder", placeholder = TRUE),
-#							tags$hr(),
-							actionButton("HA_VA_Action_Analysis", label = HA_Name_Action),
-							tags$hr(),
-							tags$hr(),
+#							tags$br(),
+							actionButton("HA_VA_Action_Analysis", label = HA_Name_Action, icon = icon("running")),
               br(),
+							tags$br(),
+							tags$br(),
+              tags$br(),
 						    checkboxGroupInput("HA_VA_Admin", HA_Name_Admin,
                                     choices = c(HA_Name_Admin_list),
                                     selected = HA_Name_Admin_selected),
-              actionButton("HA_VA_Action_Admin_Species", label = HA_Name_Action_Admin_Species),
-							tags$hr(),
-							actionButton("HA_VA_Action_Admin_Group", label = HA_Name_Action_Admin_Group)
+              actionButton("HA_VA_Action_Admin_Species", label = HA_Name_Action_Admin_Species, icon = icon("running")),
+              br(),
+							tags$br(),
+              tags$br(),
+              tags$br(),
+							actionButton("HA_VA_Action_Admin_Group", label = HA_Name_Action_Admin_Group, icon = icon("running"))
 						)
 					)
 				),
 	
 				tabPanel(HA_Name_Out, fluid = TRUE,
-					tags$hr(),
+#					tags$br(),
 					sidebarLayout(
 						sidebarPanel(width = 3, Fluid = TRUE,
 
 							uiOutput("HA_AO_MI_Dir_Folder"),
 							uiOutput("HA_AO_MI_Dir_Folder_Name"),
 							uiOutput("HA_AO_Species"),
-							tags$hr(),
+							tags$br(),
 							uiOutput("HA_AO_MO_Dir_Folder"),
-							tags$hr(),
+							tags$br(),
 							uiOutput("HA_AO_SDM_model"),
 	
 							# Input: Checkbox if file has header ----
@@ -1206,89 +1273,122 @@ tabPanel(DM_Name,
 	# Main panel for displaying outputs ----
 						mainPanel(
 							tabsetPanel(
-                tabPanel(HA_Name_Out_Species,
-                  tags$hr(),
+                tabPanel(HA_Name_Out_Species, icon = icon("layer-group"),
+                  tags$br(),
                   radioButtons("HA_AO_SD_Habitat_Type", NULL,
                     choices = c(HA_Name_SD_Habitat_Types_list),
                     selected = HA_Name_SD_Habitat_Types_selected,
                     inline = TRUE),
-                  tags$hr(),
+                  tags$br(),
                   radioButtons("HA_AO_SD_Habitat_Plot_Type", NULL,
                                choices = c(HA_Name_SD_Habitat_Plot_Types_list),
                                selected = HA_Name_SD_Habitat_Plot_Types_selected,
                                inline = TRUE),
-                  tags$hr(),
+                  tags$br(),
                   uiOutput("HA_AO_SD_PLOT_Group_UI"),
-#                  tags$hr(),
                   uiOutput("HA_AO_SD_PLOT_UI")
                 ),
-								tabPanel(HA_Name_Out_SR,
-                  tags$hr(),
+								tabPanel(HA_Name_Out_SR, icon = icon("layer-group"),
+                  tags$br(),
                   radioButtons("HA_AO_SR_Habitat_Type", NULL,
                               choices = c(HA_Name_SD_Habitat_Types_list),
 								              selected = HA_Name_SD_Habitat_Types_selected,
 								              inline = TRUE),
-								  tags$hr(),
+								  tags$br(),
 								  radioButtons("HA_AO_SR_Habitat_Plot_Type", NULL,
 								              choices = c(HA_Name_SD_Habitat_Plot_Types_list),
 								              selected = HA_Name_SD_Habitat_Plot_Types_selected,
 								              inline = TRUE),
-								  tags$hr(),
+								  tags$br(),
 								  uiOutput("HA_AO_SR_PLOT_Group_UI"),
-#								  tags$hr(),
 								  uiOutput("HA_AO_SR_PLOT_UI"),
-                  tags$hr(),
-#                  uiOutput("HA_AO_SR_PLOT_SP_UI"),
+                  tags$br(),
                   uiOutput("HA_AO_SR_PLOT_SP_Table"),
-                  tags$hr(),
+                  tags$br(),
                   uiOutput("HA_AO_SR_PLOT_SP_Stat")
-
 								),
-								tabPanel(HA_Name_Out_SI,
-                  tabsetPanel(
-                    tabPanel(HA_Name_Out_Map,
-                      tags$head(
-                        # Include our custom CSS
-                        includeCSS("styles.css"),
-                        includeScript("gomap.js")
-                      ),
-                      leafletOutput("HA_AO_SI_Map", width = "800", height = "600")),
-                    tabPanel(HA_Name_Out_SIDO,
-                      tabsetPanel(
-                        tabPanel(HA_Name_Out_Map, 
-                          tags$head(
-                            # Include our custom CSS
-                            includeCSS("styles.css"),
-                            includeScript("gomap.js")
-                          ),
-                          leafletOutput("HA_AO_SI_SIDO_Map", width = "800", height = "600")
-                        ),
-                        tabPanel(HA_Name_Out_Stat, 
-                          plotOutput("HA_AO_SI_SIDO_Stat")
-                        )
-                      )
-                    ),
-                    tabPanel(HA_Name_Out_SGG,
-                      tabsetPanel(
-                        tabPanel(HA_Name_Out_Map, 
-                          tags$head(
-                            # Include our custom CSS
-                            includeCSS("styles.css"),
-                            includeScript("gomap.js")
-                          ),
-                          leafletOutput("HA_AO_SI_SGG_Map", width = "800", height = "600")),
-                        tabPanel(HA_Name_Out_Stat, 
-                          fluidRow(
-                            tags$hr(),
-                            uiOutput("HA_AO_SI_SGG_UI"),
-                            tags$hr(),
-                            plotOutput("HA_AO_SI_SGG_Stat")
-                          )
-                        )
-                      )
-                    )
-                  )
-								)
+								tabPanel(HA_Name_Out_SL, icon = icon("layer-group"),
+								         tags$br(),
+								         radioButtons("HA_AO_SL_Habitat_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Types_list),
+								                      selected = HA_Name_SD_Habitat_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         radioButtons("HA_AO_SL_Habitat_Plot_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Plot_Types_list),
+								                      selected = HA_Name_SD_Habitat_Plot_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         uiOutput("HA_AO_SL_PLOT_Group_UI"),
+								         uiOutput("HA_AO_SL_PLOT_UI"),
+								         tags$br(),
+								         uiOutput("HA_AO_SL_PLOT_SP_Table"),
+								         tags$br(),
+								         uiOutput("HA_AO_SL_PLOT_SP_Stat")
+								),
+								tabPanel(HA_Name_Out_SS, icon = icon("layer-group"),
+								         tags$br(),
+								         radioButtons("HA_AO_SS_Habitat_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Types_list),
+								                      selected = HA_Name_SD_Habitat_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         radioButtons("HA_AO_SS_Habitat_Plot_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Plot_Types_list),
+								                      selected = HA_Name_SD_Habitat_Plot_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         uiOutput("HA_AO_SS_PLOT_Group_UI"),
+								         uiOutput("HA_AO_SS_PLOT_UI"),
+								         tags$br(),
+								         uiOutput("HA_AO_SS_PLOT_SP_Table"),
+								         tags$br(),
+								         uiOutput("HA_AO_SS_PLOT_SP_Stat")
+								),								
+								tabPanel(HA_Name_Out_SG, icon = icon("layer-group"),
+								         tags$br(),
+								         radioButtons("HA_AO_SG_Habitat_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Types_list),
+								                      selected = HA_Name_SD_Habitat_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         radioButtons("HA_AO_SG_Habitat_Plot_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Plot_Types_list),
+								                      selected = HA_Name_SD_Habitat_Plot_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         uiOutput("HA_AO_SG_PLOT_Group_UI"),
+								         uiOutput("HA_AO_SG_PLOT_UI"),
+								         tags$br(),
+								         uiOutput("HA_AO_SG_PLOT_SP_Table"),
+								         tags$br(),
+								         uiOutput("HA_AO_SG_PLOT_SP_Stat")
+								),
+								tabPanel(HA_Name_Out_VI, icon = icon("layer-group"),
+								         tags$br(),
+								         radioButtons("HA_AO_VI_Habitat_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Types_list),
+								                      selected = HA_Name_SD_Habitat_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         radioButtons("HA_AO_VI_Habitat_Plot_Type", NULL,
+								                      choices = c(HA_Name_SD_Habitat_Plot_Types_list),
+								                      selected = HA_Name_SD_Habitat_Plot_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         radioButtons("HA_AO_VI_TYPE_UI", NULL,
+								                      choices = c(HA_Name_VI_Types_list),
+								                      selected = HA_Name_VI_Types_selected,
+								                      inline = TRUE),
+								         tags$br(),
+								         uiOutput("HA_AO_VI_PLOT_Group_UI"),
+								         uiOutput("HA_AO_VI_PLOT_UI"),
+#								         tags$br(),
+#								         uiOutput("HA_AO_VI_PLOT_SP_Table"),
+#								         tags$br(),
+#								         uiOutput("HA_AO_VI_PLOT_SP_Stat")
+								)								
+								
 							)
 						)
 					)
@@ -1297,7 +1397,7 @@ tabPanel(DM_Name,
 		),     
 	
 		tabPanel(HELP_Name, fluid = TRUE,
-			tags$hr(),
+			tags$br(),
 			sidebarPanel(width = 5,
         helpText(h5(HELP_Name_Content))
 			)
@@ -1307,3 +1407,4 @@ tabPanel(DM_Name,
 )
 )
 )
+
