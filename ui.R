@@ -647,6 +647,11 @@ tags$script(HTML('
                   br(),
 									fluidRow(
 										column(8, plotOutput("SDM_OU_Validation_BoxPlot"))
+									),
+									tags$br(),
+									br(),
+									fluidRow(
+									  column(8, plotOutput("SDM_OU_Validation_Cutoff_BoxPlot"))
 									)
 								),
 								tabPanel(SDM_Name_Model_Out_Contribution, icon = icon("file-signature"),
@@ -859,7 +864,15 @@ tabPanel(DM_Name,
                                                                  selected = DM_Name_CD_Year_selected)
                                  ),
                                  sidebarPanel(width = 3,
-                                              uiOutput("DM_MO_SDM_model")
+                                              uiOutput("DM_MO_SDM_model"),
+                                              tags$hr(),
+                                              tags$hr(),
+                                              tags$p("Current Species Distribution Output"),
+                                              radioButtons("DM_MO_Current_Type", NULL,
+                                                           choices = c("SDM", "SRM"),
+                                                           selected = "SDM",
+                                                           inline = TRUE),
+                                              uiOutput("DM_MO_Current_UI")
                                  )
                                )
                       ),

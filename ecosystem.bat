@@ -1,1 +1,1 @@
-R -e "shiny::runApp('./', launch.browser = TRUE)"
+R -e "shiny::runApp('C:/MOTIVE_Ecosystem/Github/Projects-master', launch.browser = TRUE)"

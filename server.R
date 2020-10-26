@@ -1502,21 +1502,16 @@ shinyServer(function(input, output) {
 		rs <- input$SDM_OU_Validation_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs)) {
 			Eval_data <<- G_FILE_species_evaluation[rs, , drop = FALSE]
-			
-#			plotly::plot_ly(data = reshape2::melt(Eval_data), type = "box", group = ~Type, y = ~Accuracy)
 			ggplot(Eval_data, aes(x=Type, y=Accuracy, fill=Type)) + geom_boxplot() + scale_fill_brewer(palette = "Set2") # + facet_grid(~College) 
-#			ggplot(HumorData, aes(x=Gender, y=Funniness, fill=Gender)) + geom_boxplot(notch=TRUE) + facet_grid(~College)
-	
-#			boxplot(Accuracy~Type,
-#				data=Eval_data,
-#				main="Boxplots by Type",
-#				xlab="Type",
-#				ylab="Value",
-#				varwidth = TRUE,
-#				col="orange",
-#				border="brown"
-#			)
 		}
+	})
+	
+	output$SDM_OU_Validation_Cutoff_BoxPlot <- renderPlot({
+	  rs <- input$SDM_OU_Validation_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
+	  if (length(rs)) {
+	    Eval_data <<- G_FILE_species_evaluation[rs, , drop = FALSE]
+	    ggplot(Eval_data, aes(x=Type, y=Cutoff, fill=Type)) + geom_boxplot() + scale_fill_brewer(palette = "Set2") # + facet_grid(~College) 
+	  }
 	})
 	
 	output$SDM_OU_Contribution <- DT::renderDataTable({
@@ -1533,22 +1528,6 @@ shinyServer(function(input, output) {
 	  
 	})
 	
-	output$SDM_OU_Contribution_org <- DT::renderDataTable({
-	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
-	
-		if (!file.exists(destfile)) {
-			return(NULL)
-		}
-	
-		new_import <- read.csv(destfile)
-		data <- data.frame(t(new_import[-1]))
-		colnames(data) <- new_import[, 1]
-		# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
-		data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
-		data[-c(1,2),]
-	})
-	
 	output$SDM_OU_Contribution_Radarchart <- renderChartJSRadar({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
 		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
@@ -1560,48 +1539,11 @@ shinyServer(function(input, output) {
 		new_import <- read.csv(destfile)
 		data <- data.frame(new_import)
 		rename(data, c("X" = "Label"))
-		# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
-#		data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
-#		data <- data[-c(1,2),]
 		rs <- input$SDM_OU_Contribution_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs) > 0) {
 			data <- data[rs, , drop = FALSE]
-#			chartJSRadar(scores = data, labs = rownames(data), maxScale = 1, showToolTipLabel = TRUE)
 			chartJSRadar(scores = data, maxScale = 1, showToolTipLabel = TRUE)
 		}
-	})
-	
-	output$SDM_OU_Contribution_Radarchart_org <- renderPlot({
-	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-	  destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
-	  
-	  if (!file.exists(destfile)) {
-	    return(NULL)
-	  }
-	  
-	  new_import <- read.csv(destfile)
-	  data <- data.frame(t(new_import[-1]))
-	  colnames(data) <- new_import[, 1]
-	  # To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
-	  #		data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
-	  #		data <- data[-c(1,2),]
-	  rs <- input$SDM_OU_Contribution_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
-	  if (length(rs) > 0) {
-	    data <- data[rs, , drop = FALSE]
-	    data <- rbind(rep(1,length(colnames(data))) , rep(0,length(colnames(data))) , data)
-	    coul <- brewer.pal(length(rs), "BuPu")
-	    colors_border <- coul
-	    colors_in <- alpha(coul,0.3)
-	    radarchart(data, axistype=0 , maxmin=F,
-	               #custom polygon
-	               pcol=colors_border , pfcol=colors_in , plwd=4 , plty=1,
-	               #custom the grid
-	               cglcol="grey", cglty=1, axislabcol="black", cglwd=0.8, 
-	               #custom labels
-	               vlcex=0.8 
-	    )
-	    legend(x=1.2, y=1.2, legend = rownames(data[-c(1,2),]), bty = "n", pch = 20, col = colors_in, text.col = "grey", cex = 1.2, pt.cex = 3)
-	  }
 	})
   
 	output$SDM_OU_Probability_map <- renderLeaflet({
@@ -1795,18 +1737,7 @@ shinyServer(function(input, output) {
 	            SPECIES_DATA_P <- cbind(SPECIES_DATA[, c(NAME_LONG, NAME_LAT)], z = 1)
 	            names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LONG] <- "x"
 	            names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LAT] <- "y"
-	            
 
-	            
-	            
-	            
-	            
-	            
-	            
-	            
-	            
-	            
-	            
 	            # Setting working path
 	            org_path <- file.path(PATH_MODEL_OUTPUT, s, "BIOMOD2")
 	            target_path <- file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""))
@@ -1908,16 +1839,6 @@ shinyServer(function(input, output) {
 	                                writeRaster(R_SRM, file = file.path(target_path, paste(as.name(paste("PRED_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                                # plot(vo)
 	                            }
-	                            
-
-
-	                            
-	                            
-	                            
-	                            
-	                            
-	                            
-	                            
 	                        }
 	                    }
 	                }
@@ -2112,6 +2033,26 @@ shinyServer(function(input, output) {
 			selected = DM_Name_Models_selected
 		)
 	})
+	
+	output$DM_MO_Current_UI <- renderUI({
+	  
+	  if (input$DM_MO_Current_Type == "SRM") {
+	    uiOutput("DM_SRM_Dir_Folder")
+	  } else {
+	    
+	  }
+	})
+	  
+  output$DM_SRM_Dir_Folder <- renderUI({
+    DM_SRM_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_SDM_Dir, input$DM_MO_Species[1]), full.names = FALSE, recursive = FALSE)
+    DM_SRM_Dir_Folder_list <- DM_SRM_Dir_Folder_list[grepl(pattern = "SRM_", x = DM_SRM_Dir_Folder_list)]
+    DM_SRM_Dir_Folder_selected <- DM_SRM_Dir_Folder_list[1]
+    selectInput("DM_SRM_Dir", "Working Species Range Folders",
+                choices = c(DM_SRM_Dir_Folder_list),
+                selected = DM_SRM_Dir_Folder_selected
+    )
+	    
+  })	
 	
 	output$DM_Map_Landuse <- renderLeaflet({
 	    
@@ -3443,7 +3384,7 @@ shinyServer(function(input, output) {
 			Group <- vindex[, input$SA_AO_IV_UI_plot2]
 			ggplot(vindex, aes(x = Year, y = Vulnerability_Area_Loss_Ratio, group = Group, color = Group, linetype = Group)) +
 			  geom_line() +
-				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
+				geom_point(shape = 21, color = "black", fill = "darkorange", size=6) +
 #				theme_ipsum() +
 			  labs(title= "Vulnerability Pattern", 
 			       subtitle="Vulnerability Change by Year", caption = "Vulnerability = (Loss Ratio + Reverse Gain Ratio) / 100", x = "Year", y = "Vulnerability") +
@@ -3469,7 +3410,7 @@ shinyServer(function(input, output) {
 			Group <- vindex[, input$SA_AO_IV_UI_plot2]
 			ggplot(vindex, aes(x = Year, y = Vulnerability_Area_LossIN_GainOUT_Ratio, group = Group)) +
 				geom_line(aes(color = Group, linetype = Group)) +
-				geom_point(shape = 21, color = "black", fill = "#69b3a2", size=6) +
+				geom_point(shape = 21, color = "black", fill = "dodgerblue", size=6) +
 #				theme_ipsum() +
 			  labs(title= "Vulnerability Pattern", 
 			     subtitle="Vulnerability Change by Year", caption = "Vulnerability = (Loss Ratio + Reverse GainOUT Ratio) / 100", x = "Year", y = "Vulnerability") +
