@@ -15,7 +15,7 @@ shinyServer(function(input, output) {
 	  if (G_Project_info_CHK) {
 	    Project_list <- as.character(Project_info[,1])
 	    Project_selected <- as.character(Project_list[1])
-	    selectInput("Project_Name", "Lists of Projects",
+	    selectInput("Project_Name", SE_NAME_Project_List,
 	                choices = Project_list,
 	                selected = Project_selected
 	    )
@@ -58,14 +58,14 @@ shinyServer(function(input, output) {
 	output$SE_Project_Info_Path <- renderPrint({
 	  if (G_Project_info_CHK) {
 	    Project_Info_Path <- as.character(Project_info[Project_info$Name == input$Project_Name,][1,5])
-	    cat(as.character(Project_Info_Path))
 	    G$SE_Dir_Project <- Project_Info_Path
-	    if (!dir.exists(G$SE_Dir_Project)) { 
-	      showModal(modalDialog(
-	        title = "Error Message",
-	        paste("Working Project folder does not exist.")
-	      ))
-	    }
+	    cat(as.character(Project_Info_Path))
+#	    if (!dir.exists(Project_Info_Path)) {
+#	      showModal(modalDialog(
+#	        title = "Error Message",
+#	        paste("Working Project folder does not exist.")
+#	      ))
+#	    }
 	  } else {
 	    cat("")
 	  }
@@ -89,15 +89,14 @@ shinyServer(function(input, output) {
 #	output$SE_Project_New_Path <- renderText({G$SE_Dir_Project})
 	
 	output$SE_Project_New_Path <- renderUI({
-
-	  if (!dir.exists(G$SE_Dir_Project)) {
-	    showModal(modalDialog(
-	      title = "Error Message",
-	      paste("Working Project folder does not exist.")
-	    ))
-	  }
-	    verbatimTextOutput("SE_Project_New_Path_Name")
-	  
+	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
+	    if (length(destfile) == 0 | !file.exists(destfile)) {
+	      showModal(modalDialog(
+	        title = "Error Message",
+	        paste(destfile, "does not exist.")
+	      ))
+	    } 
+	      verbatimTextOutput("SE_Project_New_Path_Name")
 	})
 	
 	output$SE_Project_New_Path_Name <- renderText({G$SE_Dir_Project})
@@ -105,12 +104,12 @@ shinyServer(function(input, output) {
 	output$SE_Project_New_Name <- renderUI({
 	    destfile <- file.path(G$SE_Dir_Project, "Project_Information.csv")
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
-	        Project_New_Name <- "Set a new project name" 
+	        Project_New_Name <- "Set a new project name"
 	    } else {
 	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Name <- as.character(Project_working[1,"Name"])
 	    }
-	    textInput("Project_New_Name", "Name",
+	    textInput("Project_New_Name", SE_NAME_Project_Working,
 	              value = Project_New_Name)
 	})
 	
@@ -122,7 +121,7 @@ shinyServer(function(input, output) {
 	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Manager <- as.character(Project_working[1,"Manager"])
 	    }
-	    textInput("Project_New_Manager", "Manager",
+	    textInput("Project_New_Manager", SE_NAME_Project_Manager,
 	              value = Project_New_Manager)
 	})
 	
@@ -134,7 +133,7 @@ shinyServer(function(input, output) {
 	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Institute <- as.character(Project_working[1,"Institute"])
 	    }
-	    textInput("Project_New_Institute", "Institute",
+	    textInput("Project_New_Institute", SE_NAME_Project_Institute,
 	              value = Project_New_Institute)
 	})
 	
@@ -146,7 +145,7 @@ shinyServer(function(input, output) {
 	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Date <- as.character(Project_working[1,"Date"])
 	    }
-	    dateInput("Project_New_Date", "Date",
+	    dateInput("Project_New_Date", SE_NAME_Project_Date,
 	              value = Project_New_Date)
 	})
 
@@ -158,7 +157,7 @@ shinyServer(function(input, output) {
 	        Project_working <- read.csv(file.path(G$SE_Dir_Project, "Project_Information.csv"), header = T, sep = ",")
 	        Project_New_Description <- as.character(Project_working[1,"Description"])
 	    }
-	    textInput("Project_New_Description", "Description",
+	    textInput("Project_New_Description", SE_NAME_Project_Description,
 	              value = Project_New_Description)
 	})
 	
@@ -175,15 +174,15 @@ shinyServer(function(input, output) {
 	    Project_working["Description"] <- input$Project_New_Description
 	    write.csv(Project_working, file = file.path(G$SE_Dir_Project, "Project_Information.csv"))
 	    showModal(modalDialog(
-	        title = "Message",
-	        "information is updated and saved!"
+	        title = SE_Name_WE_Project_Action_Message,
+	        SE_Name_WE_Project_Action_Save
 	    ))
 	})
 
 	output$SE_Dir_Project_SDM <- renderUI({
 	  Dir_Project_SDM_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  Dir_Project_SDM_selected <- Dir_Project_SDM_list[1]
-	  selectInput("Dir_Project_SDM", "Working Species Distribution Folders",
+	  selectInput("Dir_Project_SDM", SE_Name_Dir_Project_SDM_Folder,
 	              choices = c(Dir_Project_SDM_list),
 	              selected = Dir_Project_SDM_selected
 	  )
@@ -192,7 +191,7 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_SDM_Species <- renderUI({
 	  Dir_Project_SDM_Species_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$Dir_Project_SDM), full.names = FALSE, recursive = FALSE)
 	  Dir_Project_SDM_Species_selected <- Dir_Project_SDM_Species_list[1]
-	  selectInput("Dir_Project_SDM_Species", "Select a species",
+	  selectInput("Dir_Project_SDM_Species", SE_Name_Dir_Project_SDM_Species,
 	              choices = c(Dir_Project_SDM_Species_list),
 	              selected = Dir_Project_SDM_Species_selected
 	  )
@@ -201,7 +200,7 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_SDM_Species_Model <- renderUI({
 	  Dir_Project_SDM_Species_Model_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$Dir_Project_SDM, input$Dir_Project_SDM_Species), full.names = FALSE, recursive = FALSE)
 	  Dir_Project_SDM_Species_Model_selected <- Dir_Project_SDM_Species_Model_list[1]
-	  selectInput("Dir_Project_SDM_Species_Model", "Select a Model",
+	  selectInput("Dir_Project_SDM_Species_Model", SE_Name_Dir_Project_SDM_Model,
 	              choices = c(Dir_Project_SDM_Species_Model_list),
 	              selected = Dir_Project_SDM_Species_Model_selected
 	  )
@@ -230,7 +229,7 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_HA <- renderUI({
 	  Dir_Project_HA_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat), full.names = FALSE, recursive = FALSE)
 	  Dir_Project_HA_selected <<- Dir_Project_HA_list[1]
-	  selectInput("Dir_Project_HA", "Working Invasive Species Folders",
+	  selectInput("Dir_Project_HA", SE_Name_Dir_Project_HA_Folder,
 	               choices = c(Dir_Project_HA_list),
 	               selected = Dir_Project_HA_selected
 	  )
@@ -322,11 +321,11 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SE_speciesindex <- renderUI({
-	    selectInput('SE_speciesindex','Select a Species Index .csv File', selected = G$SE_speciesindex, choice = list.files(G$SE_Dir_Species))
+	    selectInput("SE_speciesindex", SE_Name_WE_Project_Data_Index, selected = G$SE_speciesindex, choice = list.files(G$SE_Dir_Species))
 	})
 	
 	output$SE_specieslocation <- renderUI({
-	    selectInput('SE_specieslocation','Select a Species Location .csv File', selected = G$SE_specieslocation, choice = list.files(G$SE_Dir_Species))
+	    selectInput("SE_specieslocation", SE_Name_WE_Project_Data_Location, selected = G$SE_specieslocation, choice = list.files(G$SE_Dir_Species))
 	})
 
 	output$SP_Info <- DT::renderDataTable ({
@@ -607,7 +606,7 @@ shinyServer(function(input, output) {
 	output$SDM_AO_MI_Dir_Folder <- renderUI({
 	  SDM_AO_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  SDM_AO_MI_Dir_Folder_selected <- SDM_AO_MI_Dir_Folder_list[1]
-	  selectInput("SDM_AO_MI_Dir", "Working Species Distribution Folders",
+	  selectInput("SDM_AO_MI_Dir", SDM_Name_Model_Variable_Distribution_Folder,
 	              choices = c(SDM_AO_MI_Dir_Folder_list),
 	              selected = SDM_AO_MI_Dir_Folder_selected
 	  )
@@ -617,27 +616,17 @@ shinyServer(function(input, output) {
 	output$SDM_HA_AO_MO_Dir_Folder <- renderUI({
 	  SDM_HA_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat), full.names = FALSE, recursive = FALSE)
 	  SDM_HA_AO_MO_Dir_Folder_selected <- SDM_HA_AO_MO_Dir_Folder_list[1]
-	  selectInput("SDM_HA_AO_MO_Dir", "Working Invasive Species Folders",
+	  selectInput("SDM_HA_AO_MO_Dir", SDM_Name_Model_Variable_SpeciesRichness_Folder,
 	              choices = c(SDM_HA_AO_MO_Dir_Folder_list),
 	              selected = SDM_HA_AO_MO_Dir_Folder_selected
 	  )
 	  
 	})
-	
-	output$SDM_VH_AO_MO_Dir_Folder <- renderUI({
-	  SDM_VH_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"), full.names = FALSE, recursive = FALSE)
-	  SDM_VH_AO_MO_Dir_Folder_selected <- SDM_VH_AO_MO_Dir_Folder_list[1]
-	  selectInput("SDM_VH_AO_MO_Dir", "Working Vulberable Habitat Folders",
-	              choices = c(SDM_VH_AO_MO_Dir_Folder_list),
-	              selected = SDM_VH_AO_MO_Dir_Folder_selected
-	  )
-	  
-	})
-	
+
 	output$SDM_AO_MI_Dir_Folder_Name <- renderUI({
-	  SDM_AO_MI_Dir_Folder_Name_list <- "BIOMOD2"   # list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_MI_Dir, input$SDM_AO_Species[1]), full.names = FALSE, recursive = FALSE)
+	  SDM_AO_MI_Dir_Folder_Name_list <- G$DIR_NAME_SDM   # list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_MI_Dir, input$SDM_AO_Species[1]), full.names = FALSE, recursive = FALSE)
 	  SDM_AO_MI_Dir_Folder_Name_selected <- SDM_AO_MI_Dir_Folder_Name_list[1]
-	  selectInput("SDM_AO_MI_Dir_Folder", "Working SDM Types",
+	  selectInput("SDM_AO_MI_Dir_Folder", SDM_Name_Model_Variable_Distribution_Folder_Name,
 	              choices = c(SDM_AO_MI_Dir_Folder_Name_list),
 	              selected = SDM_AO_MI_Dir_Folder_Name_selected
 	  )
@@ -649,7 +638,7 @@ shinyServer(function(input, output) {
 	  G$SDM_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_MI_Dir)
 	  SDM_Name_Species_list <- list.dirs(path = G$SDM_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	  SDM_Name_Species_selected <- SDM_Name_Species_list[1]
-	  selectInput("SDM_AO_Species", "Select a species",
+	  selectInput("SDM_AO_Species", SDM_Name_Model_Variable_Distribution_Species,
 	              choices = c(SDM_Name_Species_list),
 	              selected = SDM_Name_Species_selected
 	  )
@@ -657,12 +646,12 @@ shinyServer(function(input, output) {
 	
 	output$SDM_AO_SDM_PROJ_model <- renderUI({
 	  G$SDM_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_MI_Dir)
-	  destfile <- file.path(G$SDM_AO_MI_Dir_Folder, input$SDM_AO_Species[1], "BIOMOD2", paste(as.name(paste(input$SDM_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	  destfile <- file.path(G$SDM_AO_MI_Dir_Folder, input$SDM_AO_Species[1], G$DIR_NAME_SDM, paste(as.name(paste(input$SDM_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	  all_eval <- read.csv(destfile)
 	  G_FILE_species_evaluation <<- all_eval
 	  SDM_Name_Models_list <- unique(as.character(G_FILE_species_evaluation$Projection))
 	  SDM_Name_Models_selected <- SDM_Name_Models_list[1]
-	  radioButtons("SDM_AO_SDM_PROJ_model", "Select models",
+	  radioButtons("SDM_AO_SDM_PROJ_model", SDM_Name_Model_Variable_Distribution_Model,
 	               choices = c(SDM_Name_Models_list),
 	               selected = SDM_Name_Models_selected
 	  )
@@ -676,27 +665,12 @@ shinyServer(function(input, output) {
 	  SDM_Name_Models_list <- as.character(HA_Options_lists[1, 9])
 	  SDM_Name_Models_selected <- SDM_Name_Models_list[1]
 	  
-	  radioButtons("SDM_HA_AO_SDM_PRED_model", "Select models",
+	  radioButtons("SDM_HA_AO_SDM_PRED_model", SDM_Name_Model_Variable_SpeciesRichness_Model,
 	               choices = c(SDM_Name_Models_list),
 	               selected = SDM_Name_Models_selected
 	  )
 	})
-	
-	
-	output$SDM_VH_AO_SDM_PRED_model <- renderUI({
 
-	  destfile <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$SDM_VH_AO_MO_Dir, "VulnerableHabitat_Options.csv")
-	  VH_Options_lists <- read.csv(destfile, header = T, sep = ",")
-	  VH_Options_lists[is.na(VH_Options_lists)] = ""
-	  SDM_Name_Models_list <- as.character(VH_Options_lists[1, 9])
-	  SDM_Name_Models_selected <- SDM_Name_Models_list[1]
-	  
-	  radioButtons("SDM_VH_AO_SDM_PRED_model", "Select models",
-	               choices = c(SDM_Name_Models_list),
-	               selected = SDM_Name_Models_selected
-	  )
-	})
-	
 	output$SDM_MO_Variables_Select <- renderUI({
 	  
 	  SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
@@ -788,7 +762,7 @@ shinyServer(function(input, output) {
   	        }
   	      }
   	    }
-  	  } else if (v == "Invasive.grd") {
+  	  } else {
   	    mlist <- input$SDM_HA_AO_SDM_PRED_model
 	      PATH_MODEL_OUTPUT <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$SDM_HA_AO_MO_Dir)
 	      for (s in slist) {
@@ -799,8 +773,8 @@ shinyServer(function(input, output) {
 	              target_path <- file.path(G$SE_Dir_Climate, ylist[1])
 	              o_file_grd <- paste("HA_SR_", d, "_", c, "_", m, "_", ylist[1], G$IMG_File, sep = "")
 	              o_file_gri <- paste("HA_SR_", d, "_", c, "_", m, "_", ylist[1], G$IMG_Info, sep = "")
-	              t_file_grd <- paste("Invasive.grd")
-	              t_file_gri <- paste("Invasive.gri")
+	              t_file_grd <- paste("SpeciesRichness.grd")
+	              t_file_gri <- paste("SpeciesRichness.gri")
 	              ofile_path_grd <- file.path(org_path, o_file_grd)
 	              ofile_path_gri <- file.path(org_path, o_file_gri)
 	              tfile_path_grd <- file.path(target_path, t_file_grd)
@@ -824,8 +798,8 @@ shinyServer(function(input, output) {
 	                target_path <- file.path(G$SE_Dir_Climate, d, c, y)
 	                o_file_grd <- paste("HA_SR_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
 	                o_file_gri <- paste("HA_SR_", d, "_", c, "_", m, "_", y, G$IMG_Info, sep = "")
-	                t_file_grd <- paste("Invasive.grd")
-	                t_file_gri <- paste("Invasive.gri")
+	                t_file_grd <- paste("SpeciesRichness.grd")
+	                t_file_gri <- paste("SpeciesRichness.gri")
 	                ofile_path_grd <- file.path(org_path, o_file_grd)
 	                ofile_path_gri <- file.path(org_path, o_file_gri)
 	                tfile_path_grd <- file.path(target_path, t_file_grd)
@@ -848,67 +822,7 @@ shinyServer(function(input, output) {
 	          }
 	        }
 	      }
-	    } else {
-	      mlist <- input$SDM_VH_AO_SDM_PRED_model
-	      PATH_MODEL_OUTPUT <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$SDM_VH_AO_MO_Dir)
-	      for (s in slist) {
-	        for (d in dlist) {
-	          for (c in clist) {
-	            for (m in mlist) {
-	              org_path <- PATH_MODEL_OUTPUT
-	              target_path <- file.path(G$SE_Dir_Climate, ylist[1])
-	              o_file_grd <- paste("VH_SR_", d, "_", c, "_", m, "_", ylist[1], G$IMG_File, sep = "")
-	              o_file_gri <- paste("VH_SR_", d, "_", c, "_", m, "_", ylist[1], G$IMG_Info, sep = "")
-	              t_file_grd <- paste("Vulnerable.grd")
-	              t_file_gri <- paste("Vulnerable.gri")
-	              ofile_path_grd <- file.path(org_path, o_file_grd)
-	              ofile_path_gri <- file.path(org_path, o_file_gri)
-	              tfile_path_grd <- file.path(target_path, t_file_grd)
-	              tfile_path_gri <- file.path(target_path, t_file_gri)
-	              if (!file.exists(ofile_path_grd)){
-	                showModal(modalDialog(
-	                  title = "Error Message",
-	                  paste(ofile_path_grd, "does not exist.")
-	                ))
-	              } else {
-	                if (file.exists(tfile_path_grd)) {
-	                  file.remove(tfile_path_grd)
-	                  file.remove(tfile_path_gri)
-	                }
-	                file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
-	                file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
-	              }
-	              for (y in ylist) {
-	                incProgress(1/tl, detail = paste("Doing part", "(", s, ")", "_", d, "_", c, "_", y))
-	                org_path <- PATH_MODEL_OUTPUT
-	                target_path <- file.path(G$SE_Dir_Climate, d, c, y)
-	                o_file_grd <- paste("VH_SR_", d, "_", c, "_", m, "_", y, G$IMG_File, sep = "")
-	                o_file_gri <- paste("VH_SR_", d, "_", c, "_", m, "_", y, G$IMG_Info, sep = "")
-	                t_file_grd <- paste("Vulnerable.grd")
-	                t_file_gri <- paste("Vulnerable.gri")
-	                ofile_path_grd <- file.path(org_path, o_file_grd)
-	                ofile_path_gri <- file.path(org_path, o_file_gri)
-	                tfile_path_grd <- file.path(target_path, t_file_grd)
-	                tfile_path_gri <- file.path(target_path, t_file_gri)
-	                if (!file.exists(ofile_path_grd)){
-	                  showModal(modalDialog(
-	                    title = "Error Message",
-	                    paste(ofile_path_grd, "does not exist.")
-	                  ))
-	                } else {
-	                  if (file.exists(tfile_path_grd)) {
-	                    file.remove(tfile_path_grd)
-	                    file.remove(tfile_path_gri)
-	                  }
-	                  file.copy(from = ofile_path_grd, to = tfile_path_grd, overwrite = TRUE)
-	                  file.copy(from = ofile_path_gri, to = tfile_path_gri, overwrite = TRUE)
-	                }
-	              }
-	            }
-	          }
-	        }
-	      }
-	    }
+	    } 
     }
     })
 	  G$SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
@@ -921,44 +835,23 @@ shinyServer(function(input, output) {
 	  
 	  # creating Species_Distribution output path
 	  if (dir.exists(file.path(PATH_PROJECT, G$DIR_NAME_Species))) {
-	    cat(paste("Species_Distribution exists in", PATH_PROJECT, "and is a directory"))
+	    cat(paste(G$DIR_NAME_Species, "exists in", PATH_PROJECT, "and is a directory"))
 	  } else if (file.exists(file.path(PATH_PROJECT, G$DIR_NAME_Species))) {
-	    cat(paste("Species_Distribution exists exists in", PATH_PROJECT, "but is a file"))
+	    cat(paste(G$DIR_NAME_Species, "exists exists in", PATH_PROJECT, "but is a file"))
 	  } else {
-	    cat(paste("Species_Distribution does not exist in", PATH_PROJECT, "- creating"))
+	    cat(paste(G$DIR_NAME_Species, "does not exist in", PATH_PROJECT, "- creating"))
 	    dir.create(file.path(PATH_PROJECT, G$DIR_NAME_Species))
 	  }
-	  
-#	  # creating Sensitive_Species output path
-#	  if (dir.exists(file.path(PATH_PROJECT, "Sensitive_Species"))) {
-#	    cat(paste("Sensitive_Species exists in", PATH_PROJECT, "and is a directory"))
-#	  } else if (file.exists(file.path(PATH_PROJECT, "Sensitive_Species"))) {
-#	    cat(paste("Sensitive_Species exists exists in", PATH_PROJECT, "but is a file"))
-#	  } else {
-#	    cat(paste("Sensitive_Species does not exist in", PATH_PROJECT, "- creating"))
-#	    dir.create(file.path(PATH_PROJECT, "Sensitive_Species"))
-#	  }
-	  
-	  # creating Invasive_Species output path
+
+	  # creating Habitat output path
 	  if (dir.exists(file.path(PATH_PROJECT, G$DIR_NAME_Habitat))) {
-	    cat(paste("Invasive_Species exists in", PATH_PROJECT, "and is a directory"))
+	    cat(paste(G$DIR_NAME_Habitat, "exists in", PATH_PROJECT, "and is a directory"))
 	  } else if (file.exists(file.path(PATH_PROJECT, G$DIR_NAME_Habitat))) {
-	    cat(paste("Invasive_Species exists exists in", PATH_PROJECT, "but is a file"))
+	    cat(paste(G$DIR_NAME_Habitat, "exists exists in", PATH_PROJECT, "but is a file"))
 	  } else {
-	    cat(paste("Invasive_Species does not exist in", PATH_PROJECT, "- creating"))
+	    cat(paste(G$DIR_NAME_Habitat, "does not exist in", PATH_PROJECT, "- creating"))
 	    dir.create(file.path(PATH_PROJECT, G$DIR_NAME_Habitat))
 	  }
-	  
-	  # creating Vulnerable_Habitat output path
-	  if (dir.exists(file.path(PATH_PROJECT, "Vulnerable_Habitat"))) {
-	    cat(paste("Vulnerable_Habitat exists in", PATH_PROJECT, "and is a directory"))
-	  } else if (file.exists(file.path(PATH_PROJECT, "Vulnerable_Habitat"))) {
-	    cat(paste("Vulnerable_Habitat exists exists in", PATH_PROJECT, "but is a file"))
-	  } else {
-	    cat(paste("Vulnerable_Habitat does not exist in", PATH_PROJECT, "- creating"))
-	    dir.create(file.path(PATH_PROJECT, "Vulnerable_Habitat"))
-	  }
-	  
 	  
 	  volumes <- c(main = file.path(PATH_PROJECT, G$DIR_NAME_Species))
 	  shinyDirChoose(input, 'SDM_MO_Dir_Folder', roots = volumes) # , defaultPath = "/MOTIVE_projects", defaultRoot = G$SE_Dir_Project)
@@ -1138,20 +1031,20 @@ shinyServer(function(input, output) {
 	                                           do.full.models = BIOMOD_do.full.models)
 	      
 	      # creating Biomod2 output path
-	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2"))) {
-	        cat(paste("BIOMOD2 exists in", PATH_MODEL_OUTPUT, "/", SPECIES_NAME, "and is a directory"))
-	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2"))) {
-	        cat(paste("BIOMOD2 exists in", PATH_MODEL_OUTPUT, "/", SPECIES_NAME, "but is a file"))
+	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM))) {
+	        cat(paste(G$DIR_NAME_SDM, "exists in", PATH_MODEL_OUTPUT, "/", SPECIES_NAME, "and is a directory"))
+	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM))) {
+	        cat(paste(G$DIR_NAME_SDM, "exists in", PATH_MODEL_OUTPUT, "/", SPECIES_NAME, "but is a file"))
 	      } else {
-	        cat(paste("BIOMOD2 does not exist in", PATH_MODEL_OUTPUT, "/", SPECIES_NAME, "- creating"))
-	        dir.create(file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2"))
+	        cat(paste(G$DIR_NAME_SDM,"does not exist in", PATH_MODEL_OUTPUT, "/", SPECIES_NAME, "- creating"))
+	        dir.create(file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM))
 	      }
 	      
 	      # Evaluating the model
 	      myBiomodModelEval <- get_evaluations(myBiomodModelOut)
-	      write.csv(myBiomodModelEval, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_eval.csv", sep = "", collapse = "--")))
+	      write.csv(myBiomodModelEval, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(SPECIES_NAME, "_eval.csv", sep = "", collapse = "--")))
 	      myBiomodModelImport <- get_variables_importance(myBiomodModelOut)
-	      write.csv(myBiomodModelImport, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_impot.csv",  sep = "", collapse = "--")))
+	      write.csv(myBiomodModelImport, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(SPECIES_NAME, "_impot.csv",  sep = "", collapse = "--")))
 	      ### End Modeling BIOMOD
 	      
 	      ### Projection on current and future environemental conditions
@@ -1190,12 +1083,12 @@ shinyServer(function(input, output) {
 	            for (i in mlist) {
 	              proj <- all_proj[[i]]
 	              proj[proj > 1000] <- 1000
-	              writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	              writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	              for (j in BIOMOD_binary.meth) {
 	                if (!is.na(myBiomodModelEval[j, "Cutoff", strapplyc(i, "Full_(.*)", simplify = TRUE), "Full", "PA1"])) {
 	                  cutoffvalue <- as.integer(myBiomodModelEval[j, "Cutoff", strapplyc(i, "Full_(.*)", simplify = TRUE), "Full", "PA1"])
 	                  pred <- BinaryTransformation(proj, cutoffvalue)
-	                  writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2",paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, "_by", j, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                  writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM,paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, "_by", j, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                }
 	              }  
 	            }  
@@ -1224,7 +1117,7 @@ shinyServer(function(input, output) {
 	              
 	              # get evaluation scores
 	              myBiomodEMEval <- get_evaluations(myBiomodEM)
-	              write.csv(myBiomodEMEval, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_EM_eval.csv", sep = "", collapse = "--")))
+	              write.csv(myBiomodEMEval, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(SPECIES_NAME, "_EM_eval.csv", sep = "", collapse = "--")))
 	              
 	              # Ensemble Models Projections
 	              myBiomodEnsembleForecasting <- BIOMOD_EnsembleForecasting(projection.output = myBiomodProjection,
@@ -1238,12 +1131,12 @@ shinyServer(function(input, output) {
 	              for (i in emlist) {
 	                proj <- EM_all_proj[[i]]
 	                proj[proj > 1000] <- 1000
-	                writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                writeRaster(proj, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(as.name(paste("PROJ_", BIOMOD_proj.name, "_", i, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                for (j in EM_models.eval.meth) {
 	                  if (!is.na(eval(parse(text = as.name(paste("myBiomodEMEval$", i))))[j, "Cutoff"])) {
 	                    cutoffvalue <- as.integer(eval(parse(text = as.name(paste("myBiomodEMEval$", i))))[j, "Cutoff"])
 	                    pred <- BinaryTransformation(proj, cutoffvalue)
-	                    writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                    writeRaster(pred, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(as.name(paste("PRED_", BIOMOD_proj.name, "_", i, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
 	                  }
 	                }
 	              }
@@ -1255,7 +1148,7 @@ shinyServer(function(input, output) {
 	      } # End climate data loop d
 	      
 	      ### Creating species evaluation information 
-	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste(SPECIES_NAME, "_eval.csv", sep = "")), sep = "", collapse = "--"))
+	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(as.name(paste(SPECIES_NAME, "_eval.csv", sep = "")), sep = "", collapse = "--"))
 	      if (!file.exists(destfile))
 	        return
 	      
@@ -1285,7 +1178,7 @@ shinyServer(function(input, output) {
 	      }
 	      
 	      if(input$SDM_MO_SDM_EMmodel) {
-	        destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(as.name(paste(SPECIES_NAME, "_EM_eval.csv", sep = "")), sep = "", collapse = "--"))
+	        destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(as.name(paste(SPECIES_NAME, "_EM_eval.csv", sep = "")), sep = "", collapse = "--"))
 	        if (!file.exists(destfile))
 	          return
 	        
@@ -1349,11 +1242,11 @@ shinyServer(function(input, output) {
 	        }	  
 	      }
 	      
-	      write.csv(Eval_data, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_ALL_eval.csv", sep = "", collapse = "--")))
+	      write.csv(Eval_data, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(SPECIES_NAME, "_ALL_eval.csv", sep = "", collapse = "--")))
 	      
 	      #####
 	      
-#	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_BIOMOD2_variables.csv", sep = "", collapse = "--"))
+#	      destfile <- file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(SPECIES_NAME, "_BIOMOD2_variables.csv", sep = "", collapse = "--"))
 
           SDM_variables <- setNames(data.frame(matrix(ncol = 44, nrow = 30)), c("input$SDM_MO_Climate_model", "input$SDM_MO_Climate_scenario", "input$SDM_MO_Project_year", "input$SDM_MO_Variables", "input$BIOMOD_eval.resp.var", 
 	                                                                              "input$BIOMOD_eval.expl.var", "input$BIOMOD_eval.resp.xy", "input$BIOMOD_PA.nb.rep", "input$BIOMOD_PA.nb.absences", "input$BIOMOD_PA.strategy",
@@ -1415,15 +1308,15 @@ shinyServer(function(input, output) {
           SDM_variables[1:length(input$EM_VarImport), "input$EM_VarImport"] <- input$EM_VarImport
 	      
 	        SDM_variables[is.na(SDM_variables)] <- ""
-          write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_BIOMOD2_variables.csv", sep = "", collapse = "--")))
+          write.csv(SDM_variables, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(SPECIES_NAME, "_", G$DIR_NAME_SDM, "_variables.csv", sep = "", collapse = "--")))
 	      
-          write.csv(SPECIES_DATA, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, "BIOMOD2", paste(SPECIES_NAME, "_BIOMOD2_species.csv", sep = "", collapse = "--")))
+          write.csv(SPECIES_DATA, file = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, G$DIR_NAME_SDM, paste(SPECIES_NAME, "_", G$DIR_NAME_SDM, "_species.csv", sep = "", collapse = "--")))
           
 	      #####
 	      
 	      dir_list <- list.dirs(path = file.path(PATH_MODEL_OUTPUT, SPECIES_NAME), full.names = FALSE, recursive = FALSE)
 	      for (i in dir_list) {
-	        if (i == "BIOMOD2" | i == "MIGCLIM") {
+	        if (i == G$DIR_NAME_SDM | i == "MIGCLIM") {
 	          cat (i, "cannot be deleted")
 	        } else {
 	          unlink(file.path(PATH_MODEL_OUTPUT, SPECIES_NAME, i), recursive = TRUE)
@@ -1447,7 +1340,7 @@ shinyServer(function(input, output) {
 	output$SDM_AO_Dir_Folder <- renderUI({
 	    SDM_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	    SDM_AO_Dir_Folder_selected <- SDM_AO_Dir_Folder_list[1]
-	    selectInput("SDM_AO_Dir", "Working Species Distribution Folders",
+	    selectInput("SDM_AO_Dir", SDM_Name_Model_Out_Folder,
 	                choices = c(SDM_AO_Dir_Folder_list),
 	                selected = SDM_AO_Dir_Folder_selected
 	    )
@@ -1458,7 +1351,7 @@ shinyServer(function(input, output) {
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
 		SDM_Name_Species_list <- list.dirs(path = G$SDM_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 		SDM_Name_Species_selected <- SDM_Name_Species_list[1]
-		selectInput("SDM_OU_Species", "Select a species",
+		selectInput("SDM_OU_Species", SDM_Name_Model_Out_Species,
 			choices = c(SDM_Name_Species_list),
 			selected = SDM_Name_Species_selected
 		)
@@ -1466,12 +1359,12 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_Projection_model <- renderUI({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM, paste(as.name(paste(input$SDM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		SDM_Name_Projection_Models_list <- unique(as.character(G_FILE_species_evaluation$Projection))
 		SDM_Name_Projection_Models_selected <- SDM_Name_Projection_Models_list[1]
-		selectInput("SDM_OU_Projection_model", "Select Projection models",
+		selectInput("SDM_OU_Projection_model", SDM_Name_Model_Out_Model_Projection,
 			choices = c(SDM_Name_Projection_Models_list),
 			selected = SDM_Name_Projection_Models_selected
 		)
@@ -1479,12 +1372,12 @@ shinyServer(function(input, output) {
   
 	output$SDM_OU_Prediction_model <- renderUI({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM, paste(as.name(paste(input$SDM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		SDM_Name_Prediction_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 		SDM_Name_Prediction_Models_selected <- SDM_Name_Prediction_Models_list[1]
-		selectInput("SDM_OU_Prediction_model", "Select Prediction models",
+		selectInput("SDM_OU_Prediction_model", SDM_Name_Model_Out_Model_Prediction,
 			choices = c(SDM_Name_Prediction_Models_list),
 			selected = SDM_Name_Prediction_Models_selected
 		)
@@ -1492,7 +1385,7 @@ shinyServer(function(input, output) {
 
 	output$SDM_OU_Validation <- DT::renderDataTable({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM, paste(as.name(paste(input$SDM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		all_eval
@@ -1516,7 +1409,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_Contribution <- DT::renderDataTable({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-	  destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
+	  destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM, paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
 	  
 	  if (!file.exists(destfile)) {
 	    return(NULL)
@@ -1530,7 +1423,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_Contribution_Radarchart <- renderChartJSRadar({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2", paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM, paste(as.name(paste(input$SDM_OU_Species, "_impot.csv", sep = "")), sep = "", collapse = "--"))
 	
 		if (!file.exists(destfile)) {
 			return(NULL)
@@ -1548,7 +1441,7 @@ shinyServer(function(input, output) {
   
 	output$SDM_OU_Probability_map <- renderLeaflet({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
+		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, G$IMG_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
 	
@@ -1557,7 +1450,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_PROJ_Summary <- renderPrint({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
+		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, G$IMG_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
 		summary(r)
@@ -1565,7 +1458,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_PROJ_Histogram <- renderPlot({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
+		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, G$IMG_File, sep = "")
 		x <- raster(file.path(dir_path, Map))
 	
@@ -1578,7 +1471,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_Predicted_map <- renderLeaflet({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
+		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, G$IMG_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
 		
@@ -1587,7 +1480,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_PRED_Summary <- renderPrint({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
+		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, G$IMG_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
 		summary(r)
@@ -1595,7 +1488,7 @@ shinyServer(function(input, output) {
 	
 	output$SDM_OU_PRED_Histogram <- renderPlot({
 	  G$SDM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SDM_AO_Dir)
-		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, "BIOMOD2")
+		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, G$IMG_File, sep = "")
 		x <- raster(file.path(dir_path, Map))
 	
@@ -1609,7 +1502,7 @@ shinyServer(function(input, output) {
 	output$SRM_SDM_Dir_Folder <- renderUI({
 	    SRM_SDM_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	    SRM_SDM_Dir_Folder_selected <- SRM_SDM_Dir_Folder_list[1]
-	    selectInput("SRM_SDM_Dir", "Working Species Distribution Folders",
+	    selectInput("SRM_SDM_Dir", SRM_Name_Model_SDM_Folder,
 	                choices = c(SRM_SDM_Dir_Folder_list),
 	                selected = SRM_SDM_Dir_Folder_selected
 	    )
@@ -1631,7 +1524,7 @@ shinyServer(function(input, output) {
 	output$SRM_MO_Species <- renderUI({
 	    G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SRM_SDM_Dir)
 	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    checkboxGroupInput("SRM_MO_Species", "Select a species",
+	    checkboxGroupInput("SRM_MO_Species", SRM_Name_Model_SDM_Species,
 	                       choices = c(SRM_Name_Species_list),
 	                       selected = G$SRM_Name_Species_selected
 	    )
@@ -1640,12 +1533,12 @@ shinyServer(function(input, output) {
 	output$SRM_MO_SDM_model <- renderUI({
 	    G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SRM_SDM_Dir)
 	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    destfile <- file.path(G$SRM_SDM_Dir_Folder, SRM_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(SRM_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	    destfile <- file.path(G$SRM_SDM_Dir_Folder, SRM_Name_Species_list[1], G$DIR_NAME_SDM, paste(as.name(paste(SRM_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	    all_eval <- read.csv(destfile)
 	    G_FILE_species_evaluation <<- all_eval
 	    SRM_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 	    SRM_Name_Models_selected <- SRM_Name_Models_list[1]
-	    checkboxGroupInput("SRM_MO_SDM_model", "Select models",
+	    checkboxGroupInput("SRM_MO_SDM_model", SRM_Name_Model_SDM_Model,
 	                       choices = c(SRM_Name_Models_list),
 	                       selected = SRM_Name_Models_selected
 	    )
@@ -1684,6 +1577,7 @@ shinyServer(function(input, output) {
 	        PATH_PROJECT   <- G$SE_Dir_Project
 	        G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SRM_SDM_Dir)
 	        PATH_MODEL_OUTPUT <- G$SRM_SDM_Dir_Folder   # file.path(PATH_PROJECT, G$DIR_NAME_Species)
+	        CUR_PATH <- getwd()
 	        setwd(PATH_MODEL_OUTPUT)
 	        
 	        # Setting Column Name of species data
@@ -1716,13 +1610,13 @@ shinyServer(function(input, output) {
 	        for (s in slist) {
 	            n <- n + 1
 	            # creating Migclim output path
-	            if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$D_MO_Dir_Folder_Name, sep = "")))) {
-	                cat(paste(paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
-	            } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$F_MO_Dir_Folder_Name, sep = "")))) {
-	                cat(paste(paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
+	            if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$D_MO_Dir_Folder_Name, sep = "")))) {
+	                cat(paste(paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
+	            } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$F_MO_Dir_Folder_Name, sep = "")))) {
+	                cat(paste(paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
 	            } else {
-	                cat(paste(paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""), "does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
-	                dir.create(file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = "")))
+	                cat(paste(paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), "does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
+	                dir.create(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = "")))
 	            }   
 	            
 	            
@@ -1739,8 +1633,8 @@ shinyServer(function(input, output) {
 	            names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LAT] <- "y"
 
 	            # Setting working path
-	            org_path <- file.path(PATH_MODEL_OUTPUT, s, "BIOMOD2")
-	            target_path <- file.path(PATH_MODEL_OUTPUT, s, paste("SRM_", input$SRM_MO_Dir_Folder_Name, sep = ""))
+	            org_path <- file.path(PATH_MODEL_OUTPUT, s, G$DIR_NAME_SDM)
+	            target_path <- file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""))
 	            setwd(target_path)
 	            
 	            ### Projection on current and future environemental conditions
@@ -1844,6 +1738,38 @@ shinyServer(function(input, output) {
 	                }
 	            }
 	            
+	            SRM_variables <- setNames(data.frame(matrix(ncol = 17, nrow = 30)), c("input$SRM_SDM_Dir_Folder", "input$SRM_MO_Climate_model", "input$SRM_MO_Climate_scenario", "input$SRM_MO_Project_year", "input$SRM_MO_SDM_model",
+	                                                                                  "input$SRM_MO_Type", "input$SRM_Buffer_Distance", "input$SRM_Hull_Type",  "input$SRM_Hull_Concave_Distance", "input$SRM_Hull_Buffer_Distance",
+	                                                                                  "input$SRM_Hull_Cluster_Method", "input$SRM_Hull_Number_Kmeans", "input$SRM_Hull_Split_Distance", "input$SRM_VoronoiHull_Absence_sample_Buffer_Distance", "input$SRM_VoronoiHull_sampling_Type",
+	                                                                                  "input$SRM_VoronoiHull_Absence_sample_ratio", "input$SRM_VoronoiHull_Absence_sample_size"
+	            ))
+	            
+	            SRM_variables[1:length(G$SRM_SDM_Dir_Folder), "input$SRM_SDM_Dir_Folder"] <- G$SRM_SDM_Dir_Folder
+	            
+	            SRM_variables[1:length(input$SRM_MO_Climate_model), "input$SRM_MO_Climate_model"] <- input$SRM_MO_Climate_model
+	            SRM_variables[1:length(input$SRM_MO_Climate_scenario), "input$SRM_MO_Climate_scenario"] <- input$SRM_MO_Climate_scenario
+	            SRM_variables[1:length(input$SRM_MO_Project_year), "input$SRM_MO_Project_year"] <- input$SRM_MO_Project_year
+	            SRM_variables[1:length(input$SRM_MO_SDM_model), "input$SRM_MO_SDM_model"] <- input$SRM_MO_SDM_model
+	            
+	            SRM_variables[1:length(input$SRM_MO_Type), "input$SRM_MO_Type"] <- input$SRM_MO_Type
+	            SRM_variables[1:length(input$SRM_Buffer_Distance), "input$SRM_Buffer_Distance"] <- input$SRM_Buffer_Distance
+	            SRM_variables[1:length(input$SRM_Hull_Type), "input$SRM_Hull_Type"] <- input$SRM_Hull_Type
+
+	            SRM_variables[1:length(input$SRM_Hull_Concave_Distance), "input$SRM_Hull_Concave_Distance"] <- input$SRM_Hull_Concave_Distance
+	            SRM_variables[1:length(input$SRM_Hull_Buffer_Distance), "input$SRM_Hull_Buffer_Distance"] <- input$SRM_Hull_Buffer_Distance
+	            SRM_variables[1:length(input$SRM_Hull_Cluster_Method), "input$SRM_Hull_Cluster_Method"] <- input$SRM_Hull_Cluster_Method
+
+	            SRM_variables[1:length(input$SRM_Hull_Number_Kmeans), "input$SRM_Hull_Number_Kmeans"] <- input$SRM_Hull_Number_Kmeans
+	            SRM_variables[1:length(input$SRM_Hull_Split_Distance), "input$SRM_Hull_Split_Distance"] <- input$SRM_Hull_Split_Distance
+	            
+	            SRM_variables[1:length(input$SRM_VoronoiHull_Absence_sample_Buffer_Distance), "input$SRM_VoronoiHull_Absence_sample_Buffer_Distance"] <- input$SRM_VoronoiHull_Absence_sample_Buffer_Distance
+	            SRM_variables[1:length(input$SRM_VoronoiHull_sampling_Type), "input$SRM_VoronoiHull_sampling_Type"] <- input$SRM_VoronoiHull_sampling_Type
+	            SRM_variables[1:length(input$SRM_VoronoiHull_Absence_sample_ratio), "input$SRM_VoronoiHull_Absence_sample_ratio"] <- input$SRM_VoronoiHull_Absence_sample_ratio
+	            SRM_variables[1:length(input$SRM_VoronoiHull_Absence_sample_size), "input$SRM_VoronoiHull_Absence_sample_size"] <- input$SRM_VoronoiHull_Absence_sample_size	            
+	            	            
+	            SRM_variables[is.na(SRM_variables)] <- ""
+	            write.csv(SRM_variables, file = file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), paste(s, "_SRM_", input$SRM_MO_Dir_Folder_Name, "_variables.csv", sep = "", collapse = "--")))
+	            
 	        }
 
 	
@@ -1857,7 +1783,7 @@ shinyServer(function(input, output) {
 	output$SRM_AO_Dir_Folder <- renderUI({
 	    SRM_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	    SRM_AO_Dir_Folder_selected <- SRM_AO_Dir_Folder_list[1]
-	    selectInput("SRM_AO_Dir", "Working Species Distribution Folders",
+	    selectInput("SRM_AO_Dir", SRM_Name_Model_Out_Folder,
 	                choices = c(SRM_AO_Dir_Folder_list),
 	                selected = SRM_AO_Dir_Folder_selected
 	    )
@@ -1868,31 +1794,31 @@ shinyServer(function(input, output) {
 	    SRM_AO_Model_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SRM_AO_Dir, input$SRM_OU_Species[1]), full.names = FALSE, recursive = FALSE)
 	    #	  SRM_AO_Model_Name_list <- SRM_AO_Model_Name_list[-1]
 	    SRM_AO_Model_Name_selected <- SRM_AO_Model_Name_list[1]
-	    selectInput("SRM_AO_Model_Name_Input", "Working SRM Modeling Folders",
+	    selectInput("SRM_AO_Model_Name_Input", SRM_Name_Model_Out_Model,
 	                choices = c(SRM_AO_Model_Name_list),
 	                selected = SRM_AO_Model_Name_selected
 	    )
 	    
 	})
 	
-	output$SRM_OU_Species <- renderUI({
+	output$SRM_AO_Species <- renderUI({
 	    G$SRM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SRM_AO_Dir)
 	    SRM_Name_Species_list <- list.dirs(path = G$SRM_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	    SRM_Name_Species_selected <- SRM_Name_Species_list[1]
-	    selectInput("SRM_OU_Species", "Select a species",
+	    selectInput("SRM_OU_Species", SRM_Name_Model_Out_Species,
 	                choices = c(SRM_Name_Species_list),
 	                selected = SRM_Name_Species_selected
 	    )
 	})
 	
-	output$SRM_OU_SDM_model <- renderUI({
+	output$SRM_AO_SDM_model <- renderUI({
 	    G$SRM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SRM_AO_Dir)
-	    destfile <- file.path(G$SRM_AO_Dir_Folder, input$SRM_OU_Species[1], "BIOMOD2", paste(as.name(paste(input$SRM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	    destfile <- file.path(G$SRM_AO_Dir_Folder, input$SRM_OU_Species[1], G$DIR_NAME_SDM, paste(as.name(paste(input$SRM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	    all_eval <- read.csv(destfile)
 	    G_FILE_species_evaluation <<- all_eval
 	    SRM_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 	    SRM_Name_Models_selected <- SRM_Name_Models_list[1]
-	    checkboxGroupInput("SRM_OU_SDM_model", "Select models",
+	    checkboxGroupInput("SRM_OU_SDM_model", SRM_Name_Model_Out_SDM,
 	                       choices = c(SRM_Name_Models_list),
 	                       selected = SRM_Name_Models_selected
 	    )
@@ -1992,7 +1918,7 @@ shinyServer(function(input, output) {
 	output$DM_SDM_Dir_Folder <- renderUI({
 	  DM_SDM_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  DM_SDM_Dir_Folder_selected <- DM_SDM_Dir_Folder_list[1]
-	  selectInput("DM_SDM_Dir", "Working Species Distribution Folders",
+	  selectInput("DM_SDM_Dir", DM_Name_Model_SDM_Folder,
 	              choices = c(DM_SDM_Dir_Folder_list),
 	              selected = DM_SDM_Dir_Folder_selected
 	  )
@@ -2014,7 +1940,7 @@ shinyServer(function(input, output) {
 	output$DM_MO_Species <- renderUI({
 	    G$DM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_SDM_Dir)
 		DM_Name_Species_list <- list.dirs(path = G$DM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		checkboxGroupInput("DM_MO_Species", "Select a species",
+		checkboxGroupInput("DM_MO_Species", DM_Name_Model_SDM_Species,
 			choices = c(DM_Name_Species_list),
 			selected = G$DM_Name_Species_selected
 		)
@@ -2023,12 +1949,12 @@ shinyServer(function(input, output) {
 	output$DM_MO_SDM_model <- renderUI({
 	    G$DM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_SDM_Dir)
 	    DM_Name_Species_list <- list.dirs(path = G$DM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		destfile <- file.path(G$DM_SDM_Dir_Folder, DM_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(DM_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$DM_SDM_Dir_Folder, DM_Name_Species_list[1], G$DIR_NAME_SDM, paste(as.name(paste(DM_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		DM_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 		DM_Name_Models_selected <- DM_Name_Models_list[1]
-		checkboxGroupInput("DM_MO_SDM_model", "Select models",
+		checkboxGroupInput("DM_MO_SDM_model", DM_Name_Model_SDM_Model,
 			choices = c(DM_Name_Models_list),
 			selected = DM_Name_Models_selected
 		)
@@ -2045,7 +1971,7 @@ shinyServer(function(input, output) {
 	  
   output$DM_SRM_Dir_Folder <- renderUI({
     DM_SRM_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_SDM_Dir, input$DM_MO_Species[1]), full.names = FALSE, recursive = FALSE)
-    DM_SRM_Dir_Folder_list <- DM_SRM_Dir_Folder_list[grepl(pattern = "SRM_", x = DM_SRM_Dir_Folder_list)]
+    DM_SRM_Dir_Folder_list <- DM_SRM_Dir_Folder_list[grepl(pattern = G$DIR_NAME_SRM, x = DM_SRM_Dir_Folder_list)]
     DM_SRM_Dir_Folder_selected <- DM_SRM_Dir_Folder_list[1]
     selectInput("DM_SRM_Dir", "Working Species Range Folders",
                 choices = c(DM_SRM_Dir_Folder_list),
@@ -2347,6 +2273,7 @@ shinyServer(function(input, output) {
 	    PATH_PROJECT   <- G$SE_Dir_Project
 	    G$DM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_SDM_Dir)
 	    PATH_MODEL_OUTPUT <- G$DM_SDM_Dir_Folder   # file.path(PATH_PROJECT, G$DIR_NAME_Species)
+	    CUR_PATH <- getwd()
 	    setwd(PATH_MODEL_OUTPUT)
 	    
 	    # Defining Model options.
@@ -2390,18 +2317,18 @@ shinyServer(function(input, output) {
 	    for (s in slist) {
 	      n <- n + 1
 	      # creating Migclim output path
-	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))) {
-	        cat(paste(paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
-	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))) {
-	        cat(paste(paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
+	      if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = "")))) {
+	        cat(paste(paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
+	      } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = "")))) {
+	        cat(paste(paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
 	      } else {
-	        cat(paste(paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), "does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
-	        dir.create(file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = "")))
+	        cat(paste(paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = ""), "does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
+	        dir.create(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = "")))
 	      }   
 	      
 	      # Setting working path
-	      org_path <- file.path(PATH_MODEL_OUTPUT, s, "BIOMOD2")
-	      target_path <- file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""))
+	      org_path <- file.path(PATH_MODEL_OUTPUT, s, G$DIR_NAME_SDM)
+	      target_path <- file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = ""))
 	      setwd(target_path)
 	      
 	      ### Projection on current and future environemental conditions
@@ -2411,10 +2338,19 @@ shinyServer(function(input, output) {
 	          for (m in mlist) {
 	            for (y in ylist[-1]) {
 	              incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", y))
-	              o_file_grd <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
-	              o_file_gri <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_Info, sep = "")
-	              file_path_grd <- file.path(org_path, o_file_grd)
-	              file_path_gri <- file.path(org_path, o_file_gri)
+	              
+                o_file_grd <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
+                o_file_gri <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_Info, sep = "")
+                if (input$DM_MO_Current_Type == "SDM") {
+                  pred_path <- file.path(PATH_MODEL_OUTPUT, s, G$DIR_NAME_SDM)
+	                file_path_grd <- file.path(pred_path, o_file_grd)
+	                file_path_gri <- file.path(pred_path, o_file_gri)
+	              } else {
+	                pred_path <- file.path(PATH_MODEL_OUTPUT, s, input$DM_SRM_Dir)
+	                file_path_grd <- file.path(pred_path, o_file_grd)
+	                file_path_gri <- file.path(pred_path, o_file_gri)
+	              }
+
 	              if (!file.exists(file_path_grd)){
 	                showModal(modalDialog(
 	                  title = "Error Message",
@@ -2425,7 +2361,7 @@ shinyServer(function(input, output) {
 	              file.copy(file_path_grd, target_path)
 	              file.copy(file_path_gri, target_path)  
 	              sr_list <- ""
-	              sr_list <- c(sr_list, file.path(org_path, o_file_grd))
+	              sr_list <- c(sr_list, file.path(pred_path, o_file_grd))
 	              ny <- grep(y, ylist)
 	              
 	              for (i in 1:ny) {
@@ -2445,11 +2381,53 @@ shinyServer(function(input, output) {
 	              }
 	              
 	              if (chk_file) {
-	              
+	                
+	                o_file <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
+	                img <- file.path(org_path, o_file)
+	                r <- raster(img)
+	                
+	                if (G_DM_barrier_chk) {
+	                  r[DM_barrier_r == 1] <- 0 
+	                  writeRaster(r, file = file.path(target_path, o_file, sep = "", collapse = "--"), overwrite = TRUE)
+	                } else {
+	                  
+	                }
+               
+	                if (input$DM_MO_Future_Type == "Each_SDM") {
+
+	                } else if (input$DM_MO_Future_Type == "Whole_SDM") {
+	                  for (i in 2:ny) {
+	                    o_file <- paste("PRED_", d, "_", c, "_", ylist[i], "_", s, "_", m, G$IMG_File, sep = "")
+	                    img <- file.path(org_path, o_file)
+	                    r1 <- raster(img)
+	                    r <- r + r1
+	                  }
+	                  r[r >= 1] <- 1000
+	                  writeRaster(r, file = file.path(target_path, paste(as.name(paste("DM_PROJ_Whole", G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                  img <- file.path(target_path, paste("DM_PROJ_Whole", G$IMG_File, sep = ""))
+	                } else {
+	                  o_file <- paste("PRED_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
+	                  img <- file.path(org_path, o_file)
+	                  r1 <- raster(img)
+	                  r1[r1 >= 0] <- 1000
+	                  writeRaster(r1, file = file.path(target_path, paste(as.name(paste("DM_PROJ_EVERYWHERE", G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+	                  img <- file.path(target_path, paste("DM_PROJ_EVERYWHERE", G$IMG_File, sep = ""))
+	                }
+	                
                 for (i in 1:ny) {
-                  o_file <- paste("PROJ_", d, "_", c, "_", ylist[i], "_", s, "_", sub("\\_by.*", "", m), G$IMG_File, sep = "")
-                  sr_list <- c(sr_list, file.path(org_path, o_file))
+                  if (input$DM_MO_Future_Type == "Each_SDM") {
+                    o_file <- paste("PROJ_", d, "_", c, "_", ylist[i], "_", s, "_", sub("\\_by.*", "", m), G$IMG_File, sep = "")
+                    img <- file.path(org_path, o_file)
+                    sr_list <- c(sr_list, img)
+                  } else if (input$DM_MO_Future_Type == "Whole_SDM") {
+                    img <- file.path(target_path, paste("DM_PROJ_Whole", G$IMG_File, sep = ""))
+                    sr_list <- c(sr_list, img)
+                  } else {
+                    img <- file.path(target_path, paste("DM_PROJ_EVERYWHERE", G$IMG_File, sep = ""))
+                    sr_list <- c(sr_list, img)
+                  }
                 }
+	                
 	              sr_list <- grep(s, sr_list, value = TRUE)
 	              sr_stack <- stack(sr_list)
 	              df <- as.data.frame(sr_stack, xy=TRUE)
@@ -2459,7 +2437,7 @@ shinyServer(function(input, output) {
 	              DM_hsMap <- df[,4:nc]
 	              DM_envChgSteps <- ny
 	              DM_simulName <- paste("DM_", d, "_", c, "_", y, "_", s, "_", m, sep = "")
-	              destfile <- file.path(PATH_MODEL_OUTPUT, s, "BIOMOD2", paste(as.name(paste(s, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	              destfile <- file.path(PATH_MODEL_OUTPUT, s, G$DIR_NAME_SDM, paste(as.name(paste(s, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	              all_eval <- read.csv(destfile)
 	              DM_rcThreshold <- as.integer(all_eval[all_eval$Prediction==m,]$Cutoff)
 	              
@@ -2498,12 +2476,15 @@ shinyServer(function(input, output) {
 	      
 #	      destfile <- file.path(PATH_MODEL_OUTPUT, s, "MIGCLIM", paste(s, "_MIGCLIM_variables.csv", sep = "", collapse = "--"))
 	      
-	      DM_variables <- setNames(data.frame(matrix(ncol = 20, nrow = 30)), c("input$DM_MO_Climate_model", "input$DM_MO_Climate_scenario", "input$DM_MO_Project_year", "input$DM_MO_SDM_model", 
+	      DM_variables <- setNames(data.frame(matrix(ncol = 24, nrow = 30)), c("input$DM_SDM_Dir_Folder", "input$DM_MO_SDM_model", "input$DM_MO_Climate_model", "input$DM_MO_Climate_scenario", "input$DM_MO_Project_year", "input$DM_MO_SDM_model", 
 	                                                                            "input$DM_MO_Barrier", "input$DM_MO_DM_barrierType", "input$DM_MO_Barrier_Landuse", "input$DM_MO_Barrier_LanduseType", "input$DM_MO_Barrier_Forestfire_Cutoff",
 	                                                                            "input$DM_MO_Barrier_Landslide_Cutoff", "input$DM_MO_Barrier_Landuse_Prop", "input$DM_MO_Barrier_Forestfire_Prop", "input$DM_MO_Barrier_Landslide_Prop",
 	                                                                            "input$DM_MO_DM_dispSteps", "input$DM_MO_DM_dispKernel", "input$DM_MO_DM_iniMatAge", "input$DM_MO_DM_propaguleProd",
-	                                                                            "input$DM_MO_DM_lddFreq", "input$DM_MO_SDM_lddDist", "input$DM_MO_DM_replicateNb"
+	                                                                            "input$DM_MO_DM_lddFreq", "input$DM_MO_SDM_lddDist", "input$DM_MO_DM_replicateNb", "input$DM_MO_Current_Type", "input$DM_MO_Future_Type"
 	      ))
+	      
+	      DM_variables[1:length(G$DM_SDM_Dir_Folder), "input$DM_SDM_Dir_Folder"] <- G$DM_SDM_Dir_Folder
+	      DM_variables[1:length(input$DM_MO_SDM_model), "input$DM_MO_SDM_model"] <- input$DM_MO_SDM_model
 	      
 	      DM_variables[1:length(input$DM_MO_Climate_model), "input$DM_MO_Climate_model"] <- input$DM_MO_Climate_model
 	      DM_variables[1:length(input$DM_MO_Climate_scenario), "input$DM_MO_Climate_scenario"] <- input$DM_MO_Climate_scenario
@@ -2529,9 +2510,12 @@ shinyServer(function(input, output) {
 	      DM_variables[1:length(input$DM_MO_DM_lddFreq), "input$DM_MO_DM_lddFreq"] <- input$DM_MO_DM_lddFreq
 	      DM_variables[1:length(input$DM_MO_SDM_lddDist), "input$DM_MO_SDM_lddDist"] <- input$DM_MO_SDM_lddDist
 	      DM_variables[1:length(input$DM_MO_DM_replicateNb), "input$DM_MO_DM_replicateNb"] <- input$DM_MO_DM_replicateNb
+	      
+	      DM_variables[1:length(input$DM_MO_Current_Type), "input$DM_MO_Current_Type"] <- input$DM_MO_Current_Type
+	      DM_variables[1:length(input$DM_MO_Future_Type), "input$DM_MO_Future_Type"] <- input$DM_MO_Future_Type
 
 	      DM_variables[is.na(DM_variables)] <- ""
-	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, s, paste("MIGCLIM_", input$DM_MO_Dir_Folder_Name, sep = ""), paste(s, "_MIGCLIM_", input$DM_MO_Dir_Folder_Name, "_variables.csv", sep = "", collapse = "--")))
+	      write.csv(DM_variables, file = file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_DM, input$DM_MO_Dir_Folder_Name, sep = ""), paste(s, "_MIGCLIM_", input$DM_MO_Dir_Folder_Name, "_variables.csv", sep = "", collapse = "--")))
 	      
 	      #####
 	    } # End Speices loop s
@@ -2547,7 +2531,7 @@ shinyServer(function(input, output) {
 	output$DM_AO_Dir_Folder <- renderUI({
 	  DM_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  DM_AO_Dir_Folder_selected <- DM_AO_Dir_Folder_list[1]
-	  selectInput("DM_AO_Dir", "Working Species Distribution Folders",
+	  selectInput("DM_AO_Dir", DM_Name_Model_Out_Folder,
 	              choices = c(DM_AO_Dir_Folder_list),
 	              selected = DM_AO_Dir_Folder_selected
 	  )
@@ -2558,7 +2542,7 @@ shinyServer(function(input, output) {
 	  DM_AO_Model_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_AO_Dir, input$DM_OU_Species[1]), full.names = FALSE, recursive = FALSE)
 #	  DM_AO_Model_Name_list <- DM_AO_Model_Name_list[-1]
 	  DM_AO_Model_Name_selected <- DM_AO_Model_Name_list[1]
-	  selectInput("DM_AO_Model_Name_Input", "Working Dispersal Modeling Folders",
+	  selectInput("DM_AO_Model_Name_Input", DM_Name_Model_Out_Model,
 	              choices = c(DM_AO_Model_Name_list),
 	              selected = DM_AO_Model_Name_selected
 	  )
@@ -2569,7 +2553,7 @@ shinyServer(function(input, output) {
 	  G$DM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_AO_Dir)
 	  DM_Name_Species_list <- list.dirs(path = G$DM_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	  DM_Name_Species_selected <- DM_Name_Species_list[1]
-	  selectInput("DM_OU_Species", "Select a species",
+	  selectInput("DM_OU_Species", DM_Name_Model_Out_Species,
 	                     choices = c(DM_Name_Species_list),
 	                     selected = DM_Name_Species_selected
 	  )
@@ -2577,12 +2561,12 @@ shinyServer(function(input, output) {
 	
 	output$DM_OU_SDM_model <- renderUI({
 	  G$DM_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$DM_AO_Dir)
-	  destfile <- file.path(G$DM_AO_Dir_Folder, input$DM_OU_Species[1], "BIOMOD2", paste(as.name(paste(input$DM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	  destfile <- file.path(G$DM_AO_Dir_Folder, input$DM_OU_Species[1], G$DIR_NAME_SDM, paste(as.name(paste(input$DM_OU_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	  all_eval <- read.csv(destfile)
 	  G_FILE_species_evaluation <<- all_eval
 	  DM_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 	  DM_Name_Models_selected <- DM_Name_Models_list[1]
-	  checkboxGroupInput("DM_OU_SDM_model", "Select models",
+	  checkboxGroupInput("DM_OU_SDM_model", DM_Name_Model_Out_SDM,
 	                     choices = c(DM_Name_Models_list),
 	                     selected = DM_Name_Models_selected
 	  )
@@ -2753,7 +2737,7 @@ shinyServer(function(input, output) {
 	output$SA_MO_Dir_Folder <- renderUI({
 	  SA_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  SA_MO_Dir_Folder_selected <- SA_MO_Dir_Folder_list[1]
-	  selectInput("SA_MO_Dir", "Working Species Distribution Folders",
+	  selectInput("SA_MO_Dir", SA_Name_Analysis_Folder,
 	              choices = c(SA_MO_Dir_Folder_list),
 	              selected = SA_MO_Dir_Folder_selected
 	  )
@@ -2765,7 +2749,7 @@ shinyServer(function(input, output) {
 	    SA_Name_Species_list <- list.dirs(path = G$SA_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	    SA_MO_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SA_MO_Dir, SA_Name_Species_list[1]), full.names = FALSE, recursive = FALSE)
 	    SA_MO_Dir_Folder_Name_selected <- SA_MO_Dir_Folder_Name_list[1]
-	    selectInput("SA_MO_Dir_Folder", "Working SDM Types",
+	    selectInput("SA_MO_Dir_Folder", SA_Name_Analysis_Model,
 	                choices = c(SA_MO_Dir_Folder_Name_list),
 	                selected = SA_MO_Dir_Folder_Name_selected
 	    )
@@ -2787,7 +2771,7 @@ shinyServer(function(input, output) {
 	output$SA_CA_Species <- renderUI({
 	  G$SA_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SA_MO_Dir)
 	  SA_Name_Species_list <- list.dirs(path = G$SA_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	  checkboxGroupInput("SA_CA_Species", "Select a species",
+	  checkboxGroupInput("SA_CA_Species", SA_Name_Analysis_Species,
 	                     choices = c(SA_Name_Species_list),
 	                     selected = G$SA_Name_Species_selected
 	  )
@@ -2796,12 +2780,12 @@ shinyServer(function(input, output) {
 	output$SA_CA_SDM_model <- renderUI({
 	  G$SA_MO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SA_MO_Dir)
 	  SA_Name_Species_list <- list.dirs(path = G$SA_MO_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	  destfile <- file.path(G$SA_MO_Dir_Folder, SA_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(SA_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	  destfile <- file.path(G$SA_MO_Dir_Folder, SA_Name_Species_list[1], G$DIR_NAME_SDM, paste(as.name(paste(SA_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	  all_eval <- read.csv(destfile)
 	  G_FILE_species_evaluation <<- all_eval
 	  SA_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 	  SA_Name_Models_selected <- SA_Name_Models_list[1]
-	  checkboxGroupInput("SA_CA_SDM_model", "Select models",
+	  checkboxGroupInput("SA_CA_SDM_model", SA_Name_Analysis_SDM,
 	                     choices = c(SA_Name_Models_list),
 	                     selected = SA_Name_Models_selected
 	  )
@@ -3107,7 +3091,7 @@ shinyServer(function(input, output) {
 	output$SA_AO_Dir_Folder <- renderUI({
 	  SA_AO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  SA_AO_Dir_Folder_selected <- SA_AO_Dir_Folder_list[1]
-	  selectInput("SA_AO_Dir", "Working Species Distribution Folders",
+	  selectInput("SA_AO_Dir", SA_Name_Out_Folder,
 	              choices = c(SA_AO_Dir_Folder_list),
 	              selected = SA_AO_Dir_Folder_selected
 	  )
@@ -3119,7 +3103,7 @@ shinyServer(function(input, output) {
 	  SA_Name_Species_list <- list.dirs(path = G$SA_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	  SA_AO_Model_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SA_AO_Dir, SA_Name_Species_list[1]), full.names = FALSE, recursive = FALSE)
 	  SA_AO_Model_Name_selected <- SA_AO_Model_Name_list[1]
-	  selectInput("SA_AO_Model_Name_Input", "Working SDM Types",
+	  selectInput("SA_AO_Model_Name_Input", SA_Name_Out_Model,
 	              choices = c(SA_AO_Model_Name_list),
 	              selected = SA_AO_Model_Name_selected
 	  )
@@ -3141,31 +3125,21 @@ shinyServer(function(input, output) {
 	output$SA_AO_Species <- renderUI({
 	  G$SA_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SA_AO_Dir)
 	  SA_Name_Species_list <- list.dirs(path = G$SA_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	  checkboxGroupInput("SA_AO_Species", "Select a species",
+	  checkboxGroupInput("SA_AO_Species", SA_Name_Out_Species,
 	                     choices = c(SA_Name_Species_list),
 	                     selected = G$SA_Name_Species_selected
 	  )
-	})
-	
-	output$SA_AO_Species_old <- renderUI({
-	  G$SA_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SA_AO_Dir)
-		SA_Name_Species_list <- list.dirs(path = G$SA_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		SA_Name_Species_selected <- SA_Name_Species_list[1]
-		selectInput("SA_AO_Species", "Select a species",
-			choices = c(SA_Name_Species_list),
-			selected = SA_Name_Species_selected
-		)
 	})
 
 	output$SA_AO_SDM_model <- renderUI({
 	  G$SA_AO_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SA_AO_Dir)
 	  SA_Name_Species_list <- list.dirs(path = G$SA_AO_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		destfile <- file.path(G$SA_AO_Dir_Folder, SA_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(SA_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$SA_AO_Dir_Folder, SA_Name_Species_list[1], G$DIR_NAME_SDM, paste(as.name(paste(SA_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		SA_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 		SA_Name_Models_selected <- SA_Name_Models_list[1]
-		checkboxGroupInput("SA_AO_SDM_model", "Select models",
+		checkboxGroupInput("SA_AO_SDM_model", SA_Name_Out_SDM,
 			choices = c(SA_Name_Models_list),
 			selected = SA_Name_Models_selected
 		)
@@ -3495,7 +3469,7 @@ shinyServer(function(input, output) {
 	output$HA_MI_Dir_Folder <- renderUI({
 	  HA_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  HA_MI_Dir_Folder_selected <- HA_MI_Dir_Folder_list[1]
-	  selectInput("HA_MI_Dir", "Working Species Distribution Folders",
+	  selectInput("HA_MI_Dir", HA_Name_Analysis_Folder,
 	              choices = c(HA_MI_Dir_Folder_list),
 	              selected = HA_MI_Dir_Folder_selected
 	  )
@@ -3507,7 +3481,7 @@ shinyServer(function(input, output) {
 	    HA_Name_Species_list <- list.dirs(path = G$HA_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	    HA_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$HA_MI_Dir_Folder, HA_Name_Species_list[1]), full.names = FALSE, recursive = FALSE)
 	    HA_MI_Dir_Folder_Name_selected <- HA_MI_Dir_Folder_Name_list[1]
-	    selectInput("HA_MI_Dir_Folder", "Working SDM Types",
+	    selectInput("HA_MI_Dir_Folder", HA_Name_Analysis_Folder,
 	                choices = c(HA_MI_Dir_Folder_Name_list),
 	                selected = HA_MI_Dir_Folder_Name_selected
 	  )
@@ -3529,7 +3503,7 @@ shinyServer(function(input, output) {
 	output$HA_CA_Species <- renderUI({
 	    G$HA_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir)
 		HA_Name_Species_list <- list.dirs(path = G$HA_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		checkboxGroupInput("HA_CA_Species", "Select a species",
+		checkboxGroupInput("HA_CA_Species", HA_Name_Analysis_Species,
 			choices = c(HA_Name_Species_list),
 			selected = G$HA_Name_Species_selected
 		)
@@ -3538,12 +3512,12 @@ shinyServer(function(input, output) {
 	output$HA_CA_SDM_model <- renderUI({
 	    G$HA_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir)
 	    HA_Name_Species_list <- list.dirs(path = G$HA_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
-		destfile <- file.path(G$HA_MI_Dir_Folder, HA_Name_Species_list[1], "BIOMOD2", paste(as.name(paste(HA_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$HA_MI_Dir_Folder, HA_Name_Species_list[1], G$DIR_NAME_SDM, paste(as.name(paste(HA_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <<- all_eval
 		HA_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 		HA_Name_Models_selected <- HA_Name_Models_list[1]
-		checkboxGroupInput("HA_CA_SDM_model", "Select models",
+		checkboxGroupInput("HA_CA_SDM_model", HA_Name_Analysis_Species,
 			choices = c(HA_Name_Models_list),
 			selected = HA_Name_Models_selected
 		)
@@ -3586,7 +3560,7 @@ shinyServer(function(input, output) {
 		stay_list <- NULL
 		gain_list <- NULL
 		
-		withProgress(message = 'Runing Invasive Species Impact and Vulnerability Analysis.........', value = 0, {
+		withProgress(message = 'Runing Habitat Impact and Vulnerability Analysis.........', value = 0, {
 		G$HA_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir)  
 		for (d in dlist) {
 			for (c in clist) {
@@ -3945,7 +3919,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_MI_Dir_Folder <- renderUI({
 	  HA_AO_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
 	  HA_AO_MI_Dir_Folder_selected <- HA_AO_MI_Dir_Folder_list[1]
-	  selectInput("HA_AO_MI_Dir", "Working Species Distribution Folders",
+	  selectInput("HA_AO_MI_Dir", HA_Name_Out_Folder,
 	              choices = c(HA_AO_MI_Dir_Folder_list),
 	              selected = HA_AO_MI_Dir_Folder_selected
 	  )
@@ -3955,7 +3929,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_MO_Dir_Folder <- renderUI({
 	  HA_AO_MO_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat), full.names = FALSE, recursive = FALSE)
 	  HA_AO_MO_Dir_Folder_selected <- HA_AO_MO_Dir_Folder_list[1]
-	  selectInput("HA_AO_MO_Dir", "Working Invasive Species Folders",
+	  selectInput("HA_AO_MO_Dir", HA_Name_Out_Folder_Habitat,
 	              choices = c(HA_AO_MO_Dir_Folder_list),
 	              selected = HA_AO_MO_Dir_Folder_selected
 	  )
@@ -3965,7 +3939,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_MI_Dir_Folder_Name <- renderUI({
 	  HA_AO_MI_Dir_Folder_Name_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_AO_MI_Dir, input$HA_AO_Species), full.names = FALSE, recursive = FALSE)
 	  HA_AO_MI_Dir_Folder_Name_selected <- HA_AO_MI_Dir_Folder_Name_list[1]
-	  selectInput("HA_AO_MI_Dir_Folder", "Working SDM Types",
+	  selectInput("HA_AO_MI_Dir_Folder", HA_Name_Out_Model,
 	              choices = c(HA_AO_MI_Dir_Folder_Name_list),
 	              selected = HA_AO_MI_Dir_Folder_Name_selected
 	  )
@@ -3977,7 +3951,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_AO_MI_Dir)
 	  HA_Name_Species_list <- list.dirs(path = G$HA_AO_MI_Dir_Folder, full.names = FALSE, recursive = FALSE)
 	  HA_Name_Species_selected <- HA_Name_Species_list[1]
-	  selectInput("HA_AO_Species", "Select a species",
+	  selectInput("HA_AO_Species", HA_Name_Out_Species_Select,
 	              choices = c(HA_Name_Species_list),
 	              selected = HA_Name_Species_selected
 	  )
@@ -3986,20 +3960,20 @@ shinyServer(function(input, output) {
 	
 	output$HA_AO_SDM_model <- renderUI({
 	  G$HA_AO_MI_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_AO_MI_Dir)
-		destfile <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, "BIOMOD2", paste(as.name(paste(input$HA_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+		destfile <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, G$DIR_NAME_SDM, paste(as.name(paste(input$HA_AO_Species, "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 		all_eval <- read.csv(destfile)
 		G_FILE_species_evaluation <- all_eval
 		HA_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
 		HA_Name_Models_selected <- HA_Name_Models_list[1]
-		radioButtons("HA_AO_SDM_model", "Select models",
+		radioButtons("HA_AO_SDM_model", HA_Name_Out_SDM,
 			choices = c(HA_Name_Models_list),
 			selected = HA_Name_Models_selected
 		)
 	})
 	
-#-------------------------------------------------------------------		
-### HA_AO_SD_PLOT	
-#-------------------------------------------------------------------	
+	#-------------------------------------------------------------------		
+	### HA_AO_SD_PLOT	
+	#-------------------------------------------------------------------	
 	
 	output$HA_AO_SD_PLOT_Group_UI <- renderUI({
 	  
@@ -4012,16 +3986,16 @@ shinyServer(function(input, output) {
 	})
 	
 	output$HA_AO_SD_PLOT_UI <- renderUI({
-
+	  
 	  if (input$HA_AO_SD_Habitat_Type == "Distribution" && input$HA_AO_SD_Habitat_Plot_Type == "Map") {
-  	  tags$head(
-  	    # Include our custom CSS
-  	    includeCSS("styles.css"),
-  	    includeScript("gomap.js")
-  	  )
-      leafletOutput("HA_AO_SD_Map", width = "800", height = "600")
+	    tags$head(
+	      # Include our custom CSS
+	      includeCSS("styles.css"),
+	      includeScript("gomap.js")
+	    )
+	    leafletOutput("HA_AO_SD_Map", width = "800", height = "600")
 	  } else if (input$HA_AO_SD_Habitat_Type == "Distribution" && input$HA_AO_SD_Habitat_Plot_Type == "Statistics") {
-      column(10, plotOutput("HA_AO_SD_Stat"))
+	    column(10, plotOutput("HA_AO_SD_Stat"))
 	  } else if (input$HA_AO_SD_Habitat_Type == "SD" && input$HA_AO_SD_Habitat_Plot_Type == "Map") {
 	    tags$head(
 	      # Include our custom CSS
@@ -4081,8 +4055,8 @@ shinyServer(function(input, output) {
 	  }
 	  
 	})	  
-
-
+	
+	
 	output$HA_AO_SD_Map <- renderLeaflet({
 	  G$HA_AO_MI_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_AO_MI_Dir)
 	  dir_path <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
@@ -4107,59 +4081,59 @@ shinyServer(function(input, output) {
 	
 	
 	output$HA_AO_SD_SIDO_Map <- renderLeaflet({
-	    HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
-	    poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("SD", ".shp", sep = "")))
-	    x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SD", ".csv", sep = "")))
-	    names(poly) <- c(names(x)[-1])
-	    X_NAME <- names(poly[4])
-	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
-	    max <- max(x[V_NAME], na.rm = TRUE)
-	    bins <- seq(from = 0, to = max, by = max/10)
-	    
-	    MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("SD", ".shp", sep = "")))
+	  x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  names(poly) <- c(names(x)[-1])
+	  X_NAME <- names(poly[4])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
 	})
 	
 	
 	output$HA_AO_SD_SIDO_Stat <- renderPlot({
-	    HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
-	    df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SD", ".csv", sep = "")))
-	    X_NAME <- names(df[5])
-	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
-	    
-	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SD", ".csv", sep = "")))
+	  X_NAME <- names(df[5])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "시도", "면적(Km2)")
 	})
 	
 	output$HA_AO_SD_SGG_Map <- renderLeaflet({
-	    HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
-	    poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("SGG", ".shp", sep = "")))
-	    x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SGG", ".csv", sep = "")))
-	    names(poly) <- c(names(x[-1]))
-	    X_NAME <- names(poly[7])
-	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
-	    max <- max(x[V_NAME], na.rm = TRUE)
-	    bins <- seq(from = 0, to = max, by = max/10)
-	    
-	    MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  poly <- readOGR(file.path(HA_AO_SD_Dir_Folder, paste("SGG", ".shp", sep = "")))
+	  x <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  names(poly) <- c(names(x[-1]))
+	  X_NAME <- names(poly[7])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  max <- max(x[V_NAME], na.rm = TRUE)
+	  bins <- seq(from = 0, to = max, by = max/10)
+	  
+	  MotiveEco_bnd_plot(poly, X_NAME, V_NAME, bins, "Km2")
 	})
 	
 	output$HA_AO_SD_SGG_UI <- renderUI({
-	    HA_Name_SD_list <- G$SIDO_List
-	    HA_Name_SD_selected <- HA_Name_SD_list[1]
-	    
-	    selectInput("HA_AO_SD_SGG_UI", "시도",
-	                choices = c(HA_Name_SD_list),
-	                selected = HA_Name_SD_selected
-	    )
+	  HA_Name_SD_list <- G$SIDO_List
+	  HA_Name_SD_selected <- HA_Name_SD_list[1]
+	  
+	  selectInput("HA_AO_SD_SGG_UI", "시도",
+	              choices = c(HA_Name_SD_list),
+	              selected = HA_Name_SD_selected
+	  )
 	})
 	
 	output$HA_AO_SD_SGG_Stat <- renderPlot({
-	    HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
-	    df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SGG", ".csv", sep = "")))
-	    df <- df[which(df$SD_KOR==input$HA_AO_SD_SGG_UI), ]
-	    X_NAME <- names(df[8])
-	    V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
-	    
-	    MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
+	  HA_AO_SD_Dir_Folder <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
+	  df <- read.csv(file.path(HA_AO_SD_Dir_Folder, paste("SGG", ".csv", sep = "")))
+	  df <- df[which(df$SD_KOR==input$HA_AO_SD_SGG_UI), ]
+	  X_NAME <- names(df[8])
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  
+	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "시군구", "면적(Km2)")
 	})
 	
 	output$HA_AO_SD_NP_Map <- renderLeaflet({
@@ -4250,10 +4224,10 @@ shinyServer(function(input, output) {
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 분포", "서식지", "면적(Km2)")
 	})
-
-#-------------------------------------------------------------------		
-### HA_AO_SR_PLOT	
-#-------------------------------------------------------------------	
+	
+	#-------------------------------------------------------------------		
+	### HA_AO_SR_PLOT	
+	#-------------------------------------------------------------------	
 	
 	output$HA_AO_SR_PLOT_Group_UI <- renderUI({
 	  
@@ -4331,7 +4305,7 @@ shinyServer(function(input, output) {
 	  } else if (input$HA_AO_SR_Habitat_Type == "Habitat" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
 	    jqui_resizabled(plotOutput("HA_AO_SR_Habitat_Stat"))	    
 	  } else {
-
+	    
 	  }
 	  
 	})
@@ -4371,7 +4345,7 @@ shinyServer(function(input, output) {
 	  if (input$HA_AO_SR_Habitat_Type == "SD" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
 	    jqui_resizabled(plotOutput("HA_AO_SR_SIDO_SP_Stat"))
 	  } else if (input$HA_AO_SR_Habitat_Type == "SGG" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
-	     jqui_resizabled(plotOutput("HA_AO_SR_SGG_SP_Stat"))
+	    jqui_resizabled(plotOutput("HA_AO_SR_SGG_SP_Stat"))
 	  } else if (input$HA_AO_SR_Habitat_Type == "NP" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
 	    jqui_resizabled(plotOutput("HA_AO_SR_NP_SP_Stat"))
 	  } else if (input$HA_AO_SR_Habitat_Type == "BR" && input$HA_AO_SR_Habitat_Plot_Type == "Statistics") {
@@ -4386,25 +4360,25 @@ shinyServer(function(input, output) {
 	  
 	})
 	
-  output$HA_AO_SR_Map <- renderLeaflet({
-
+	output$HA_AO_SR_Map <- renderLeaflet({
+	  
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  MotiveEco_gis_plot(dir_path, "HA_SR", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
 	  
 	})
-  
-  output$HA_AO_SR_Stat <- renderPlot({
-    dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
-    Map <- paste("HA_SR", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
-    r <- raster(file.path(dir_path, Map))
-    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-    hist(r, # breaks = bins, 
-         col="lightskyblue3",  # skyblue",
-         border="white",
-         xlab = "Number of Species", # Map,
-         ylab = "면적(Km2)",
-         main = "Species Richness")
-  })
+	
+	output$HA_AO_SR_Stat <- renderPlot({
+	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  Map <- paste("HA_SR", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
+	  r <- raster(file.path(dir_path, Map))
+	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  hist(r, # breaks = bins, 
+	       col="lightskyblue3",  # skyblue",
+	       border="white",
+	       xlab = "Number of Species", # Map,
+	       ylab = "면적(Km2)",
+	       main = "Species Richness")
+	})
 	
 	output$HA_AO_SR_SIDO_Map <- renderLeaflet({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
@@ -4427,7 +4401,7 @@ shinyServer(function(input, output) {
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
 	})
-
+	
 	output$HA_AO_SR_SIDO_SP_Table <- DT::renderDataTable({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
@@ -4440,7 +4414,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SR_SIDO_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
 	      sindex <- read.csv(destfile)
-#	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -4451,7 +4425,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-#	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -4506,12 +4480,12 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$HA_AO_SR_SGG_UI), ]
-    X_NAME <- names(df[8])
+	  X_NAME <- names(df[8])
 	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
-
+	
 	output$HA_AO_SR_SGG_SP_Table <- DT::renderDataTable({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
@@ -4524,7 +4498,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SR_SGG_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
 	      sindex <- read.csv(destfile)
-#	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -4559,7 +4533,7 @@ shinyServer(function(input, output) {
 	  }
 	  
 	})
-		
+	
 	output$HA_AO_SR_NP_Map <- renderLeaflet({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  poly <- readOGR(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".shp", sep = "")))
@@ -4581,7 +4555,7 @@ shinyServer(function(input, output) {
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
 	})
-
+	
 	output$HA_AO_SR_NP_SP_Table <- DT::renderDataTable({
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
@@ -4594,7 +4568,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SR_NP_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_NP_SP_List[1], input$HA_AO_MI_Dir_Folder, "NP.csv")
 	      sindex <- read.csv(destfile)
-#	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_NP_SP_UI), ]
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_NP_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -4605,7 +4579,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-#	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_NP_SP_UI), ]
+	      #	      sindex <- sindex[which(sindex$NP_KOR==input$HA_AO_SR_NP_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -6623,11 +6597,11 @@ shinyServer(function(input, output) {
 	})
 	
 	output$HA_AO_VI_TYPE_UI <- renderUI({
- 
+	  
 	  radioButtons("HA_AO_VI_TYPE_UI", NULL,
-	              choices = c(HA_Name_VI_Types_list),
-	              selected = HA_Name_VI_Types_selected,
-	              inline = TRUE)
+	               choices = c(HA_Name_VI_Types_list),
+	               selected = HA_Name_VI_Types_selected,
+	               inline = TRUE)
 	  
 	})
 	
@@ -7217,8 +7191,8 @@ shinyServer(function(input, output) {
 	})	
 	
 	
-
-
-
+	
+	
+	
 	
 })

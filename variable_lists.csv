@@ -2,20 +2,36 @@ Variables,Type,Variables_name_ENG,Variables_name_KOR
 SE_Name_Language,0,English,한국어
 SE_Name_System,0,MOTIVE ECOSYSTEM (Climate Change Impact and Vulnerability Assessment Model),MOTIVE ECOSYSTEM (생태계 기후변화 영향 및 취약성 평가모형)
 SE_Name_System_institute,0,National Institute of Ecology        since 2020,국립생태원        since 2020
+SE_NAME_Project_Finished,0,Finished Project,완료된 프로젝트
+SE_NAME_Project_Working,0,Working Project,작업 프로젝트
+SE_NAME_Project_Data,0,Data Environment,데이터 환경
+SE_NAME_Project_List,0,Lists of Projects,프로젝트 목록
+SE_NAME_Project_Manager,0,Manager,관리자
+SE_NAME_Project_Institute,0,Institute,기관
+SE_NAME_Project_Date,0,Date,날짜
+SE_NAME_Project_Path,0,Path,경로
+SE_NAME_Project_Description,0,Description,설명
 SE_Name,0,Project Information,프로젝트 정보
 SE_Name_WE,0,Working Environment,작업환경
 SE_Name_WE_Project,0,Working Project,작업프로젝트
+SE_Name_WE_Project_Path_Message,0,Error Message,에러 메시지
+SE_Name_WE_Project_Path_Save,0,does not exist.,이 없습니다!
 SE_Name_WE_Project_Action,0,Save a Project Information,프로젝트정보 저장
+SE_Name_WE_Project_Action_Message,0,Message,메시지
+SE_Name_WE_Project_Action_Save,0,information is updated and saved!,프로젝트정보가 저장되었습니다!
+SE_Name_WE_Project_Data_Index,0,Select a Species Index .csv File,종 인덱스파일( .csv)을 선택하시요.
+SE_Name_WE_Project_Data_Location,0,Select a Species Location .csv File,종 위치파일( .csv)을 선택하시요.
 SE_Name_Dir_Project_Ecosystem,0,Introductuction,소개
 SE_Name_Dir_Project_SDM,0,Species Assessment,생물종 평가
+SE_Name_Dir_Project_SDM_Folder,0,Working Species Model Folder,종모델링 작업플더
+SE_Name_Dir_Project_SDM_Species,0,Select a Species,종을 선택하세요.
+SE_Name_Dir_Project_SDM_Model,0,Modeling Output Folder,종모델링 결과폴더
 SE_Name_Dir_Project_SDM_OPTION,0,Modeling Options,모델링 옵션
 SE_Name_Dir_Project_SDM_OUTPUT,0,Modeling Outputs,모델링 결과
 SE_Name_Dir_Project_HA,0,Habitat Assessment,서식지 평가
+SE_Name_Dir_Project_HA_Folder,0,Select a Working Habitat Model Folder,서식지 모델링 결과폴더를 선택하세요.
 SE_Name_Dir_Project_HA_OPTION,0,Modeling Options,모델링 옵션
 SE_Name_Dir_Project_HA_OUTPUT,0,Modeling Outputs,모델링 결과
-SE_Name_Dir_Project_VH,0,Vulnerable Habitat,취약서식지
-SE_Name_Dir_Project_VH_OPTION,0,Modeling Options,모델링 옵션
-SE_Name_Dir_Project_VH_OUTPUT,0,Modeling Outputs,모델링 결과
 SE_Name_DE,0,Data Environment,데이터환경
 SE_Name_DE_Climate,0,Climate Data Path,기후자료
 SE_Name_DE_Link,0,Link Data Path,연계자료
@@ -27,11 +43,6 @@ SP_Name,0,Species Data,생물종자료
 SP_Name_Info,0,Species Information,생물종정보
 SP_Name_Location,0,Species Location,생물종위치
 LD_Name,0,Link Data,연계자료
-LD_Name_Map,0,Map,지도
-LD_Name_Summary,0,Summary,통계
-LD_Name_Map_Landuse,0,Landuse Barrier Map,토지이용 장애물 지도
-LD_Name_Map_Forestfire,0,Forestfire Barrier Map,산불 장애물 지도
-LD_Name_Map_Landslide,0,Landslide Barrier Map,산사태 장애물 지도
 LD_Name_Variables,0,Link Data,연계자료
 LD_Name_Variables_list,1,LD_Variables_list,LD_Variables_list
 LD_Name_Variables_selected,0,forestfire,forestfire
@@ -44,6 +55,13 @@ LD_Name_Scenarios_selected,0,RCP4.5,RCP4.5
 LD_Name_Year,0,Projecting Years,예측년도
 LD_Name_Year_list,1,CD_Year_list,CD_Year_list
 LD_Name_Year_selected,0,2000,2000
+LD_Name_Cutoff_Forestfire,0,Cutoff of Forestfire,산불 장애물 기준점
+LD_Name_Cutoff_Landslide,0,Cutoff of Landslide,산사태 장애물 기준점
+LD_Name_Map,0,Map,지도
+LD_Name_Summary,0,Summary,통계
+LD_Name_Map_Landuse,0,Landuse Barrier Map,토지이용 장애물 지도
+LD_Name_Map_Forestfire,0,Forestfire Barrier Map,산불 장애물 지도
+LD_Name_Map_Landslide,0,Landslide Barrier Map,산사태 장애물 지도
 CD_Name,0,Climate Data,기후자료
 CD_Name_Map,0,Map,지도
 CD_Name_Summary,0,Summary,통계
@@ -62,10 +80,27 @@ CD_Name_Year_selected,0,2000,2000
 SDM_Name,0,Species Distribution Model,종분포모형
 SDM_Name_Model,0,Modeling,모형구동
 SDM_Name_Model_Species,0,Species selection,종선택
-SDM_Name_Model_Projection,0,Projection selection,예측옵션
 SDM_Name_Model_Variable,0,Variable selection,변수선택
+SDM_Name_Model_Variable_Option,0,Modeling Input Variables Options,모델링 내부입력 변수
+SDM_Name_Model_Variable_Distribution,0,Species Distribution,종분포 결과
+SDM_Name_Model_Variable_Distribution_Folder,0,Species Distribution Folder,종분포 결과 폴드
+SDM_Name_Model_Variable_Distribution_Folder_Name,0,Species Distribution Model Folder,종분포 모델 결과  폴드
+SDM_Name_Model_Variable_Distribution_Species,0,Select a species,종선택
+SDM_Name_Model_Variable_Distribution_Model,0,Species Distribution Model ,종분포 모델 
+SDM_Name_Model_Variable_SpeciesRichness,0,Species Richness,종풍부도 결과
+SDM_Name_Model_Variable_SpeciesRichness_Folder,0,Species Richness Folder,종풍부도 결과 폴드
+SDM_Name_Model_Variable_SpeciesRichness_Model,0,Species Richness Model Folder,종풍부도 모델 결과  폴드
+SDM_Name_Model_Variable_Data,0,Data Options,입력변수
 SDM_Name_Model_SDM,0,SDM selection,SDM 모형
+SDM_Name_Model_SDM_Data,0,Data Options,입력자료 옵션
+SDM_Name_Model_SDM_Modeling,0,SDM Modeling Optios,SDM 모델링 옵션
+SDM_Name_Model_SDM_Projection,0,Model Projection Options,모델 예측 옵션
+SDM_Name_Model_SDM_Ensemble,0,Ensemble Modeling Options,앙상블 모델링 옵션
 SDM_Name_Model_Out,0,Modeling Outputs,모형결과
+SDM_Name_Model_Out_Folder,0,Select a Species Distribution Folder,종분포 결과 폴더
+SDM_Name_Model_Out_Species,0,Select a Species,종 선택
+SDM_Name_Model_Out_Model_Projection,0,Select a Projection Model,확률모델
+SDM_Name_Model_Out_Model_Prediction,0,Select a Prediction Model,예측모델
 SDM_Name_Model_Out_Validation,0,Validation,모형검증
 SDM_Name_Model_Out_Contribution,0,Contribution,변수기여도
 SDM_Name_Model_Out_Probability,0,Probability Map,확률지도
@@ -108,6 +143,9 @@ SRM_Name,0,Species Range Model,서식영역모델
 SRM_Name_Model,0,Modeling,모형구동
 SRM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
 SRM_Name_Model_SRM,0,SRM Option,SRM모형 옵션
+SRM_Name_Model_SDM_Folder,0,SDM Output Folder,SDM 평가결과 폴더
+SRM_Name_Model_SDM_Species,0,Select a Species,종 선택
+SRM_Name_Model_SDM_Model,0,Select a Model,SDM 모델 선택
 SRM_Name_CD_Models,0,Climate Models,기후모델
 SRM_Name_CD_Models_list,1,CD_Models_list,CD_Models_list
 SRM_Name_CD_Models_selected,0,KMA,KMA
@@ -129,20 +167,42 @@ SRM_Name_Hull_Cluster_Method_selected,0,hierarchical,hierarchical
 SRM_Name_VoronoiHull_sampling_Type,0,VoronoiHull sampling Type,VoronoiHull sampling Type
 SRM_Name_VoronoiHull_sampling_Type_list,1,Hull_VoronoiHull_sampling_Type_list,Hull_VoronoiHull_sampling_Type_list
 SRM_Name_VoronoiHull_sampling_Type_selected,0,ratio,ratio
+SRM_Name_SRM_MO_Folder,0,SRM Model Foler Name (SRM_*****),SRM 모형 결과 폴더 (SRM_*****)
 SRM_Name_SRM_MO_Action,0,Run,실행
 SRM_Name_Model_Out,0,Model Outputs,모형결과
+SRM_Name_Model_Out_Folder,0,Species Modeling Folder,종모델링 폴더
+SRM_Name_Model_Out_Model,0,SRM Modeling Folder,서식영역 모델링 폴더
+SRM_Name_Model_Out_Species,0,Select a Species,종 선택
+SRM_Name_Model_Out_SDM,0,Select a Model,SDM 모델 선택
 SRM_Name_Out_Plot,0,Species Range Plot,생물종 서식영역
 DM_Name,0,Species Dispersal Model,종확산모형
 DM_Name_Model,0,Modeling,모형구동
 DM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
+DM_Name_Model_SDM_Folder,0,SDM Output Folder,SDM 평가결과 폴더
+DM_Name_Model_SDM_Select_All,0,Select All,전체 선택
+DM_Name_Model_SDM_Select_None,0,Unselect All,선택 해제
+DM_Name_Model_SDM_Species,0,Select a Species,종 선택
+DM_Name_Model_SDM_Model,0,Select a Model,SDM 모델 선택
+DM_Name_Model_SDM_Current_Distribution,0,Current Species Distribution,현재 분포 모형
+DM_Name_Model_SDM_Suitable_Distribution,0,Future Species Suitable Distribution,미래 분포 유형
 DM_Name_Model_DM_Barrier,0,Dispersal Model Barrier Option,확산모형 장애물 옵션
+DM_Name_Model_DM_Barrier_Cutoff_Forestfire,0,Cutoff of Forestfire,산불 장애 기준점
+DM_Name_Model_DM_Barrier_Cutoff_Landslide,0,Cutoff of Landslide,산사태 장애 기준점
+DM_Name_Model_DM_Barrier_Proportion_Landuse,0,Proportion of Landuse within whole period,전체 기간중 토지이용 선택 비율
+DM_Name_Model_DM_Barrier_Proportion_Forestfire,0,Proportion of Forestfire occurence within whole period,전체 기간중 산불 선택 비율
+DM_Name_Model_DM_Barrier_Proportion_Landslide,0,Proportion of Landslide occurence within whole period,전체 기간중 산사태 선택 비율
 DM_Name_Model_DM,0,Dispersal Model Option,확산모형 옵션
+DM_Name_Model_DM_Folder,0,DM Model Foler Name (MIGCLIM_*****),DM 평가결과 폴더 (MIGCLIM_*****)
 DM_Name_Model_Out,0,Model Outputs,모형결과
+DM_Name_Model_Out_Folder,0,Species Modeling Folder,종모델링 폴더
+DM_Name_Model_Out_Model,0,Dispersal Modeling Folder,확산 모델링 폴더
+DM_Name_Model_Out_Species,0,Select a Species,종 선택
+DM_Name_Model_Out_SDM,0,Select a Model,SDM 모델 선택
 DM_Name_Out_Plot,0,Species Distribution Change Plot,생물종 분포 변화
 DM_Name_Out_SDMDM_Plot,0,Species Dispersal Limit Plot,생물종 확산 한계
 DM_Name_DM_MO_Barriers,0,DM_Barriers,장애물
 DM_Name_DM_MO_Barriers_list,1,DM_Variables_list,DM_Variables_list
-DM_Name_DM_MO_Barriers_selected,0,Landuse,Landuse
+DM_Name_DM_MO_Barriers_selected,0,"""""",""""""
 DM_Name_DM_MO_Barrier_Landuse,0,Landuse,토지이용
 DM_Name_DM_MO_Barrier_Landuse_list,1,DM_Variables_Landuse_list,DM_Variables_Landuse_list
 DM_Name_DM_MO_Barrier_Landuse_selected,0,Landuse_ssp1,Landuse_ssp1
@@ -192,7 +252,21 @@ DM_Name_Display_types_selected,0,SDM,SDM
 DM_Name_Dir,0,DM Output Folder,DM 평가결과 폴더
 SA_Name,0,Species Assessment,생물종 평가
 SA_Name_Analysis,0,Impact and Vulnerability Asessment,영향 및 취약성평가
+SA_Name_Analysis_Folder,0,Species Modeling Folder,종모델링 폴더
+SA_Name_Analysis_Model,0,SDM Modeling Folder,확산 모델링 폴더
+SA_Name_Analysis_Select_All,0,Select All,전체 선택
+SA_Name_Analysis_Select_None,0,Unselect All,선택 해제
+SA_Name_Analysis_Species,0,Select a Species,종을 선택하세요.
+SA_Name_Analysis_SDM,0,Select a Model,SDM 모델 선택
+SA_Name_Analysis_Change,0,Analayzing the change of Species Distribution,종분포 변화 분석
+SA_Name_Analysis_Vulnerability,0,Calculating the Climate Vulnerability Index of Species,종 취약성지수 산출
 SA_Name_Out,0,Assessment Result,평가결과
+SA_Name_Out_Folder,0,Species Modeling Folder,종모델링 폴더
+SA_Name_Out_Model,0,SDM Modeling Folder,확산 모델링 폴더
+SA_Name_Out_Select_All,0,Select All,전체 선택
+SA_Name_Out_Select_None,0,Unselect All,선택 해제
+SA_Name_Out_Species,0,Select a Species,종을 선택하세요.
+SA_Name_Out_SDM,0,Select a Model,SDM 모델 선택
 SA_Name_Out_ChangePlot,0,Distribution Change,분포변화
 SA_Name_Out_IV_Table,0,Vulnerability Table,취약성 지수
 SA_Name_Out_IV_GainLoss,0,Loss_Gain Area Ratio,면적변화비
@@ -237,17 +311,33 @@ SA_Name_MO_Dir,0,Input Folder,민감종평가 입력폴더
 SA_Name_AO_Dir,0,Output Folder,민감종평가 결과폴더
 HA_Name,0,Habitat Assessment,서식지 평가
 HA_Name_Anlayis,0,Change Analysis,영향 평가
+HA_Name_Analysis_Folder,0,Species Modeling Folder,종모델링 폴더
+HA_Name_Analysis_Folder,0,SDM Modeling Folder,확산 모델링 폴더
+HA_Name_Analysis_Select_All,0,Select All,전체 선택
+HA_Name_Analysis_Select_None,0,Unselect All,선택 해제
+HA_Name_Analysis_Species,0,Select a Species,종을 선택하세요.
+HA_Name_Analysis_SDM,0,Select a Model,SDM 모델 선택
 HA_Name_Out,0,Model Outputs,평가결과
+HA_Name_Out_Folder,0,Species Modeling Folder,종모델링 폴더
+HA_Name_Out_Model,0,SDM Modeling Folder,확산 모델링 폴더
+HA_Name_Out_Folder_Habitat,0,Habitat Modeling Folder,서식지 모델링 폴더
+HA_Name_Out_Species_Select,0,Select a Species,종을 선택하세요.
+HA_Name_Out_SDM,0,Select a Model,SDM 모델 선택
 HA_Name_Out_Species,0,Species Distribution,생물종 분포
 HA_Name_Out_SR,0,Species Richness,생물종 풍부도
 HA_Name_Out_SL,0,Species Loss,생물종 소실
 HA_Name_Out_SS,0,Species Stay,생물종 잔존
 HA_Name_Out_SG,0,Species Gain,생물종 유입
 HA_Name_Out_VI,0,Habitat Vulnerability,서식지 취약성
+HA_Name_Out_Distribution,0,Distribution,분포도
+HA_Name_Out_SD,0,SD,시도
+HA_Name_Out_SGG,0,SGG,시군구
+HA_Name_Out_NP,0,NP,국립공원
+HA_Name_Out_BR,0,BR,백두대간
+HA_Name_Out_DMZ,0,DMZ,DMZ
+HA_Name_Out_Habitat,0,Habitat,서식지
 HA_Name_Out_Map,0,Map,지도
-HA_Name_Out_SIDO,0,SIDO,시도
-HA_Name_Out_SGG,0,SIGUNGU,시군구
-HA_Name_Out_Stat,0,Statistics,통계
+HA_Name_Out_Statistics,0,Statistics,통계
 HA_Name_DM_Models,0,DIspersal Types,확산유형
 HA_Name_DM_Models_list,1,DM_Models_list,DM_Models_list
 HA_Name_DM_Models_selected,0,BIOMOD2,BIOMOD2

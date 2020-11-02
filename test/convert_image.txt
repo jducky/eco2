@@ -1,0 +1,383 @@
+
+
+slist <- c("가시박", "가시상추", "단풍잎돼지풀", "도깨비가지", "돼지풀", "물참새피", "미국쑥부쟁이", "서양금혼초", "서양등골나물", "애기수영", "양미역취", "털물참새피")
+
+
+
+
+dlist <- c("교란종_BIOMOD", "민감종_BIOMOD")
+alist <- c("SD", "SGG", "BR", "DMZ", "NP")
+dir <- "C:/MOTIVE_Projects/Proj_1013/Habitat_Assessment"
+
+for (d in dlist) {
+	path <- file.path(dir, d)
+	for (a in alist) {
+		x <- read.csv(file.path(path, paste(a, ".csv", sep = "")))
+		x <- x[-1]
+		write.dbf(x, file.path(path, paste(a, ".dbf", sep = "")))
+	}
+}
+
+
+
+dlist <- c("교란종_maxent", "민감종_glm")
+alist <- c("SD", "SGG", "BR", "DMZ", "NP")
+#slist <- c("가시박", "가시상추", "단풍잎돼지풀", "도깨비가지", "돼지풀", "물참새피", "미국쑥부쟁이", "서양금혼초", "서양등골나물", "애기수영", "양미역취", "털물참새피")
+#slist <- c("개족도리풀", "구상나무", "금꿩의다리", "매미꽃", "매자나무", "모데미풀", "무늬족도리풀", "바위미나리아재비", "서양등골나물", "애기수영", "양미역취", "털물참새피")
+dir <- "C:/MOTIVE_Projects/Proj_1013/Species_Assessment"
+
+
+for (d in dlist) {	
+	path <- file.path(dir, d)
+	slist <- list.dirs(path = path, full.names = FALSE, recursive = FALSE)
+	for (s in slist) {
+		for (a in alist) {
+			x <- read.csv(file.path(path, s, "BIOMOD2", paste(a, ".csv", sep = "")))
+			x <- x[-1]
+			write.dbf(x, file.path(path, s, "BIOMOD2", paste(a, ".dbf", sep = "")))
+		}
+	}
+}
+
+
+dir <- "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/분비나무_ensemble/분비나무/BIOMOD2"
+oflist <- list.files(path = dir, pattern="\\.tif$", all.files=FALSE, full.names=FALSE)
+
+for (file in oflist) {	
+	r <- raster(file.path(dir, file))
+	file <- sub(".tif", "", file)
+	writeRaster(r, file = file.path(dir, paste(file, ".grd", sep = "")), overwrite = TRUE)
+}
+
+
+
+
+
+
+
+writeRaster(r_circ, file = file.path(target_path, paste(as.name(paste("SRM-PRED_", d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = "")), sep = "", collapse = "--")), overwrite = TRUE)
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SD.dbf")
+
+
+
+
+
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SGG.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/NP.dbf")
+
+
+
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/SGG.dbf")
+
+
+
+
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/SGG.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/SGG.dbf")
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/SGG.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/SGG.dbf")
+
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/SGG.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/SGG.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/SGG.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/SGG.dbf")
+
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/SGG.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/SGG.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/SD.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/SD.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/SGG.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/SGG.dbf")
+
+
+
+
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시박/BIOMOD2/NP.dbf")
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/가시상추/BIOMOD2/NP.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/단풍잎돼지풀/BIOMOD2/NP.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/도깨비가지/BIOMOD2/NP.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/돼지풀/BIOMOD2/NP.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/물참새피/BIOMOD2/NP.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/미국쑥부쟁이/BIOMOD2/NP.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양금혼초/BIOMOD2/NP.dbf")
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/서양등골나물/BIOMOD2/NP.dbf")
+
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/애기수영/BIOMOD2/NP.dbf")
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/양미역취/BIOMOD2/NP.dbf")
+
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/BR.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/BR.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/DMZ.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/DMZ.dbf")
+
+x <- read.csv("C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/NP.csv")
+x <- x[-1]
+write.dbf(x, "C:/MOTIVE_Projects/Proj_1013/Species_Assessment/교란종_maxent/털물참새피/BIOMOD2/NP.dbf")
+

@@ -21,25 +21,25 @@ shinyUI(
     dashboardSidebar(
       width = 350,
       sidebarMenu(
-        menuItem("Finished Projects", 
+        menuItem(SE_NAME_Project_Finished, 
           tags$hr(),                 
           uiOutput("SE_Project"),
           tags$hr(),
-          tags$p("Manager:"),
+          tags$p(SE_NAME_Project_Manager),
           verbatimTextOutput("SE_Project_Info_Manager"),
-          tags$p("Institute:"),
+          tags$p(SE_NAME_Project_Institute),
           verbatimTextOutput("SE_Project_Info_Institute"),
-          tags$p("Date:"),
+          tags$p(SE_NAME_Project_Date),
           verbatimTextOutput("SE_Project_Info_Date"),
-          tags$p("Path:"),
+          tags$p(SE_NAME_Project_Path),
           verbatimTextOutput("SE_Project_Info_Path"),
-          tags$p("Description:"),
+          tags$p(SE_NAME_Project_Description),
           verbatimTextOutput("SE_Project_Info_Description"),
           tags$hr()
           ),
-        menuItem("Working Project",
+        menuItem(SE_NAME_Project_Working,
           tags$hr(),
-          shinyDirButton("SE_Dir_Project", SE_Name_WE_Project, SE_Name_WE_Project),
+          shinyDirButton("SE_Dir_Project", SE_NAME_Project_Path, SE_NAME_Project_Path),
 #          verbatimTextOutput("SE_Project_New_Path"),
           uiOutput("SE_Project_New_Path"),
           uiOutput("SE_Project_New_Info"),
@@ -52,7 +52,7 @@ shinyUI(
           actionButton("SE_Dir_Project_Action", label = SE_Name_WE_Project_Action),
           tags$hr()
           ),
-        menuItem("Data Environment",
+        menuItem(SE_NAME_Project_Data,
           tags$hr(),
           shinyDirButton("SE_Dir_Climate", SE_Name_DE_Climate, SE_Name_DE_Climate),
           verbatimTextOutput("SE_Dir_Climate"),
@@ -113,6 +113,7 @@ tags$head(tags$style(HTML(
         color: white;
       }
     '))),
+
 tags$script(HTML('
       $(document).ready(function() {
         $("header").find("nav").append(\'<span class="myClass"> Climate Change Impact and Vulnerability Assessment for Ecosystem </span>\');
@@ -320,9 +321,9 @@ tags$script(HTML('
 					                   choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
 					                   selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
 					),
-					sliderInput("LD_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Forestfire", min = 0.01, 
+					sliderInput("LD_MO_Barrier_Forestfire_Cutoff", label = LD_Name_Cutoff_Forestfire, min = 0.01, 
 					            max = 1.0, step = 0.01, value = 0.955),
-					sliderInput("LD_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
+					sliderInput("LD_MO_Barrier_Landslide_Cutoff", label = LD_Name_Cutoff_Landslide, min = 0.01, 
 					            max = 1.0, step = 0.01, value = 0.85)
 				),
 
@@ -457,29 +458,25 @@ tags$script(HTML('
 										selected = SDM_Name_CD_Year_selected)
 								),	
 								sidebarPanel(width = 3,
-                  tags$p("Modeling Input Variables Options:"),
+                  tags$p(SDM_Name_Model_Variable_Option),
                   checkboxGroupInput("SDM_MO_AO_Variables", NULL, # SDM_Name_MO_AO_Variables,
                                      choices = c(SDM_Name_MO_AO_Variables_list),
                                      selected = SDM_Name_MO_AO_Variables_selected),
                   useShinyalert(),  # Set up shinyalert
                   actionButton("SDM_MO_AO_Variables_Create", label = SDM_Name_MO_Variables_Create, icon = icon("layer-group")),
                   tags$hr(),
-                  tags$p("Species Distribution:"),
+                  tags$p(SDM_Name_Model_Variable_Distribution),
 								  uiOutput("SDM_AO_MI_Dir_Folder"),
 								  uiOutput("SDM_AO_MI_Dir_Folder_Name"),
 								  uiOutput("SDM_AO_Species"),
 								  uiOutput("SDM_AO_SDM_PROJ_model"),
 								  tags$hr(),
-								  tags$p("Species Richness:"),
+								  tags$p(SDM_Name_Model_Variable_SpeciesRichness),
 								  uiOutput("SDM_HA_AO_MO_Dir_Folder"),
 								  uiOutput("SDM_HA_AO_SDM_PRED_model")
-#								  tags$hr(),
-#								  tags$p("Vunerable Species Richness:"),
-#								  uiOutput("SDM_VH_AO_MO_Dir_Folder"),
-#								  uiOutput("SDM_VH_AO_SDM_PRED_model")
 								),
 								sidebarPanel(width = 3,
-                  tags$p("Data Options:"),
+                  tags$p(SDM_Name_Model_Variable_Data),
                   uiOutput("SDM_MO_Variables_Select")
 								)
 							)
@@ -489,7 +486,7 @@ tags$script(HTML('
 							fluidRow(
 								# Sidebar panel for inputs ----
 								sidebarPanel(width = 3,
-                  tags$p("Data Options:"),
+                  tags$p(SDM_Name_Model_SDM_Data),
 #                  uiOutput("DM_MO_DM_envChgSteps"),
                   selectInput("BIOMOD_eval.resp.var", "BIOMOD_eval.resp.var",
                     choices = NULL,
@@ -518,7 +515,7 @@ tags$script(HTML('
                 ),
 
 								sidebarPanel(width = 3,
-								  tags$p("SDM Modeling Optios:"),
+								  tags$p(SDM_Name_Model_SDM_Modeling),
 								  sliderInput("BIOMOD_NbRunEval", label = "BIOMOD_NbRunEval", min = 0, 
                     max = 10, step = 1, value = 1),
                   sliderInput("BIOMOD_DataSplit", label = "BIOMOD_DataSplit", min = 0, 
@@ -536,7 +533,7 @@ tags$script(HTML('
 								  checkboxInput("BIOMOD_rescal.all.models", "BIOMOD_rescal.all.models", TRUE),
 								  checkboxInput("BIOMOD_do.full.models", "BIOMOD_do.full.models", TRUE),
 								  tags$br(),
-								  tags$p("Model Projection Options:"),
+								  tags$p(SDM_Name_Model_SDM_Projection),
 								  selectInput("BIOMOD_selected.models", "BIOMOD_selected.models",
 								               choices = "all",
 								               selected = "all"),
@@ -553,7 +550,7 @@ tags$script(HTML('
 								             
 								),
 								sidebarPanel(width = 3,
-								  tags$p("Ensemble Modeling Options:"),
+								  tags$p(SDM_Name_Model_SDM_Ensemble),
                   selectInput("EM_chosen.models", "EM_chosen.models",
                     choices = "all",
                     selected = "all"),
@@ -777,7 +774,7 @@ tags$script(HTML('
                             tags$br(),
                             tags$br(),
                             tags$br(),
-                            textInput("SRM_MO_Dir_Folder_Name", "SRM Model Foler Name",
+                            textInput("SRM_MO_Dir_Folder_Name", SRM_Name_SRM_MO_Folder,
                                       value = ""),
                             tags$br(),
                             useShinyalert(),  # Set up shinyalert
@@ -794,10 +791,10 @@ tags$script(HTML('
 		                      sidebarPanel(width = 3, Fluid = TRUE,
 		                                   uiOutput("SRM_AO_Dir_Folder"),
                                         uiOutput("SRM_AO_Model_Name"),
-		                                   uiOutput("SRM_OU_Species"),
+		                                   uiOutput("SRM_AO_Species"),
 		                                   tags$br(),
 		                                   
-		                                   uiOutput("SRM_OU_SDM_model"),
+		                                   uiOutput("SRM_AO_SDM_model"),
 		                                   
 		                                   # Input: Checkbox if file has header ----
 		                                   checkboxGroupInput("SRM_OU_Climate_model", SRM_Name_CD_Models,
@@ -845,8 +842,8 @@ tabPanel(DM_Name,
                                  sidebarPanel(width = 3, Fluid = TRUE,
                                               uiOutput("DM_SDM_Dir_Folder"),
                                               tags$hr(),
-                                              actionButton("DM_MO_Species_sel_all", label = "Select All", icon = icon("check-circle")),
-                                              actionButton("DM_MO_Species_sel_none", label = "Unselect All", icon = icon("circle")),
+                                              actionButton("DM_MO_Species_sel_all", label = DM_Name_Model_SDM_Select_All, icon = icon("check-circle")),
+                                              actionButton("DM_MO_Species_sel_none", label = DM_Name_Model_SDM_Select_None, icon = icon("circle")),
                                               uiOutput("DM_MO_Species")
                                  ),
                                  sidebarPanel(width = 3, Fluid = TRUE,             
@@ -867,12 +864,19 @@ tabPanel(DM_Name,
                                               uiOutput("DM_MO_SDM_model"),
                                               tags$hr(),
                                               tags$hr(),
-                                              tags$p("Current Species Distribution Output"),
+                                              tags$p(DM_Name_Model_SDM_Current_Distribution),
                                               radioButtons("DM_MO_Current_Type", NULL,
                                                            choices = c("SDM", "SRM"),
                                                            selected = "SDM",
                                                            inline = TRUE),
-                                              uiOutput("DM_MO_Current_UI")
+                                              uiOutput("DM_MO_Current_UI"),
+                                              tags$hr(),
+                                              tags$hr(),
+                                              tags$p(DM_Name_Model_SDM_Suitable_Distribution),
+                                              radioButtons("DM_MO_Future_Type", NULL,
+                                                           choices = c("Each_SDM", "Whole_SDM", "Everywhere"),
+                                                           selected = "Each_SDM",
+                                                           inline = TRUE)
                                  )
                                )
                       ),
@@ -898,16 +902,16 @@ tabPanel(DM_Name,
                                                                  choices = c(DM_Name_DM_MO_Barrier_LanduseType_list),
                                                                  selected = as.integer(DM_Name_DM_MO_Barrier_LanduseType_selected)
                                               ),
-                                              sliderInput("DM_MO_Barrier_Forestfire_Cutoff", label = "Cutoff of Forestfire", min = 0.01, 
+                                              sliderInput("DM_MO_Barrier_Forestfire_Cutoff", label = DM_Name_Model_DM_Barrier_Cutoff_Forestfire, min = 0.01, 
                                                           max = 1.0, step = 0.01, value = 0.955),
-                                              sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = "Cutoff of Landslide", min = 0.01, 
+                                              sliderInput("DM_MO_Barrier_Landslide_Cutoff", label = DM_Name_Model_DM_Barrier_Cutoff_Landslide, min = 0.01, 
                                                           max = 1.0, step = 0.01, value = 0.85),
                                               tags$br(),
-                                              sliderInput("DM_MO_Barrier_Landuse_Prop", label = "Proportion of Landuse within whole period", min = 10, 
+                                              sliderInput("DM_MO_Barrier_Landuse_Prop", label = DM_Name_Model_DM_Barrier_Proportion_Landuse, min = 10, 
                                                           max = 100, step = 10, value = 50),
-                                              sliderInput("DM_MO_Barrier_Forestfire_Prop", label = "Proportion of Forestfire occurence within whole period", min = 10, 
+                                              sliderInput("DM_MO_Barrier_Forestfire_Prop", label = DM_Name_Model_DM_Barrier_Proportion_Forestfire, min = 10, 
                                                           max = 100, step = 10, value = 50),
-                                              sliderInput("DM_MO_Barrier_Landslide_Prop", label = "Proportion of Landslide occurence within whole period", min = 10, 
+                                              sliderInput("DM_MO_Barrier_Landslide_Prop", label = DM_Name_Model_DM_Barrier_Proportion_Landslide, min = 10, 
                                                           max = 100, step = 10, value = 50)
                                  ),
                                  mainPanel(
@@ -957,7 +961,7 @@ tabPanel(DM_Name,
                                fluidRow(
                                  sidebarPanel(width = 3,
                                               sliderInput("DM_MO_DM_dispSteps", label = "DM_dispSteps", min = 0, 
-                                                          max = 10, value = 10),
+                                                          max = 99, value = 10),
                                               tags$br(),
                                               tags$p("DM_dispKernel:"),
                                               verbatimTextOutput("DM_MO_DM_dispKernel"),
@@ -1002,7 +1006,7 @@ tabPanel(DM_Name,
                                               checkboxInput("DM_MO_DM_keepTempFiles", "DM_keepTempFiles", FALSE),
                                               br(),
                                               tags$br(),
-                                              textInput("DM_MO_Dir_Folder_Name", "DM Model Foler Name",
+                                              textInput("DM_MO_Dir_Folder_Name", DM_Name_Model_DM_Folder,
                                                         value = ""),
                                               tags$br(),
                                               useShinyalert(),  # Set up shinyalert
@@ -1072,8 +1076,8 @@ tabPanel(DM_Name,
               uiOutput("SA_MO_Dir_Folder"),
               uiOutput("SA_MO_Dir_Folder_Name"),
               tags$br(),
-              actionButton("SA_CA_Species_Sel_All", label = "Select All", icon = icon("check-circle")),
-              actionButton("SA_CA_Species_Sel_None", label = "Select None", icon = icon("circle")),
+              actionButton("SA_CA_Species_Sel_All", label = SA_Name_Analysis_Select_All, icon = icon("check-circle")),
+              actionButton("SA_CA_Species_Sel_None", label = SA_Name_Analysis_Select_None, icon = icon("circle")),
 							uiOutput("SA_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,             
@@ -1097,12 +1101,12 @@ tabPanel(DM_Name,
 							tags$br(),
 							tags$br(),
 							br(),
-							actionButton("SA_CA_Action_change", label = "Analayzing the change of Species Distribution", icon = icon("running")),
+							actionButton("SA_CA_Action_change", label = SA_Name_Analysis_Change, icon = icon("running")),
 							br(),
 							tags$br(),
 							tags$br(),
 							tags$br(),
-							actionButton("SA_CA_Action_Vindex", label = "Calculating the Climate Vulnerability Index of Species", icon = icon("running"))
+							actionButton("SA_CA_Action_Vindex", label = SA_Name_Analysis_Vulnerability, icon = icon("running"))
 						)
 					)
 				),
@@ -1115,8 +1119,8 @@ tabPanel(DM_Name,
                             uiOutput("SA_AO_Model_Name"),	
 #							uiOutput("SA_AO_Species"),
                             tags$br(),
-                            actionButton("SA_AO_Species_Sel_All", label = "Select All", icon = icon("check-circle")),
-                            actionButton("SA_AO_Species_Sel_None", label = "Select None", icon = icon("circle")),
+                            actionButton("SA_AO_Species_Sel_All", label = SA_Name_Out_Select_All, icon = icon("check-circle")),
+                            actionButton("SA_AO_Species_Sel_None", label = SA_Name_Out_Select_None, icon = icon("circle")),
                             uiOutput("SA_AO_Species"),
 							tags$br(),
 							uiOutput("SA_AO_SDM_model"),
@@ -1208,8 +1212,8 @@ tabPanel(DM_Name,
                             uiOutput("HA_MI_Dir_Folder"),
                             uiOutput("HA_MI_Dir_Folder_Name"),
 						    tags$br(),
-						    actionButton("HA_CA_Species_Sel_All", label = "Select All", icon = icon("check-circle")),
-						    actionButton("HA_CA_Species_Sel_None", label = "Select None", icon = icon("circle")),
+						    actionButton("HA_CA_Species_Sel_All", label = HA_Name_Analysis_Select_All, icon = icon("check-circle")),
+						    actionButton("HA_CA_Species_Sel_None", label = HA_Name_Analysis_Select_None, icon = icon("circle")),
 							uiOutput("HA_CA_Species")
 						),
 						sidebarPanel(width = 3, Fluid = TRUE,                                                      
