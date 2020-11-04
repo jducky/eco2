@@ -454,13 +454,13 @@ shinyServer(function(input, output) {
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
 	    for (k in input$LD_MO_Barrier_LanduseType) {
-	        r[r == as.integer(k)] <- 9999
+	      r[r == as.integer(k)] <- 9999
 	    }	
-	    r[r < 9999] <- 0
+	    r[r != 9999] <- 0
 	    r[r == 9999] <- 1
+	    r <- as.factor(r)
 
-	    
-	    pal <- colorFactor(c("gray90", "red3"), values(r),
+	    pal <- colorFactor(c("gray90", "chocolate4"), values(r),
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
@@ -480,11 +480,11 @@ shinyServer(function(input, output) {
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 
 	    r[r >= input$LD_MO_Barrier_Forestfire_Cutoff] <- 9999
-	    r[r < 9999] <- 0
+	    r[r != 9999] <- 0
 	    r[r == 9999] <- 1
-	    r <- as.integer(r)	
+	    r <- as.factor(r)
 	    
-	    pal <- colorNumeric(c("gray90", "red3"), values(r),
+	    pal <- colorFactor(c("gray90", "chocolate4"), values(r),
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
@@ -504,11 +504,11 @@ shinyServer(function(input, output) {
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
 	    r[r >= input$LD_MO_Barrier_Landslide_Cutoff] <- 9999
-	    r[r < 9999] <- 0
+	    r[r != 9999] <- 0
 	    r[r == 9999] <- 1
-	    r <- as.integer(r)	
+	    r <- as.factor(r)
 	    
-	    pal <- colorNumeric(c("gray90", "red3"), values(r),
+	    pal <- colorFactor(c("gray90", "chocolate4"), values(r),
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
@@ -2004,12 +2004,14 @@ shinyServer(function(input, output) {
 	    landuse_prop <- as.integer(length(input$DM_MO_Project_year) * (input$DM_MO_Barrier_Landuse_Prop / 100))
 	    r_stack <- stack(r_list)
 	    rlanduse <- overlay(r_stack, fun = sum)
+
 	    rlanduse[rlanduse < landuse_prop] <- 0
 	    rlanduse[rlanduse >= landuse_prop] <- 1
 	    r <- projectRaster(rlanduse, mask, method = 'ngb')
+	    r <- as.factor(r)
 	    
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                        na.color = "transparent")
+	    pal <- colorFactor(c("gray90", "chocolate4"), values(r),
+	                       na.color = "transparent")
 	    
 	    leaflet() %>%
 	        addTiles(
@@ -2047,9 +2049,10 @@ shinyServer(function(input, output) {
 	    rforestfire[rforestfire < forestfire_prop] <- 0
 	    rforestfire[rforestfire >= forestfire_prop] <- 1
 	    r <- projectRaster(rforestfire, mask, method = 'ngb')
+	    r <- as.factor(r)
 	    
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                        na.color = "transparent")
+	    pal <- colorFactor(c("gray90", "chocolate4"), values(r),
+	                       na.color = "transparent")
 	    
 	    leaflet() %>%
 	        addTiles(
@@ -2087,9 +2090,10 @@ shinyServer(function(input, output) {
 	    rlandslide[rlandslide < landslide_prop] <- 0
 	    rlandslide[rlandslide >= landslide_prop] <- 1
 	    r <- projectRaster(rlandslide, mask, method='ngb')
+	    r <- as.factor(r)
 	    
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                        na.color = "transparent")
+	    pal <- colorFactor(c("gray90", "chocolate4"), values(r),
+	                       na.color = "transparent")
 	    
 	    leaflet() %>%
 	        addTiles(
@@ -2202,10 +2206,10 @@ shinyServer(function(input, output) {
 	        G_DM_barrier_chk <<- FALSE
 	    }
 	    
-	    
+	    r <- as.factor(r)
 	    crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 	    
-	    pal <- colorNumeric(c("#0C2C84", "#FFFFCC", "#41B6C4"), values(r),
-	                        na.color = "transparent")
+	    pal <- colorFactor(c("gray90", "chocolate4"), values(r),
+	                       na.color = "transparent")
 	    
 	    leaflet() %>%
 	      addTiles(
