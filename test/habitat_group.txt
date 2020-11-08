@@ -1,0 +1,77 @@
+
+
+
+ed_exp4 <- subset(education, Region == 2, select = c("State","Minor.Population","Education.Expenditures"))
+
+SGG_KOR == "춘천시"
+subset(sindex, SGG_KOR == "춘천시")
+
+
+library(dplyr)
+ed_exp5 <- select(filter(education, Region == 2),c(State,Minor.Population:Education.Expenditures))
+
+rowsum(sindex, SGG_KOR)
+
+
+
+aggregate(x = sindex$STAY_PRED_KMA_RCP8.5_PA1_Full_MAXENT.Phillips_byROC_2080, 
+          by = list(sindex$SGG_KOR),  
+          FUN = sum) 
+
+aggregate(x = sindex[,10:81], 
+          by = list(sindex$SD_KOR, sindex$SGG_KOR),  
+          FUN = sum) 
+
+		  
+		  
+  sindex[,c(6, 8, 10:81] %>%
+  group_by(sindex$SD_KOR, sindex$SGG_KOR) %>%
+  summarise_each(funs(sum))	
+
+
+df <- sindex
+n_scol <- 10
+n_ecol <- 81
+# group <- "SD_KOR"  #, sindex$SGG_KOR
+group <- "SD_KOR"  #, sindex$SGG_KOR
+
+group <- "sindex$SD_KOR"  #, sindex$SGG_KOR
+eval(parse(text = "group"))
+aggregate(x = sindex[,10:81], 
+          by = list(eval(parse(text = "group"))),  
+          FUN = sum)   
+		  
+group <- "SD_KOR"  #, sindex$SGG_KOR
+
+	aggregate(x = df, 
+			by = list(df[[group]]),  
+			FUN = sum) 	
+
+
+
+
+df <- G_FILE_species_sindex
+ps <- grep("SPECIES", colnames(df))
+n_scol <- ps + 1
+n_ecol <- ncol(df)
+df[, n_scol:n_ecol][df[, n_scol:n_ecol] > 0] <- 1
+
+group <- c("SD_KOR", "SGG_KOR")
+if (length(group) == 1) {
+	df_stat <- aggregate(x = df[, n_scol:n_ecol], 
+			by = list(df[[group]]),  
+			FUN = sum) 		  		  
+} else {
+	group1 <- group[1]
+	group2 <- group[2]
+	df_stat <- aggregate(x = df[, n_scol:n_ecol], 
+			by = list(df[[group1]], df[[group2]]),  
+			FUN = sum) 	
+}
+		  
+		  
+		  
+		  
+		  
+		  
+		  

@@ -258,40 +258,7 @@ shinyServer(function(input, output) {
 	  cat('\n\n')
 	  cat(as.character(Dir_Project_HA_list_grd))
 	})
-	
-	output$SE_Dir_Project_VH <- renderUI({
-	  Dir_Project_VH_list <- list.dirs(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat"), full.names = FALSE, recursive = FALSE)
-	  Dir_Project_VH_selected <<- Dir_Project_VH_list[1]
-	  selectInput("Dir_Project_VH", "Working Vulnerable Habitat Folders",
-	               choices = c(Dir_Project_VH_list),
-	               selected = Dir_Project_VH_selected
-	  )
-	})
-	
-	output$SE_Dir_Project_VH_Species_Model_Options <- renderTable({
-	    
-	    destfile <- file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH, "VulnerableHabitat_Options.csv")
-	    
-	    VH_Options_lists <<- read.csv(destfile, header = T, sep = ",")
-	    VH_Options_lists[is.na(VH_Options_lists)] = ""
-	    
-	    VH_Options_lists_T <- data.frame(t(VH_Options_lists))
-	    rownames(VH_Options_lists_T) <- colnames(VH_Options_lists)
-	    VH_Options_lists_T[-1,]
-	    
-	}, rownames = TRUE, colnames = FALSE)
-	
-	output$SE_Dir_Project_VH_Species_Model_Output <- renderPrint({
-	  Dir_Project_VH_list_csv <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern="\\.csv$", all.files=FALSE, full.names=FALSE)
-	  Dir_Project_VH_list_dbf <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern="\\.dbf$", all.files=FALSE, full.names=FALSE)
-	  Dir_Project_VH_list_grd <- list.files(path = file.path(G$SE_Dir_Project, "Vulnerable_Habitat", input$Dir_Project_VH), pattern="\\.grd$", all.files=FALSE, full.names=FALSE)
-	  cat(as.character(Dir_Project_VH_list_csv))
-	  cat('\n\n')
-	  cat(as.character(Dir_Project_VH_list_dbf))
-	  cat('\n\n')
-	  cat(as.character(Dir_Project_VH_list_grd))	  
-	})
-		  
+
 	observeEvent(input$SE_Dir_Climate, {
 		volumes <- getVolumes()
 		shinyDirChoose(input, 'SE_Dir_Climate', roots = volumes)
@@ -3742,7 +3709,14 @@ shinyServer(function(input, output) {
 	          }
 	          #write to a CSV file
 	          write.csv(df, file = file.path(dir_path, paste(a, ".csv", sep="")))
+	          csv <- read.csv(file.path(dir_path, paste(a, ".csv", sep="")))
+	          csv <- csv[-1]
 	          #	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	          try1 <- paste(tempfile(), ".dbf", sep = "")
+	          write.dbf(csv, try1)
+	          file.copy(try1, file.path(dir_path, paste(a, ".dbf", sep="")), overwrite = TRUE)
+	          file.remove(try1)
+	          
 	          if (s == slist[1]) {
 	            df_sp0 <- df
 	            df_sp <- df
@@ -3764,161 +3738,182 @@ shinyServer(function(input, output) {
 	  }
 	})
 	
-	observeEvent(input$HA_VA_Action_Admin_Species_org, {
+	observeEvent(input$HA_VA_Action_Admin_Group, {
+	    
+	    # setting Climate change scenarios, Future time, Species and current environmental path
+	  destfile <- file.path(G$HA_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  HA_MO_SP_List <- HA_Options_lists[,"input.HA_CA_Species"]
+	  
+	  withProgress(message = paste("Group Analyzing by ", input$HA_VA_Admin), value = 0, {
+	  if (length(HA_MO_SP_List) > 0) {
+	    for (a in input$HA_VA_Admin) {
+	      incProgress(1/length(input$HA_VA_Admin), detail = paste("Doing part ", a))
+	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), G$HA_MO_Dir_Folder, overwrite = TRUE)
+	      
+  	    if (length(HA_MO_SP_List) == 1) {
+  	      destfile <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir, HA_MO_SP_List[1], input$HA_MI_Dir_Folder, paste(a, ".csv", sep = ""))
+  	      sindex <- read.csv(destfile)
+  	      #sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+  	    } else {
+  	      destfile <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir, HA_MO_SP_List[1], input$HA_MI_Dir_Folder, paste(a, ".csv", sep = ""))
+  	      sindex <- read.csv(destfile)
+  	      for (s in HA_MO_SP_List[-1]) {
+  	        destfile <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir, s, input$HA_MI_Dir_Folder, paste(a, ".csv", sep = ""))
+  	        sindex0 <- read.csv(destfile)
+  	        sindex <- rbind(sindex, sindex0)
+  	      }
+  	      #sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+  	    }
+	      
+	      df <- sindex
+	      ps <- grep("SPECIES", colnames(df))
+	      n_scol <- ps + 1
+	      n_ecol <- ncol(df)
+	      df[, n_scol:n_ecol][df[, n_scol:n_ecol] > 0] <- 1
+	      
+	      if (a == "SD") {
+	        group <- c("SD_CD", "SD_KOR")
+	        ID <- "SD_CD"
+        } else if (a == "SGG") {
+          group <- c("SGG_CD", "SD_KOR", "SGG_KOR")
+          ID <- "SGG_CD"
+        } else if (a == "NP") {
+          group <- c("WDPA_PID", "ORIG_NAME")
+          ID <- "WDPA_PID"
+        } else if (a == "BR") {
+          group <- c("WDPA_PID", "ORIG_NAME")
+          ID <- "WDPA_PID"
+        } else {
+          group <- c("Region", "DMZRegion")
+          ID <- "DMZRegion"
+        }
 
+	      if (length(group) == 1) {
+	        df_stat <- aggregate(x = df[, n_scol:n_ecol], 
+	                             by = list(df[[group]]),  
+	                             FUN = sum)
+	        colnames(df_stat)[1] <- group
+	      } else if (length(group) == 2) {
+	        group1 <- group[1]
+	        group2 <- group[2]
+	        df_stat <- aggregate(x = df[, n_scol:n_ecol], 
+	                             by = list(df[[group1]], df[[group2]]),  
+	                             FUN = sum)
+	        colnames(df_stat)[1:2] <- group
+	      } else {
+	        group1 <- group[1]
+	        group2 <- group[2]
+	        group3 <- group[3]
+	        df_stat <- aggregate(x = df[, n_scol:n_ecol], 
+	                             by = list(df[[group1]], df[[group2]], df[[group3]]),  
+	                             FUN = sum)
+	        colnames(df_stat)[1:3] <- group
+	      }
+	      dbf <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep="")))
+	      ps <- ncol(dbf) + length(group)
+	      pn <- ncol(dbf) + ncol(df_stat) - 1
+	      dbf_j <- inner_join(dbf, df_stat, by = ID)
+	      dbf_j <- dbf_j[, c(1:ncol(dbf), ps:pn)]
+	      colnames(dbf_j)[1:ncol(dbf)] <- colnames(dbf)
+	  
+	      write.csv(dbf_j, file = file.path(G$HA_MO_Dir_Folder, paste(a, ".csv", sep="")))
+	      try1 <- paste(tempfile(), ".dbf", sep = "")
+	      write.dbf(dbf_j, try1)
+	      file.copy(try1, file.path(G$HA_MO_Dir_Folder, paste(a, ".dbf", sep="")), overwrite = TRUE)
+	      file.remove(try1)
+	    }
+	    shinyalert(title = "You did it!", type = "success")
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Species Index file doesn't exist.")
+	    ))
+	  }
+	  })
+ 
+	})	
+	
+	observeEvent(input$HA_VA_Action_Admin_Group_org, {
+	  
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  alist <- input$HA_VA_Admin
 	  dlist <- input$HA_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	  clist <- input$HA_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
 	  mlist <- input$HA_CA_SDM_model # c("PA1_Full_GLM_byROC")
 	  ylist <- input$HA_CA_Project_year
-	  slist <- input$HA_CA_Species
-	  vlist <- c("PRED", "LOSS_PRED", "STAY_PRED", "GAIN_PRED") # 
+	  #	    slist <- input$HA_CA_Species
+	  vlist <- c("HA_SR", "HA_LOSS", "HA_STAY", "HA_GAIN", "HA_VI1", "HA_VI2", "HA_VI3") # c("HA_SR") # 
+	  
+	  # Species Group
+	  #	    G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
+	  #	    destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  destfile <- file.path(G$HA_MO_Dir_Folder, "HabitatAssessment_Options.csv")
+	  
+	  #	    HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	  HA_Options_lists <- read.csv(destfile)
+	  HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
+	  slist <<- HA_Options_lists[,"input.HA_CA_Species"]
+	  
 	  
 	  n <- 0
 	  la <- length(alist)
-	  ls <- length(slist)
+	  #	    ls <- length(slist)
 	  ld <- length(dlist)
 	  lc <- length(clist)
 	  lm <- length(mlist)
 	  ly <- length(ylist)
 	  lv <- length(vlist)
 	  
-	  tls <- la * ls * ld * lc * lm * ly * lv
+	  tlg <- la * ld * lc * lm * ly * lv
 	  
-
-    if (length(slist) > 0) {
-      withProgress(message = paste("Species Analyzing by ", input$HA_VA_Admin), value = 0, {
-      for (a in alist) {
-        for (s in slist) {
-	        dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$HA_MI_Dir, s, input$HA_MI_Dir_Folder)
-	        dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
-	        file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	        #	    poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
-	        poly <- readOGR(dsn=dir_path, layer=a)
-	        df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
-	        df <- cbind(df, SPECIES = s)
+	  
+	  if (length(slist) > 0) {      
+	    for (a in alist) {
+	      dir_path <- G$HA_MO_Dir_Folder
+	      dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
+	      file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
+	      #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
+	      poly <- readOGR(dsn=dir_path, layer=a)
+	      df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
+	      withProgress(message = paste("Species Group Analyzing by ", input$HA_VA_Admin), value = 0, {
 	        for (d in dlist) {
-	            for (c in clist) {
-	                for (m in mlist) {
-	                    for (y in ylist) {
-	                        for (v in vlist) {
-	                            incProgress(1/tls, detail = paste("Doing part", a, "_", s, "_", d, "_", c, "_", m, "_", y))
-	                            img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", y, "_", s, "_", m, G$IMG_File, sep = ""))
-	                            r <- raster(img)
-	                            df1 <- raster::extract(r, poly, fun = sum, na.rm = TRUE, df=TRUE)
-	                            #write to a data frame
-	                            df1 <- data.frame(df1[-1])
-	                            colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
-	                            df1[is.na(df1)] <- 0
-	                            df <- cbind(df, df1)
-	                        }
-	                    }
+	          for (c in clist) {
+	            for (m in mlist) {
+	              for (y in ylist) {
+	                for (v in vlist) {
+	                  incProgress(1/tlg, detail = paste("Doing part", a, "_", d, "_", c, "_", m, "_", y, "_", v))
+	                  img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, G$IMG_File, sep = ""))
+	                  r <- raster(img)
+	                  df1 <- raster::extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
+	                  #write to a data frame
+	                  df1 <- data.frame(df1[-1])
+	                  colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
+	                  df1[is.na(df1)] <- 0
+	                  df <- cbind(df, df1)
 	                }
+	              }
 	            }
+	          }
 	        }
 	        #write to a CSV file
 	        write.csv(df, file = file.path(dir_path, paste(a, ".csv", sep="")))
-#	        write.dbf(df, file.path(dir_path, paste(a, ".dbf", sep = "")))
-	        if (s == slist[1]) {
-	          df_sp0 <- df
-	          df_sp <- df
-	        } else {
-	          df_sp <- rbind(df_sp, df)
-	        }
-	      }
-#	      dir_path <- G$HA_MO_Dir_Folder
-#	      write.csv(df_sp, file = file.path(dir_path, paste(a, ".csv", sep="")))
-#	      write.dbf(df_sp, file.path(dir_path, paste(a, ".dbf", sep = "")))
+	        #	                file <- "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/SD.dbf"
+	        #	                write.dbf(df, file)
+	        #	                write.dbf(df, "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/test.dbf")
+	      })
+	      shinyalert(title = "You did it!", type = "success")
 	    }
-    })
-    shinyalert(title = "You did it!", type = "success")
-    } else {
-      showModal(modalDialog(
-      title = "Error Message",
-      paste("Select Species.")
-      ))
-    }
-	})
-	
-	observeEvent(input$HA_VA_Action_Admin_Group, {
-	    
-	    # setting Climate change scenarios, Future time, Species and current environmental path
-	    alist <- input$HA_VA_Admin
-	    dlist <- input$HA_CA_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
-	    clist <- input$HA_CA_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	    mlist <- input$HA_CA_SDM_model # c("PA1_Full_GLM_byROC")
-	    ylist <- input$HA_CA_Project_year
-#	    slist <- input$HA_CA_Species
-	    vlist <- c("HA_SR", "HA_LOSS", "HA_STAY", "HA_GAIN", "HA_VI1", "HA_VI2", "HA_VI3") # c("HA_SR") # 
-
-	    # Species Group
-#	    G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
-#	    destfile <- file.path(G$HA_AO_MO_Dir_Folder, "HabitatAssessment_Options.csv")
-	    destfile <- file.path(G$HA_MO_Dir_Folder, "HabitatAssessment_Options.csv")
-	    
-#	    HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
-	    HA_Options_lists <- read.csv(destfile)
-	    HA_Options_lists <- HA_Options_lists[!(HA_Options_lists$input.HA_CA_Species == ""), ]
-	    slist <<- HA_Options_lists[,"input.HA_CA_Species"]
-	    
-	    	    
-	    n <- 0
-	    la <- length(alist)
-#	    ls <- length(slist)
-	    ld <- length(dlist)
-	    lc <- length(clist)
-	    lm <- length(mlist)
-	    ly <- length(ylist)
-	    lv <- length(vlist)
-	    
-	    tlg <- la * ld * lc * lm * ly * lv
-	    
-
-	    if (length(slist) > 0) {      
-	        for (a in alist) {
-	            dir_path <- G$HA_MO_Dir_Folder
-	            dataFiles <- dir(G$SE_Dir_GIS, paste(a, ".*", sep = ""), ignore.case = TRUE, all.files = TRUE)
-	            file.copy(file.path(G$SE_Dir_GIS, dataFiles), dir_path, overwrite = TRUE)
-	            #	      poly <- readShapePoly(file.path(dir_path, paste(a, ".shp", sep = "")))
-	            poly <- readOGR(dsn=dir_path, layer=a)
-	            df <- read.dbf(file.path(G$SE_Dir_GIS, paste(a, ".dbf", sep = "")))
-	            withProgress(message = paste("Species Group Analyzing by ", input$HA_VA_Admin), value = 0, {
-	                for (d in dlist) {
-	                    for (c in clist) {
-	                        for (m in mlist) {
-	                            for (y in ylist) {
-	                                for (v in vlist) {
-	                                    incProgress(1/tlg, detail = paste("Doing part", a, "_", d, "_", c, "_", m, "_", y, "_", v))
-	                                    img <- file.path(dir_path, paste(v, "_",  d, "_", c, "_", m, "_", y, G$IMG_File, sep = ""))
-	                                    r <- raster(img)
-	                                    df1 <- raster::extract(r, poly, fun = max, na.rm = TRUE, df=TRUE)
-	                                    #write to a data frame
-	                                    df1 <- data.frame(df1[-1])
-	                                    colnames(df1) <- c(paste(v, "_",  d, "_", c, "_", m, "_", y, sep = ""))
-	                                    df1[is.na(df1)] <- 0
-	                                    df <- cbind(df, df1)
-	                                }
-	                            }
-	                        }
-	                    }
-	                }
-	                #write to a CSV file
-	                write.csv(df, file = file.path(dir_path, paste(a, ".csv", sep="")))
-#	                file <- "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/SD.dbf"
-#	                write.dbf(df, file)
-#	                write.dbf(df, "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/test.dbf")
-	            })
-	            shinyalert(title = "You did it!", type = "success")
-	        }
-	    } else {
-	        showModal(modalDialog(
-	            title = "Error Message",
-	            paste("Select Species.")
-	        ))
-	    }
+	  } else {
+	    showModal(modalDialog(
+	      title = "Error Message",
+	      paste("Select Species.")
+	    ))
+	  }
 	})	
-	
 
 	output$HA_AO_MI_Dir_Folder <- renderUI({
 	  HA_AO_MI_Dir_Folder_list <- list.dirs(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species), full.names = FALSE, recursive = FALSE)
@@ -4390,7 +4385,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -4401,7 +4396,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
 	})
@@ -4418,7 +4413,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SR_SIDO_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
 	      sindex <- read.csv(destfile)
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      #sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -4429,7 +4424,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      #sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -4460,7 +4455,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -4485,7 +4480,7 @@ shinyServer(function(input, output) {
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$HA_AO_SR_SGG_UI), ]
 	  X_NAME <- names(df[8])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
@@ -4502,7 +4497,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SR_SGG_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SR_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
 	      sindex <- read.csv(destfile)
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -4513,7 +4508,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SR_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -4544,7 +4539,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -4555,7 +4550,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
 	})
@@ -4614,7 +4609,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -4625,7 +4620,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
 	})
@@ -4684,7 +4679,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -4695,7 +4690,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
 	})
@@ -4754,7 +4749,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -4765,7 +4760,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_SR_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
 	})
@@ -4979,7 +4974,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -4990,7 +4985,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
 	})
@@ -5049,7 +5044,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5074,7 +5069,7 @@ shinyServer(function(input, output) {
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$HA_AO_SL_SGG_UI), ]
 	  X_NAME <- names(df[8])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
@@ -5091,7 +5086,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SL_SGG_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SL_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
 	      sindex <- read.csv(destfile)
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -5102,7 +5097,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SL_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -5133,7 +5128,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5144,7 +5139,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
 	})
@@ -5203,7 +5198,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5214,7 +5209,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
 	})
@@ -5273,7 +5268,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5284,7 +5279,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
 	})
@@ -5343,7 +5338,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5354,7 +5349,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_LOSS_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("LOSS_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
 	})
@@ -5568,7 +5563,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5579,7 +5574,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
 	})
@@ -5638,7 +5633,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5663,7 +5658,7 @@ shinyServer(function(input, output) {
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$HA_AO_SS_SGG_UI), ]
 	  X_NAME <- names(df[8])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
@@ -5680,7 +5675,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SS_SGG_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SS_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
 	      sindex <- read.csv(destfile)
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -5691,7 +5686,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SS_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -5722,7 +5717,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5733,7 +5728,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
 	})
@@ -5792,7 +5787,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5803,7 +5798,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
 	})
@@ -5862,7 +5857,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5873,7 +5868,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
 	})
@@ -5932,7 +5927,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -5943,7 +5938,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_STAY_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("STAY_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
 	})
@@ -6158,7 +6153,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[4])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -6169,7 +6164,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SD", ".csv", sep = "")))
 	  X_NAME <- names(df[5])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시도", "생물종수")
 	})
@@ -6228,7 +6223,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  names(poly) <- c(names(x[-1]))
 	  X_NAME <- names(poly[7])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -6253,7 +6248,7 @@ shinyServer(function(input, output) {
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("SGG", ".csv", sep = "")))
 	  df <- df[which(df$SD_KOR==input$HA_AO_SG_SGG_UI), ]
 	  X_NAME <- names(df[8])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "시군구", "생물종수")
 	})
@@ -6270,7 +6265,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_SG_SGG_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_SG_SGG_SP_List[1], input$HA_AO_MI_Dir_Folder, "SGG.csv")
 	      sindex <- read.csv(destfile)
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -6281,7 +6276,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_SG_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -6312,7 +6307,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -6323,7 +6318,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("NP", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "국립공원", "생물종수")
 	})
@@ -6382,7 +6377,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -6393,7 +6388,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "백두대간", "생물종수")
 	})
@@ -6452,7 +6447,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[5])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -6463,7 +6458,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("DMZ", ".csv", sep = "")))
 	  X_NAME <- names(df[6])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "DMZ", "생물종수")
 	})
@@ -6522,7 +6517,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
@@ -6533,7 +6528,7 @@ shinyServer(function(input, output) {
 	  G$HA_AO_MO_Dir_Folder <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  df <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("Habitat", ".csv", sep = "")))
 	  X_NAME <- names(df[4])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep="")
 	  
 	  MotiveEco_BND_stat(df, X_NAME, V_NAME, "생물종 풍부도", "서식지", "생물종수")
 	})
@@ -6794,7 +6789,7 @@ shinyServer(function(input, output) {
 	    if (length(HA_AO_VI_SIDO_SP_List) == 1) {
 	      destfile <- file.path(G$HA_AO_MI_Dir_Folder, HA_AO_VI_SIDO_SP_List[1], input$HA_AO_MI_Dir_Folder, "SD.csv")
 	      sindex <- read.csv(destfile)
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } else {
@@ -6805,7 +6800,7 @@ shinyServer(function(input, output) {
 	        sindex0 <- read.csv(destfile)
 	        sindex <- rbind(sindex, sindex0)
 	      }
-	      #	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SIDO_SP_UI), ]
+	      sindex <- sindex[which(sindex$SD_KOR==input$HA_AO_VI_SGG_UI), ]
 	      G_FILE_species_sindex <<- sindex
 	      sindex
 	    } 
@@ -6990,7 +6985,7 @@ shinyServer(function(input, output) {
 	  x <- read.csv(file.path(G$HA_AO_MO_Dir_Folder, paste("BR", ".csv", sep = "")))
 	  names(poly) <- c(names(x)[-1])
 	  X_NAME <- names(poly[3])
-	  V_NAME <- paste("HA_GAIN_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
+	  V_NAME <- paste("GAIN_PRED_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, sep = "")
 	  max <- max(x[V_NAME], na.rm = TRUE)
 	  bins <- seq(from = 0, to = max, by = max/10)
 	  
