@@ -367,7 +367,7 @@ shinyServer(function(input, output) {
 	
 	output$LD_Map <- renderLeaflet({
 	  
-    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
     r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		r <- as.factor(r)
@@ -399,14 +399,14 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Summary <- renderPrint({
-	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
 	  r <- raster(file)
 	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	  summary(r)
 	})
 	
 	output$LD_Histogram <- renderPlot({
-	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
 	  x <- raster(file)
 	  hist(x, # breaks = bins, 
 	       col="lightskyblue3",  # skyblue",
@@ -416,7 +416,7 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Map_Landuse <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
 	    r <- raster(file)
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -442,7 +442,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$LD_Map_Forestfire <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
 	    r <- raster(file)
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 
@@ -466,7 +466,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$LD_Map_Landslide <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".asc", sep = ""))
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
 	    r <- raster(file)
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -492,7 +492,8 @@ shinyServer(function(input, output) {
 	output$CD_Variables_select <- renderUI({
 	  
 	  CD_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
-	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, full.names = FALSE, recursive = FALSE)
+#	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, full.names = FALSE, recursive = FALSE)
+	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, pattern="\\.grd$", all.files=FALSE, full.names=FALSE)
 	  CD_Name_Variables_selected <- CD_Name_Variables_list[1]
 	  
 	  selectInput("CD_Variables", CD_Name_Variables,
