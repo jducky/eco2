@@ -286,13 +286,13 @@ shinyServer(function(input, output) {
 		G$SE_Dir_Species <<- parseDirPath(volumes, input$SE_Dir_Species)
 		output$SE_Dir_Species <- renderText({G$SE_Dir_Species})
 	})
-	
+
 	output$SE_speciesindex <- renderUI({
-	    selectInput("SE_speciesindex", SE_Name_WE_Project_Data_Index, selected = G$SE_speciesindex, choice = list.files(G$SE_Dir_Species))
+	    selectInput("SE_speciesindex", SE_Name_WE_Project_Data_Index, selected = G$SE_speciesindex, choice = list.files(path = G$SE_Dir_Species, pattern="\\.csv$", all.files=FALSE, full.names=FALSE))
 	})
 	
 	output$SE_specieslocation <- renderUI({
-	    selectInput("SE_specieslocation", SE_Name_WE_Project_Data_Location, selected = G$SE_specieslocation, choice = list.files(G$SE_Dir_Species))
+	    selectInput("SE_specieslocation", SE_Name_WE_Project_Data_Location, selected = G$SE_specieslocation, choice = list.files(path = G$SE_Dir_Species, pattern="\\.csv$", all.files=FALSE, full.names=FALSE))
 	})
 
 	output$SP_Info <- DT::renderDataTable ({
@@ -343,7 +343,7 @@ shinyServer(function(input, output) {
 		rs <- input$SP_LOC_Info_rows_selected
 		
 		if (length(rs)) {
-			species_data <<- G_FILE_specieslocation[rs, , drop = FALSE]
+			species_data <- G_FILE_specieslocation[rs, , drop = FALSE]
 			
 			anglerIcon <- makeIcon(
 			  iconUrl = "leaf-green.png",
@@ -360,14 +360,14 @@ shinyServer(function(input, output) {
 					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
 			) %>%
 	
-			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_ID], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
+			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})  
 	
 	output$LD_Map <- renderLeaflet({
 	  
-    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
+    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
     r <- raster(file)
 		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 		r <- as.factor(r)
@@ -399,14 +399,14 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Summary <- renderPrint({
-	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
+	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	  r <- raster(file)
 	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	  summary(r)
 	})
 	
 	output$LD_Histogram <- renderPlot({
-	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
+	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	  x <- raster(file)
 	  hist(x, # breaks = bins, 
 	       col="lightskyblue3",  # skyblue",
@@ -416,7 +416,7 @@ shinyServer(function(input, output) {
 	})  
 	
 	output$LD_Map_Landuse <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	    r <- raster(file)
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -442,7 +442,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$LD_Map_Forestfire <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	    r <- raster(file)
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 
@@ -466,7 +466,7 @@ shinyServer(function(input, output) {
 	})
 	
 	output$LD_Map_Landslide <- renderLeaflet({	
-	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, ".grd", sep = ""))
+	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	    r <- raster(file)
 	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -493,7 +493,8 @@ shinyServer(function(input, output) {
 	  
 	  CD_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
 #	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, full.names = FALSE, recursive = FALSE)
-	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, pattern="\\.grd$", all.files=FALSE, full.names=FALSE)
+#	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, pattern="\\.grd$", all.files=FALSE, full.names=FALSE)
+	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, pattern=paste("\\", G$IMG_File, "$", sep=""), all.files=FALSE, full.names=FALSE)
 	  CD_Name_Variables_selected <- CD_Name_Variables_list[1]
 	  
 	  selectInput("CD_Variables", CD_Name_Variables,
@@ -873,7 +874,7 @@ shinyServer(function(input, output) {
 	    # setting speices and environmental data
 	    FILE_SPECIES_NAME <<- input$SE_speciesindex   # G$SE_speciesindex
 	    FILE_SPECIES_LOCATION <<- input$SE_specieslocation  # G$SE_specieslocation
-	    ENV_VARIABLES <- input$SDM_MO_Variables   # c("bio01.asc", "bio02.asc", "bio03.asc", "bio12.asc", "bio13.asc", "bio14.asc")
+	    ENV_VARIABLES <- input$SDM_MO_Variables
 	    
 	    # Defining Models Data Options using default options.
 	    BIOMOD_eval.resp.var <- NULL #input$BIOMOD_eval.resp.var
