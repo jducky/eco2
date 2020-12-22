@@ -295,7 +295,7 @@ shinyServer(function(input, output) {
 	    selectInput("SE_specieslocation", SE_Name_WE_Project_Data_Location, selected = G$SE_specieslocation, choice = list.files(path = G$SE_Dir_Species, pattern="\\.csv$", all.files=FALSE, full.names=FALSE))
 	})
 
-	output$SP_Info <- DT::renderDataTable ({
+	output$SP_Info <- DT::renderDataTable({
 	  if (!length(input$SE_speciesindex) == 0 | !length(input$SE_specieslocation) == 0) {
 	    G_FILE_speciesindex <- read.csv(file.path(G$SE_Dir_Species, input$SE_speciesindex), header = T, sep = ",")
 	    G_FILE_specieslocation <<- read.csv(file.path(G$SE_Dir_Species, input$SE_specieslocation), header = T, sep = ",")
@@ -317,50 +317,62 @@ shinyServer(function(input, output) {
 			species_data <- inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[rs, , drop = FALSE], by = G$SE_Species_ID)
 			
 			
-			anglerIcon <- makeIcon(
-			  iconUrl = "leaf-red.png",
-			  iconWidth = 64, iconHeight = 64,
-			  iconAnchorX = 22, iconAnchorY = 94,
-			  shadowUrl = "leaf-shadow.png",
-			  shadowWidth = 50, shadowHeight = 64,
-			  shadowAnchorX = 4, shadowAnchorY = 62
-			)
+#			anglerIcon <- makeIcon(
+#			  iconUrl = "leaf-red.png",
+#			  iconWidth = 64, iconHeight = 64,
+#			  iconAnchorX = 22, iconAnchorY = 94,
+#			  shadowUrl = "leaf-shadow.png",
+#			  shadowWidth = 50, shadowHeight = 64,
+#			  shadowAnchorX = 4, shadowAnchorY = 62
+#			)
 
 			leaflet(data = species_data) %>%
-			addTiles(
-					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-			) %>%
 
-			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
+#			addTiles(
+#					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#			) %>%
+			  
+			addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+
+#			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
+			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions()) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})
 
-	output$SP_LOC_Info <- DT::renderDataTable(inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[input$SP_Info_rows_selected, , drop = FALSE], by = G$SE_Species_ID), server = TRUE)
+	output$SP_LOC_Info <- DT::renderDataTable({
+	  G_FILE_speciesxy <<- inner_join(G_FILE_specieslocation, G_FILE_speciesinfo[input$SP_Info_rows_selected, , drop = FALSE], by = G$SE_Species_ID)
+	  DT::datatable(G_FILE_speciesxy)
+    }, server = TRUE)
 	
 	output$SP_LOC_Map <- renderLeaflet({
 		rs <- input$SP_LOC_Info_rows_selected
 		
 		if (length(rs)) {
-			species_data <- G_FILE_specieslocation[rs, , drop = FALSE]
+#			species_data <- G_FILE_specieslocation[rs, , drop = FALSE]
+			species_data <- G_FILE_speciesxy[rs, , drop = FALSE]
+#			species_data <- inner_join(G_FILE_specieslocation, G_FILE_speciesxy[rs, , drop = FALSE], by = G$SE_Species_ID)
 			
-			anglerIcon <- makeIcon(
-			  iconUrl = "leaf-green.png",
-			  iconWidth = 64, iconHeight = 64,
-			  iconAnchorX = 22, iconAnchorY = 94,
-			  shadowUrl = "leaf-shadow.png",
-			  shadowWidth = 50, shadowHeight = 64,
-			  shadowAnchorX = 4, shadowAnchorY = 62
-			)
+#			anglerIcon <- makeIcon(
+#			  iconUrl = "leaf-green.png",
+#			  iconWidth = 64, iconHeight = 64,
+#			  iconAnchorX = 22, iconAnchorY = 94,
+#			  shadowUrl = "leaf-shadow.png",
+#			  shadowWidth = 50, shadowHeight = 64,
+#			  shadowAnchorX = 4, shadowAnchorY = 62
+#			)
 			
 			leaflet(data = species_data) %>%
-			addTiles(
-					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-			) %>%
+#			addTiles(
+#					urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#					attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#			) %>%
+			  
+      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
 	
-			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
+#			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions(), icon = anglerIcon) %>%
+			addMarkers(popup = species_data[, G$SE_Species_ID], label = species_data[, G$SE_Species_Name], clusterOptions = markerClusterOptions()) %>%
 			setView(lng = 127.00, lat = 38.00, zoom = 6)
 		}
 	})  
