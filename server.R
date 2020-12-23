@@ -1592,9 +1592,9 @@ shinyServer(function(input, output) {
 	        for (s in slist) {
 	            n <- n + 1
 	            # creating Migclim output path
-	            if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$D_MO_Dir_Folder_Name, sep = "")))) {
+	            if (dir.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = "")))) {
 	                cat(paste(paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "and is a directory"))
-	            } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$F_MO_Dir_Folder_Name, sep = "")))) {
+	            } else if (file.exists(file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = "")))) {
 	                cat(paste(paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), "exists in", PATH_MODEL_OUTPUT, "/", s, "but is a file"))
 	            } else {
 	                cat(paste(paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), "does not exist in", PATH_MODEL_OUTPUT, "/", s, "- creating"))
@@ -1631,7 +1631,7 @@ shinyServer(function(input, output) {
 	                            R_SDM <- raster(file.path(org_path, Map))
 	                            R_SRM <- R_SDM
 	                            
-	                            file <- file.path(G$SE_Dir_Climate, "2000", "bio01.tif")
+	                            file <- file.path(G$SE_Dir_Climate, "2000", paste("bio01", G$IMG_File, sep = ""))
 	                            rm <- raster(file)
 	                            rm[!is.na(rm[])] <- 0
 
@@ -1971,7 +1971,7 @@ shinyServer(function(input, output) {
 	    r_list <- NULL
 	    for (y in input$DM_MO_Project_year) {
 	    
-	        file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, ".asc", sep = ""))
+	        file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, G$IMG_File, sep = ""))
 	        r <- raster(file)
 	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -2014,7 +2014,7 @@ shinyServer(function(input, output) {
 	    
 	    r_list <- NULL
 	    for (y in input$DM_MO_Project_year) {
-	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, ".asc", sep = ""))
+	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, G$IMG_File, sep = ""))
 	        r <- raster(file)
 	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	    
@@ -2055,7 +2055,7 @@ shinyServer(function(input, output) {
 	    
 	    r_list <- NULL
 	    for (y in input$DM_MO_Project_year) {
-	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, ".asc", sep = ""))
+	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, G$IMG_File, sep = ""))
 	        r <- raster(file)
 	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	        
@@ -2103,7 +2103,7 @@ shinyServer(function(input, output) {
 	        r_list <- NULL
 	        for (y in input$DM_MO_Project_year) {
 	            
-	            file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, ".asc", sep = ""))
+	            file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, G$IMG_File, sep = ""))
 	            r <- raster(file)
 	            crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	            
@@ -2126,7 +2126,7 @@ shinyServer(function(input, output) {
 	    } else if (dm == "Forestfire") {
 	        r_list <- NULL
 	        for (y in input$DM_MO_Project_year) {
-	            file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, ".asc", sep = ""))
+	            file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, G$IMG_File, sep = ""))
 	            r <- raster(file)
 	            crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 	            
@@ -2148,7 +2148,7 @@ shinyServer(function(input, output) {
 	    } else {
             r_list <- NULL
             for (y in input$DM_MO_Project_year) {
-                file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, ".asc", sep = ""))
+                file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, G$IMG_File, sep = ""))
                 r <- raster(file)
                 crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
                 
@@ -2442,6 +2442,7 @@ shinyServer(function(input, output) {
 	              path <- file.path(target_path, DM_simulName)
 	              r_asc <- read.asc(file.path(path, list.files(path)[grep(".asc", list.files(path))][1]))
 	              r_dm <- raster(r_asc)
+#	              r_dm <- raster(file.path(path, list.files(path)[grep(G$IMG_File, list.files(path))][1]))
 	              r_dm[r_dm < 0] <- 0
 	              r_dm[r_dm > 0 & r_dm < 30000] <- 1
 	              r_dm[r_dm == 30000] <- 0
