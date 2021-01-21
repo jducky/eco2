@@ -64,26 +64,30 @@ if (length(destfile) == 0 | !file.exists(destfile)) {
 } else {
   system_env <- read.csv(destfile, header = T, sep = "=")
   SE_Language <- as.character(system_env[1,2])
-  G$SE_Dir_Project <- as.character(system_env[3,2])
-  G$SE_Dir_Climate <- as.character(system_env[4,2])
+  G$SE_Dir_Work <- as.character(system_env[2,2])
+  G$SE_Dir_Data <- as.character(system_env[3,2])
+  G$SE_Dir_Project <- as.character(system_env[4,2])
+  G$SE_Dir_Climate <- as.character(system_env[5,2])
 # G$SDM_MO_Variables_Folder <- file.path(isolate(G$SE_Dir_Climate), "2000")
-  G$SE_Dir_Link <- as.character(system_env[5,2])
-  G$SE_Dir_GIS <- as.character(system_env[6,2])
-  G$SE_Dir_Species <- as.character(system_env[7,2])
-  G$SE_speciesindex <- as.character(system_env[8,2])
-  G$SE_specieslocation <- as.character(system_env[9,2])
+  G$SE_Dir_Link <- as.character(system_env[6,2])
+  G$SE_Dir_GIS <- as.character(system_env[7,2])
+  G$SE_Dir_Species <- as.character(system_env[8,2])
+  G$SE_speciesindex <- as.character(system_env[9,2])
+  G$SE_specieslocation <- as.character(system_env[10,2])
   destfile1 <- file.path(isolate(G$SE_Dir_Species), isolate(G$SE_speciesindex))
   destfile2 <- file.path(isolate(G$SE_Dir_Species), isolate(G$SE_specieslocation))
   if (!file.exists(destfile1) | !file.exists(destfile2)) {
     button <- tkmessageBox(title='Message',message='Species data is not available. Please set species data and rerun the system again!',type='ok')
     if(tclvalue(button) == 'ok') {stop('Exit the program!')}
   }
-  G$SE_Species_ID <- as.character(system_env[10,2])
-  G$SE_Species_Name <- as.character(system_env[11,2])
-  G$SE_Species_Location_Longitude <- as.character(system_env[12,2])
-  G$SE_Species_Location_Latitude <- as.character(system_env[13,2])
-  G$IMG_File <- as.character(system_env[14,2])
-  G$IMG_Info <- as.character(system_env[15,2])
+  G$SE_Species_ID <- as.character(system_env[11,2])
+  G$SE_Species_Name <- as.character(system_env[12,2])
+  G$SE_Species_Location_Longitude <- as.character(system_env[13,2])
+  G$SE_Species_Location_Latitude <- as.character(system_env[14,2])
+  G$IMG_File <- as.character(system_env[15,2])
+  G$IMG_Info <- as.character(system_env[16,2])
+  G$Var_Current_Folder <- as.character(system_env[17,2])
+  G$Projection_Info <- as.character(system_env[21,2])
 }
 
 
@@ -125,12 +129,12 @@ G$DIR_NAME_Habitat <- "Habitat_Assessment"
 G$DIR_NAME_SDM <- "BIOMOD2"
 G$DIR_NAME_SRM <- "SRM_"
 G$DIR_NAME_DM <- "MIGCLIM_"
-G$COL_CODE_PLOT_Ramp2 <- c("azure2", "darkolivegreen")  # c("coral4", "azure", "darkolivegreen4") deepskyblue4 dimgray
-G$COL_CODE_PLOT_Ramp3 <- c("coral4", "azure", "darkolivegreen")  # c("dimgray", "azure", "darkolivegreen4")
+G$COL_CODE_PLOT_Ramp2 <- c("deepskyblue4", "darkorange2") # c("azure2", "darkolivegreen")  # c("coral4", "azure", "darkolivegreen4") deepskyblue4 dimgray
+G$COL_CODE_PLOT_Ramp3 <- c("deepskyblue4", "azure", "darkorange2") #   c("coral4", "azure", "darkolivegreen")  # c("dimgray", "azure", "darkolivegreen4")
 G$COL_CODE_STAT_BND <- "lightskyblue3" # "lightseagreen" # "steelblue"
 G$COL_CODE_STAT_SP <- "lightseagreen" #"mediumseagreen" #"darkolivegreen4"
 
-Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[16,2])), header = T, sep = ",")
+Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[18,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
 if (SE_Language == "English") {
     language_position <- 3
@@ -141,11 +145,11 @@ if (SE_Language == "English") {
 }
 
 if (SE_Language == "English") {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[17,2])), header = T, sep = ",")
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[19,2])), header = T, sep = ",")
 } else if (SE_Language == "Korean"){
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[18,2])), header = T, sep = ",")   
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[20,2])), header = T, sep = ",")   
 } else {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[17,2])), header = T, sep = ",")  
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[19,2])), header = T, sep = ",")  
 }
 Option_lists[is.na(Option_lists)] = ""
 
@@ -253,17 +257,19 @@ G$SGG_List <-  as.character(SGG_lists[,"SGG_KOR"])
 
 MotiveEco_SDM_plot <- function(r)
 {
-  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+  crs(r) <- CRS(G$Projection_Info)
   pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
                       na.color = "transparent")
   
   leaflet() %>%
-    addTiles(
-      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-    ) %>%        
+#    addTiles(
+#      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#    ) %>%
+    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
     
-    addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+#    addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+    addRasterImage(r, colors = pal, opacity = 0.7, , maxBytes = 10 * 1024 * 1024) %>%
     addLegend(pal = pal, values = values(r), title = "Legend")  %>%
     setView(lng = 127.00, lat = 36.00, zoom = 7)
 }
@@ -305,10 +311,12 @@ MotiveEco_bnd_plot <- function(p, x, y, b, unit)
     addProviderTiles("MapBox", options = providerTileOptions(
       id = "mapbox.light",
       accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
-    addTiles(
-      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-    ) %>%   
+    #    addTiles(
+    #      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+    #      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+    #    ) %>%
+    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+    
     addPolygons(
       fillColor = ~pal(p[[y]]),
       weight = 2,
@@ -355,17 +363,18 @@ MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl)
     }
   }
   
-  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")	  
+  crs(r) <- CRS(G$Projection_Info)	  
   pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
                       na.color = "transparent")
   
   leaflet() %>%
-    addTiles(
-      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-    ) %>%        
+#    addTiles(
+#      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#    ) %>%
+    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%        
     
-    addRasterImage(r, colors = pal, opacity = 0.8) %>%
+    addRasterImage(r, colors = pal, opacity = 0.7) %>%
     addLegend(pal = pal, values = values(r), title = "Legend")  %>%
     
     setView(lng = 128.00, lat = 36.00, zoom = 7)
@@ -405,3 +414,5 @@ MotiveEco_img_plot <- function(dir, ol, dl, cl, ml, yl)
     }
   }
 }
+
+

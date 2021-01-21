@@ -91,6 +91,7 @@ SDM_Name_Model_Variable_SpeciesRichness,0,Species Richness,종풍부도 결과
 SDM_Name_Model_Variable_SpeciesRichness_Folder,0,Species Richness Folder,종풍부도 결과 폴드
 SDM_Name_Model_Variable_SpeciesRichness_Model,0,Species Richness Model Folder,종풍부도 모델 결과  폴드
 SDM_Name_Model_Variable_Data,0,Data Options,입력변수
+SDM_Name_Model_Variable_Data_Categorical,0,Categorical Data,명목변수
 SDM_Name_Model_SDM,0,SDM selection,SDM 모형
 SDM_Name_Model_SDM_Data,0,Data Options,입력자료 옵션
 SDM_Name_Model_SDM_Modeling,0,SDM Modeling Optios,SDM 모델링 옵션
@@ -163,7 +164,7 @@ SRM_Name_Hull_Type_list,1,Hull_Types_list,Hull_Types_list
 SRM_Name_Hull_Type_selected,0,convex,convex
 SRM_Name_Hull_Cluster_Method,0,Hull Cluster Method,Hull Cluster Method
 SRM_Name_Hull_Cluster_Method_list,1,Hull_Cluster_Method_list,Hull_Cluster_Method_list
-SRM_Name_Hull_Cluster_Method_selected,0,hierarchical,hierarchical
+SRM_Name_Hull_Cluster_Method_selected,0,k-means,k-means
 SRM_Name_VoronoiHull_sampling_Type,0,VoronoiHull sampling Type,VoronoiHull sampling Type
 SRM_Name_VoronoiHull_sampling_Type_list,1,Hull_VoronoiHull_sampling_Type_list,Hull_VoronoiHull_sampling_Type_list
 SRM_Name_VoronoiHull_sampling_Type_selected,0,ratio,ratio

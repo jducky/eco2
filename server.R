@@ -81,8 +81,8 @@ shinyServer(function(input, output) {
 	})
 
 	observeEvent(input$SE_Dir_Project, {
-	  volumes <<- getVolumes()
-	  shinyDirChoose(input, 'SE_Dir_Project', roots = getVolumes())
+	  volumes <- c(main = G$SE_Dir_Work)  #getVolumes()
+	  shinyDirChoose(input, 'SE_Dir_Project', roots = volumes)
 	  G$SE_Dir_Project <<- parseDirPath(volumes, input$SE_Dir_Project)
 	})
 	
@@ -260,28 +260,28 @@ shinyServer(function(input, output) {
 	})
 
 	observeEvent(input$SE_Dir_Climate, {
-		volumes <- getVolumes()
+	  volumes <- c(main = G$SE_Dir_Data)  #getVolumes()
 		shinyDirChoose(input, 'SE_Dir_Climate', roots = volumes)
 		G$SE_Dir_Climate <<- parseDirPath(volumes, input$SE_Dir_Climate)
 		output$SE_Dir_Climate <- renderText({G$SE_Dir_Climate})
 	})
   
 	observeEvent(input$SE_Dir_Link, {
-		volumes <- getVolumes()
+	  volumes <- c(main = G$SE_Dir_Data)  #getVolumes()
 		shinyDirChoose(input, 'SE_Dir_Link', roots = volumes)
 		G$SE_Dir_Link <<- parseDirPath(volumes, input$SE_Dir_Link)
 		output$SE_Dir_Link <- renderText({G$SE_Dir_Link})
 	})
 	
 	observeEvent(input$SE_Dir_GIS, {
-	  volumes <- getVolumes()
+	  volumes <- c(main = G$SE_Dir_Data)  #getVolumes()
 	  shinyDirChoose(input, 'SE_Dir_GIS', roots = volumes)
 	  G$SE_Dir_GIS <<- parseDirPath(volumes, input$SE_Dir_GIS)
 	  output$SE_Dir_GIS <- renderText({G$SE_Dir_GIS})
 	})
   
 	observeEvent(input$SE_Dir_Species, {
-		volumes <- getVolumes()
+	  volumes <- c(main = G$SE_Dir_Data)  #getVolumes()
 		shinyDirChoose(input, 'SE_Dir_Species', roots = volumes)
 		G$SE_Dir_Species <<- parseDirPath(volumes, input$SE_Dir_Species)
 		output$SE_Dir_Species <- renderText({G$SE_Dir_Species})
@@ -381,31 +381,33 @@ shinyServer(function(input, output) {
 	  
     file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
     r <- raster(file)
-		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+		crs(r) <- CRS(G$Projection_Info)
 		r <- as.factor(r)
 		if (input$LD_Variables == "Landuse_ssp1" | input$LD_Variables == "Landuse_ssp2" | input$LD_Variables == "Landuse_ssp3") {
 		  col <- colorNumeric(c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), values(r), na.color = "transparent")
 		  pal <- colorFactor(palette = c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), domain = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), na.color = "transparent", ordered = T)
 	    leaflet() %>%
-		  addTiles(
-			  	urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-			  	attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-		  ) %>%
-		  
+#		  addTiles(
+#			  	urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#			  	attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#		  ) %>%
+      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
 		  	
-		  addRasterImage(r, colors = col, opacity = 0.8,) %>%
+		  addRasterImage(r, colors = col, opacity = 0.7,) %>%
 		  addLegend(position = "topright", pal = pal, values = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), title = "Legend")  %>%
 		  setView(lng = 127.00, lat = 36.00, zoom = 7)
 		} else {
 		  pal <- colorNumeric(c("deepskyblue4", "aliceblue", "firebrick4"), values(r), na.color = "transparent")	
 		  leaflet() %>%
-		  addTiles(
-		    urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-		    attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-		  ) %>%		  
-		  addRasterImage(r, colors = pal, opacity = 0.8,) %>%
-		  addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-		  setView(lng = 127.00, lat = 36.00, zoom = 7)
+#        addTiles(
+#        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#        ) %>%
+		    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+		    
+		    addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+		    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+		    setView(lng = 127.00, lat = 36.00, zoom = 7)
 		}
 		
 	})  
@@ -413,7 +415,7 @@ shinyServer(function(input, output) {
 	output$LD_Summary <- renderPrint({
 	  file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	  r <- raster(file)
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  crs(r) <- CRS(G$Projection_Info)
 	  summary(r)
 	})
 	
@@ -430,7 +432,7 @@ shinyServer(function(input, output) {
 	output$LD_Map_Landuse <- renderLeaflet({	
 	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	    r <- raster(file)
-	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    crs(r) <- CRS(G$Projection_Info)
 	    
 	    for (k in input$LD_MO_Barrier_LanduseType) {
 	      r[r == as.integer(k)] <- 9999
@@ -443,20 +445,21 @@ shinyServer(function(input, output) {
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
-	        addTiles(
-	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	        ) %>%        
+#        addTiles(
+#        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#        ) %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
 	        
-	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
-	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
-	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+        addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+        setView(lng = 127.00, lat = 36.00, zoom = 7)
 	})
 	
 	output$LD_Map_Forestfire <- renderLeaflet({	
 	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	    r <- raster(file)
-	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    crs(r) <- CRS(G$Projection_Info)
 
 	    r[r >= input$LD_MO_Barrier_Forestfire_Cutoff] <- 9999
 	    r[r != 9999] <- 0
@@ -467,20 +470,21 @@ shinyServer(function(input, output) {
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
-	        addTiles(
-	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	        ) %>%        
+#        addTiles(
+#        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#        ) %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%      
 	        
-	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
-	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
-	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+        addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+        setView(lng = 127.00, lat = 36.00, zoom = 7)
 	})
 	
 	output$LD_Map_Landslide <- renderLeaflet({	
 	    file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, input$LD_Project_year, paste(input$LD_Variables, G$IMG_File, sep = ""))
 	    r <- raster(file)
-	    crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    crs(r) <- CRS(G$Projection_Info)
 	    
 	    r[r >= input$LD_MO_Barrier_Landslide_Cutoff] <- 9999
 	    r[r != 9999] <- 0
@@ -491,19 +495,20 @@ shinyServer(function(input, output) {
 	                        na.color = "transparent")
 	    
 	    leaflet() %>%
-	        addTiles(
-	            urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	            attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	        ) %>%        
+#        addTiles(
+#        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#        ) %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
 	        
-	        addRasterImage(r, colors = pal, opacity = 0.8,) %>%
-	        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
-	        setView(lng = 127.00, lat = 36.00, zoom = 7)
+        addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+        addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+        setView(lng = 127.00, lat = 36.00, zoom = 7)
 	})
 	
 	output$CD_Variables_select <- renderUI({
 	  
-	  CD_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
+	  CD_Variables_Folder <- file.path(G$SE_Dir_Climate, G$Var_Current_Folder)
 #	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, full.names = FALSE, recursive = FALSE)
 #	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, pattern="\\.grd$", all.files=FALSE, full.names=FALSE)
 	  CD_Name_Variables_list <- list.files(path = CD_Variables_Folder, pattern=paste("\\", G$IMG_File, "$", sep=""), all.files=FALSE, full.names=FALSE)
@@ -519,26 +524,27 @@ shinyServer(function(input, output) {
 	  #		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
 	  file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
 	  r <- raster(file)
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  crs(r) <- CRS(G$Projection_Info)
 	  pal <- colorNumeric(c("deepskyblue4", "aliceblue", "firebrick4"), values(r),
 	                      na.color = "transparent")
 	  
 	  leaflet() %>%
-	    addTiles(
-	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-	    ) %>%        
-	    
-	    addRasterImage(r, colors = pal, opacity = 0.8) %>%
-	    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-	    setView(lng = 128.00, lat = 36.00, zoom = 7)
+#	    addTiles(
+#	      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+#	      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+#	    ) %>%        
+	  
+    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%    
+    addRasterImage(r, colors = pal, opacity = 0.7) %>%
+    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+    setView(lng = 128.00, lat = 36.00, zoom = 7)
 	})
 	
 	output$CD_Summary <- renderPrint({
 #		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
 		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
 		r <- raster(file)
-		crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+		crs(r) <- CRS(G$Projection_Info)
 		summary(r)
 	})
 	
@@ -546,7 +552,7 @@ shinyServer(function(input, output) {
 #		file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, paste(input$CD_Variables, ".tif", sep = ""))
 	  file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
 		x <- raster(file)
-		crs(x) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+		crs(x) <- CRS(G$Projection_Info)
 		hist(x, # breaks = bins, 
 			col="lightskyblue3",
 			border="white",
@@ -654,13 +660,24 @@ shinyServer(function(input, output) {
 
 	output$SDM_MO_Variables_Select <- renderUI({
 	  
-	  SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
-	  SDM_Name_MO_Variables_list <- list.files(path = SDM_MO_Variables_Folder, full.names = FALSE, recursive = FALSE)
+	  SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, G$Var_Current_Folder)
+	  SDM_Name_MO_Variables_list <- list.files(path = SDM_MO_Variables_Folder, pattern="\\.grd$", all.files=FALSE, full.names = FALSE, recursive = FALSE)
 	  SDM_Name_MO_Variables_selected <- SDM_Name_MO_Variables_selected
 	  
 	  checkboxGroupInput("SDM_MO_Variables", SDM_Name_MO_Variables,
 	                     choices = c(SDM_Name_MO_Variables_list),
 	                     selected = SDM_Name_MO_Variables_selected
+	  )
+	})
+	
+	output$SDM_MO_Variables_Select_Categorical <- renderUI({
+	  
+#	  SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, G$Var_Current_Folder)
+	  SDM_Name_MO_Variables_list <- input$SDM_MO_Variables
+#	  SDM_Name_MO_Variables_selected <- SDM_Name_MO_Variables_selected
+	  
+	  checkboxGroupInput("SDM_MO_Variables_Categorical", SDM_Name_MO_Variables,
+	                     choices = c(SDM_Name_MO_Variables_list)
 	  )
 	})
 	
@@ -806,7 +823,7 @@ shinyServer(function(input, output) {
 	    } 
     }
     })
-	  G$SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, "2000")
+	  G$SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, G$Var_Current_Folder)
 	})
 	
 	
@@ -845,7 +862,7 @@ shinyServer(function(input, output) {
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  dlist <- input$SDM_MO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	  clist <- input$SDM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  ylist <- input$SDM_MO_Project_year  # c("2000", "2050") # c("2000", "2050", "2070")
+	  ylist <- input$SDM_MO_Project_year  # c(G$Var_Current_Folder, "2050") # c(G$Var_Current_Folder, "2050", "2070")
 #	  slist <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$ID) #c("S251") # input$SDM_MO_Species  # c("S251") # c("S015", "S134", "S145")
 	  slist <<- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][[G$SE_Species_ID]])
 	  
@@ -871,7 +888,7 @@ shinyServer(function(input, output) {
 	    # setting Paths
 	    PATH_SPECIES   <- G$SE_Dir_Species
 	    PATH_ENV       <- G$SE_Dir_Climate
-	    PATH_ENV_INPUT <- file.path(PATH_ENV, "2000", sep = "")
+	    PATH_ENV_INPUT <- file.path(PATH_ENV, G$Var_Current_Folder, sep = "")
 	    #		PATH_PROJECT   <- G$SDM_MO_Dir_Folder # G$SE_Dir_Project
 
 	    PATH_MODEL_OUTPUT  <- G$SDM_MO_Dir_Folder
@@ -888,6 +905,28 @@ shinyServer(function(input, output) {
 	    FILE_SPECIES_NAME <<- input$SE_speciesindex   # G$SE_speciesindex
 	    FILE_SPECIES_LOCATION <<- input$SE_specieslocation  # G$SE_specieslocation
 	    ENV_VARIABLES <- input$SDM_MO_Variables
+	    CAT_VARIABLES <- input$SDM_MO_Variables_Categorical
+	    CON_VARIABLES <- setdiff(ENV_VARIABLES,CAT_VARIABLES)
+	    
+	    CUR_PATH <- getwd()
+	    setwd(PATH_ENV_INPUT)
+	    if (length(ENV_VARIABLES) != 0) {
+	      v_stack <- ""
+	      if (length(CON_VARIABLES) != 0) {
+	        for (i in CON_VARIABLES) {
+	          v1 <- raster(i)
+	          v_stack <- c(v_stack, v1)
+	        }
+	      }
+	      if (length(CAT_VARIABLES) != 0) {
+	        for (j in CAT_VARIABLES) {
+	          v2 <- as.factor(raster(j))
+	          v_stack <- c(v_stack, v2)
+	        }
+	      }
+	      SDM_VARIABLES <- v_stack[-1]
+	    }
+	    setwd(CUR_PATH)
 	    
 	    # Defining Models Data Options using default options.
 	    BIOMOD_eval.resp.var <- NULL #input$BIOMOD_eval.resp.var
@@ -965,15 +1004,31 @@ shinyServer(function(input, output) {
 	      SPECIES_ID <- s
 	      SPECIES_NAME <- subset(DATA_SPECIES_NAME, get(NAME_ID) == SPECIES_ID, select = c(get(NAME_SPECIES)))
 	      SPECIES_NAME <- as.character(SPECIES_NAME$K_NAME)
-	      SPECIES_DATA <- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
-	      
-	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID] <- 1)
-	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID])
+	      SPECIES_DATA <<- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
 	      
 	      CUR_PATH <- getwd()
 	      setwd(PATH_ENV_INPUT)
-	      myExpl <- stack(ENV_VARIABLES)
+	      mask <- raster(input$SDM_MO_Variables[1])
+	      crs(mask) <- CRS(G$Projection_Info)
+	      mask[!is.na(mask)] <- 1
 	      setwd(CUR_PATH)
+	      
+	      xy <- SPECIES_DATA[,c(2,3)]
+	      r <- rasterize(xy, mask, mask=TRUE, field=1)
+	      r_pts <- rasterToPoints(r, spatial=TRUE)
+	      t <- r_pts@coords
+	      SPECIES_DATA <- cbind(ID = 1, t)
+	      colnames(SPECIES_DATA) <- c(NAME_ID, NAME_LONG, NAME_LAT)
+	      
+#	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID] <- 1)
+#	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID])
+	      
+	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID])
+	      
+#	      CUR_PATH <- getwd()
+#	      setwd(PATH_ENV_INPUT)
+	      myExpl <- stack(SDM_VARIABLES)  #stack(ENV_VARIABLES)
+#	      setwd(CUR_PATH)
 	      
 	      myRespXY <- SPECIES_DATA[,c(NAME_LONG, NAME_LAT)]
 	      myRespName <- SPECIES_NAME
@@ -1399,7 +1454,7 @@ shinyServer(function(input, output) {
 	  
 	  new_import <- read.csv(destfile)
 	  data <- data.frame(new_import)
-	  rename(data, c("X" = "Label"))
+#	  rename(data, c("X" = "Label"))
 	  
 	})
 	
@@ -1413,7 +1468,7 @@ shinyServer(function(input, output) {
 	
 		new_import <- read.csv(destfile)
 		data <- data.frame(new_import)
-		rename(data, c("X" = "Label"))
+#		rename(data, c("X" = "Label"))
 		rs <- input$SDM_OU_Contribution_rows_selected  # G_FILE_specieslocation   # st_read("species.shp")
 		if (length(rs) > 0) {
 			data <- data[rs, , drop = FALSE]
@@ -1426,6 +1481,7 @@ shinyServer(function(input, output) {
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, G$IMG_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
+		r <- as.factor(r)
 	
 		MotiveEco_SDM_plot(r)
 	})
@@ -1456,6 +1512,7 @@ shinyServer(function(input, output) {
 		dir_path <- file.path(G$SDM_AO_Dir_Folder, input$SDM_OU_Species, G$DIR_NAME_SDM)
 		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, G$IMG_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
+		r <- as.factor(r)
 		
 		MotiveEco_SDM_plot(r)
 	})  
@@ -1514,8 +1571,9 @@ shinyServer(function(input, output) {
 	
 	output$SRM_MO_SDM_model <- renderUI({
 	    G$SRM_SDM_Dir_Folder <<- file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$SRM_SDM_Dir)
-	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
-	    destfile <- file.path(G$SRM_SDM_Dir_Folder, SRM_Name_Species_list[1], G$DIR_NAME_SDM, paste(as.name(paste(SRM_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+#	    SRM_Name_Species_list <- list.dirs(path = G$SRM_SDM_Dir_Folder, full.names = FALSE, recursive = FALSE)
+#	    destfile <- file.path(G$SRM_SDM_Dir_Folder, SRM_Name_Species_list[1], G$DIR_NAME_SDM, paste(as.name(paste(SRM_Name_Species_list[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
+	    destfile <- file.path(G$SRM_SDM_Dir_Folder, input$SRM_MO_Species[1], G$DIR_NAME_SDM, paste(as.name(paste(input$SRM_MO_Species[1], "_ALL_eval.csv", sep = "")), sep = "", collapse = "--"))
 	    all_eval <- read.csv(destfile)
 	    G_FILE_species_evaluation <<- all_eval
 	    SRM_Name_Models_list <- as.character(G_FILE_species_evaluation$Prediction)
@@ -1531,7 +1589,7 @@ shinyServer(function(input, output) {
 	    # setting Climate change scenarios, Future time, Species and current environmental path
 	    dlist <- input$SRM_MO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	    clist <- input$SRM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	    ylist <- input$SRM_MO_Project_year  # c("2000", "2050") # c("2000", "2050", "2070")
+	    ylist <- input$SRM_MO_Project_year  # c(G$Var_Current_Folder, "2050") # c(G$Var_Current_Folder, "2050", "2070")
 	    slist <- input$SRM_MO_Species
 	    mlist <- input$SRM_MO_SDM_model
 	    
@@ -1603,12 +1661,12 @@ shinyServer(function(input, output) {
 	            
 	            
 	            # SPECIES_ID <- s # "S106" # S106 분비나무,  S002 구상나무, S010 요강나물, S012 변산바람꽂, S018 매자나무
-	            SPECIES_NAME <<- subset(DATA_SPECIES_NAME, get(NAME_SPECIES) == s, select = c(get(NAME_ID)))
+	            SPECIES_NAME <- subset(DATA_SPECIES_NAME, get(NAME_SPECIES) == s, select = c(get(NAME_ID)))
 #	            SPECIES_NAME <<- SPECIES_NAME[1,]
 #	            SPECIES_ID <<- as.character(SPECIES_NAME$ID)
-	            SPECIES_ID <<- SPECIES_NAME[1,]
-	            SPECIES_DATA <<- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
-	            SPECIES_DATA[,NAME_ID] <<- 1
+	            SPECIES_ID <- SPECIES_NAME[1,]
+	            SPECIES_DATA <- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
+	            SPECIES_DATA[,NAME_ID] <- 1
 	            
 	            SPECIES_DATA_P <- cbind(SPECIES_DATA[, c(NAME_LONG, NAME_LAT)], z = 1)
 	            names(SPECIES_DATA_P)[names(SPECIES_DATA_P) == NAME_LONG] <- "x"
@@ -1631,7 +1689,7 @@ shinyServer(function(input, output) {
 	                            R_SDM <- raster(file.path(org_path, Map))
 	                            R_SRM <- R_SDM
 	                            
-	                            file <- file.path(G$SE_Dir_Climate, "2000", paste("bio01", G$IMG_File, sep = ""))
+	                            file <- file.path(G$SE_Dir_Climate, G$Var_Current_Folder, SDM_Name_MO_Variables_selected[1])
 	                            rm <- raster(file)
 	                            rm[!is.na(rm[])] <- 0
 
@@ -1966,14 +2024,14 @@ shinyServer(function(input, output) {
 	    
 	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
-	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    crs(mask) <- CRS(G$Projection_Info)
 	    
 	    r_list <- NULL
 	    for (y in input$DM_MO_Project_year) {
 	    
 	        file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, G$IMG_File, sep = ""))
 	        r <- raster(file)
-	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	        crs(r) <- CRS(G$Projection_Info)
 	    
 	        for (k in input$DM_MO_Barrier_LanduseType) {
 	            r[r == as.integer(k)] <- 9999
@@ -2010,13 +2068,13 @@ shinyServer(function(input, output) {
 	    
 	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
-	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    crs(mask) <- CRS(G$Projection_Info)
 	    
 	    r_list <- NULL
 	    for (y in input$DM_MO_Project_year) {
 	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, G$IMG_File, sep = ""))
 	        r <- raster(file)
-	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	        crs(r) <- CRS(G$Projection_Info)
 	    
 	        r[r >= input$DM_MO_Barrier_Forestfire_Cutoff] <- 9999
 	        r[r != 9999] <- 0
@@ -2051,13 +2109,13 @@ shinyServer(function(input, output) {
 	    
 	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
-	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    crs(mask) <- CRS(G$Projection_Info)
 	    
 	    r_list <- NULL
 	    for (y in input$DM_MO_Project_year) {
 	        file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, G$IMG_File, sep = ""))
 	        r <- raster(file)
-	        crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	        crs(r) <- CRS(G$Projection_Info)
 	        
 	        r[r >= input$DM_MO_Barrier_Landslide_Cutoff] <- 9999
 	        r[r != 9999] <- 0
@@ -2092,7 +2150,7 @@ shinyServer(function(input, output) {
 	    
 	    file <- file.path(G$SE_Dir_Climate, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, input$DM_MO_Project_year[1], SDM_Name_MO_Variables_selected[1])
 	    mask <- raster(file)
-	    crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	    crs(mask) <- CRS(G$Projection_Info)
 	    
 	    dm_rlist <- NULL
 	    if (length(input$DM_MO_Barrier) > 0) {
@@ -2105,7 +2163,7 @@ shinyServer(function(input, output) {
 	            
 	            file <- file.path(G$SE_Dir_Link, input$DM_MO_Climate_model, input$DM_MO_Climate_scenario, y, paste(input$DM_MO_Barrier_Landuse, G$IMG_File, sep = ""))
 	            r <- raster(file)
-	            crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	            crs(r) <- CRS(G$Projection_Info)
 	            
 	            for (k in input$DM_MO_Barrier_LanduseType) {
 	                r[r == as.integer(k)] <- 9999
@@ -2128,7 +2186,7 @@ shinyServer(function(input, output) {
 	        for (y in input$DM_MO_Project_year) {
 	            file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Forestfire, G$IMG_File, sep = ""))
 	            r <- raster(file)
-	            crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	            crs(r) <- CRS(G$Projection_Info)
 	            
 	            r[r >= input$DM_MO_Barrier_Forestfire_Cutoff] <- 9999
 	            r[r != 9999] <- 0
@@ -2150,7 +2208,7 @@ shinyServer(function(input, output) {
             for (y in input$DM_MO_Project_year) {
                 file <- file.path(G$SE_Dir_Link, input$LD_Climate_model, input$LD_Climate_scenario, y, paste(DM_Name_DM_MO_Barrier_Landslide, G$IMG_File, sep = ""))
                 r <- raster(file)
-                crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+                crs(r) <- CRS(G$Projection_Info)
                 
                 r[r >= input$DM_MO_Barrier_Landslide_Cutoff] <- 9999
                 r[r != 9999] <- 0
@@ -2231,7 +2289,7 @@ shinyServer(function(input, output) {
 	  # setting Climate change scenarios, Future time, Species and current environmental path
 	  dlist <- input$DM_MO_Climate_model  # c("KMA") # c("KMA", "KEI", "WORLDCLIM")
 	  clist <- input$DM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
-	  ylist <- input$DM_MO_Project_year  # c("2000", "2050") # c("2000", "2050", "2070")
+	  ylist <- input$DM_MO_Project_year  # c(G$Var_Current_Folder, "2050") # c(G$Var_Current_Folder, "2050", "2070")
 	  slist <- input$DM_MO_Species
 	  mlist <- input$DM_MO_SDM_model
 	  
@@ -2810,7 +2868,7 @@ shinyServer(function(input, output) {
 				for (c in clist) {
 					for (m in mlist) {
 						if (ly > 1) {
-							if (ylist[1] == "2000") {
+							if (ylist[1] == G$Var_Current_Folder) {
 								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 								R_gap <- raster(R_Map1)
@@ -2929,7 +2987,7 @@ shinyServer(function(input, output) {
 				for (c in clist) {
 					for (m in mlist) {
 						if (ly > 0) {
-							if (ly == 1 & ylist[1] == "2000") {
+							if (ly == 1 & ylist[1] == G$Var_Current_Folder) {
 							  incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", ylist[1]))
 								n_tl <- n_tl + 1
 								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
@@ -2957,7 +3015,7 @@ shinyServer(function(input, output) {
 								Tab_gap$Area_Gain_Ratio_Outside_Reverse[n_tl] <- Tab_gap$Area_Gain_Ratio_Outside[n_tl] * -1
 								Tab_gap$Vulnerability_Area_Loss_Ratio[n_tl] <- 1 - Tab_gap$Area_Ratio[n_tl]
 								Tab_gap$Vulnerability_Area_LossIN_GainOUT_Ratio[n_tl] <- (Tab_gap$Area_Loss_Ratio[n_tl] / 100) - (Tab_gap$Area_Gain_Ratio_Outside[n_tl] / 100)
-							} else if (ly > 1 & ylist[1] == "2000") {
+							} else if (ly > 1 & ylist[1] == G$Var_Current_Folder) {
 							  incProgress(1/tl, detail = paste("Doing part", n, "/", ls, "(", s, ")", "_", d, "_", c, "_", m, "_", ylist[1]))
 								n_tl <- n_tl + 1
 								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
@@ -3199,11 +3257,11 @@ shinyServer(function(input, output) {
 				for (c in clist) {
 					for (m in mlist) {
 						if (ly > 0) {
-							if (ly == 1 && ylist[1] == "2000") {
+							if (ly == 1 && ylist[1] == G$Var_Current_Folder) {
 								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 								plot(R_Map1, main = Map1)
-							} else if (ly > 1 && ylist[1] == "2000") {
+							} else if (ly > 1 && ylist[1] == G$Var_Current_Folder) {
 								Map1 <- paste("PRED", "_", d, "_", c, "_", ylist[1], "_", s, "_", m, G$IMG_File, sep = "")
 								R_Map1 <- raster(file.path(dir_path, Map1))
 								plot(R_Map1, main = Map1)
@@ -4077,7 +4135,8 @@ shinyServer(function(input, output) {
 	  dir_path <- file.path(G$HA_AO_MI_Dir_Folder, input$HA_AO_Species, input$HA_AO_MI_Dir_Folder)
 	  Map <- paste("PRED", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_Project_year, "_", input$HA_AO_Species, "_", input$HA_AO_SDM_model, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
-	  
+	  r <- as.factor(r)
+
 	  MotiveEco_SDM_plot(r)
 	})
 	
@@ -4386,7 +4445,7 @@ shinyServer(function(input, output) {
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  Map <- paste("HA_SR", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  crs(r) <- CRS(G$Projection_Info)
 	  hist(r, # breaks = bins, 
 	       col="lightskyblue3",  # skyblue",
 	       border="white",
@@ -4975,7 +5034,7 @@ shinyServer(function(input, output) {
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  Map <- paste("HA_LOSS", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  crs(r) <- CRS(G$Projection_Info)
 	  hist(r, # breaks = bins, 
 	       col="lightskyblue3",  # skyblue",
 	       border="white",
@@ -5564,7 +5623,7 @@ shinyServer(function(input, output) {
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  Map <- paste("HA_STAY", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  crs(r) <- CRS(G$Projection_Info)
 	  hist(r, # breaks = bins, 
 	       col="lightskyblue3",  # skyblue",
 	       border="white",
@@ -6154,7 +6213,7 @@ shinyServer(function(input, output) {
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  Map <- paste("HA_GAIN", "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  crs(r) <- CRS(G$Projection_Info)
 	  hist(r, # breaks = bins, 
 	       col="lightskyblue3",  # skyblue",
 	       border="white",
@@ -6762,7 +6821,7 @@ shinyServer(function(input, output) {
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
 	  Map <- paste(input$HA_AO_VI_TYPE_UI, "_", input$HA_AO_Climate_model, "_", input$HA_AO_Climate_scenario, "_", input$HA_AO_SDM_model, "_", input$HA_AO_Project_year, G$IMG_File, sep = "")
 	  r <- raster(file.path(dir_path, Map))
-	  crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+	  crs(r) <- CRS(G$Projection_Info)
 	  hist(r, # breaks = bins, 
 	       col="lightskyblue3",  # skyblue",
 	       border="white",

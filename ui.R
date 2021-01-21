@@ -478,6 +478,10 @@ tags$script(HTML('
 								sidebarPanel(width = 3,
                   tags$p(SDM_Name_Model_Variable_Data),
                   uiOutput("SDM_MO_Variables_Select")
+								),
+								sidebarPanel(width = 3,
+                  tags$p(SDM_Name_Model_Variable_Data_Categorical),
+                  uiOutput("SDM_MO_Variables_Select_Categorical")
 								)
 							)
 						),
