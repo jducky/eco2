@@ -577,16 +577,54 @@ shinyServer(function(input, output) {
 	  
 	})
 	
-	output$SDM_SP_Selection <- renderPrint({
-		s_id <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][, G$SE_Species_ID])
-#		s_kname <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][, G$SE_Species_Name])
-		if (length(s_id)) {
-			cat('Speices ID:\n\n')
-			cat(s_id, sep = ', ')
-#			cat('\n\n')
-#			cat("Species Name:\n\n")
-#			cat(s_kname, sep = ', ')
-		}
+	observeEvent(input$SE_Dir_Species_List, {
+	  volumes <- c(main = G$SE_Dir_Project)  #getVolumes()
+	  shinyDirChoose(input, 'SE_Dir_Species_List', roots = volumes)
+	  G$SE_Dir_Species_List <<- parseDirPath(volumes, input$SE_Dir_Species_List)
+	  output$SE_Dir_Species_List <- renderText({G$SE_Dir_Species_List})
+	})
+	
+	output$SE_Species_List <- renderUI({
+	  if (is.null(G$SE_Dir_Species_List)) {
+	    G$SE_Dir_Species_List <- G$SE_Dir_Project
+	  }
+	  selectInput("SE_Species_List", SDM_Name_Model_Species_File, choice = list.files(path = G$SE_Dir_Species_List, pattern="\\.csv$", all.files=FALSE, full.names=FALSE))
+	})
+	
+	output$SDM_SP_Selection1 <- renderPrint({
+	  if (input$SDM_SP_Selection == "Data_Table") {
+	    s_id <<- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][, G$SE_Species_ID])
+	  } else {
+	    csv <- read.csv(file.path(G$SE_Dir_Species_List, input$SE_Species_List), header = F, sep = ",")
+	    nc <- ncol(csv)
+	    slist <- ""
+	    for(i in 1:nc){
+	      c <- as.character(csv[,i][csv[,i] != ""])
+	      slist <- c(slist, c)
+	    }
+	    s_id <<- slist[-1]
+	  }
+	  if (length(s_id)) {
+	    cat('Number of Speices:   ', length(s_id))
+	  }
+	})
+	
+	output$SDM_SP_Selection2 <- renderPrint({
+	  if (input$SDM_SP_Selection == "Data_Table") {
+	    s_id <<- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][, G$SE_Species_ID])
+	  } else {
+	    csv <- read.csv(file.path(G$SE_Dir_Species_List, input$SE_Species_List), header = F, sep = ",")
+	    nc <- ncol(csv)
+	    slist <- ""
+	    for(i in 1:nc){
+	      c <- as.character(csv[,i][csv[,i] != ""])
+	      slist <- c(slist, c)
+	    }
+	    s_id <<- slist[-1]
+	  }
+	  if (length(s_id)) {
+	    cat(s_id, sep = ",  ")
+	  }
 	})
 	
 	
@@ -864,7 +902,7 @@ shinyServer(function(input, output) {
 	  clist <- input$SDM_MO_Climate_scenario  # c("RCP4.5") # c("RCP4.5", "RCP8.5")
 	  ylist <- input$SDM_MO_Project_year  # c(G$Var_Current_Folder, "2050") # c(G$Var_Current_Folder, "2050", "2070")
 #	  slist <- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE]$ID) #c("S251") # input$SDM_MO_Species  # c("S251") # c("S015", "S134", "S145")
-	  slist <<- as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][[G$SE_Species_ID]])
+	  slist <- s_id  # as.character(G_FILE_speciesinfo[input$SDM_SP_Info_rows_selected, , drop = FALSE][[G$SE_Species_ID]])
 	  
 	  n <- 0
 	  ld <- length(dlist)
@@ -1004,7 +1042,7 @@ shinyServer(function(input, output) {
 	      SPECIES_ID <- s
 	      SPECIES_NAME <- subset(DATA_SPECIES_NAME, get(NAME_ID) == SPECIES_ID, select = c(get(NAME_SPECIES)))
 	      SPECIES_NAME <- as.character(SPECIES_NAME$K_NAME)
-	      SPECIES_DATA <<- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
+	      SPECIES_DATA <- subset(DATA_SPECIES_LOCATION, get(NAME_ID) == SPECIES_ID, select = c(NAME_ID, NAME_LONG, NAME_LAT))
 	      
 	      CUR_PATH <- getwd()
 	      setwd(PATH_ENV_INPUT)

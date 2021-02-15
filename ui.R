@@ -432,9 +432,20 @@ tags$script(HTML('
 					tabsetPanel(
 						tabPanel(SDM_Name_Model_Species, icon = icon("tree"),
 						  tags$br(),
+						  radioButtons("SDM_SP_Selection", NULL,
+						               choices = SDM_Name_Model_Species_List, 
+						               selected = "Data_Table",
+						               inline = TRUE),
+						  tags$hr(),
+						  shinyDirButton("SE_Dir_Species_List", SDM_Name_Model_Species_Dir, SDM_Name_Model_Species_Dir),
+						  textOutput("SE_Dir_Species_List"),
+						  tags$br(),
+						  uiOutput("SE_Species_List"),
+						  tags$hr(),
 							fluidRow(
-								column(6, DT::dataTableOutput("SDM_SP_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
-								column(4, verbatimTextOutput("SDM_SP_Selection"))
+							  column(6, DT::dataTableOutput("SDM_SP_Info"), style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
+							  column(4, textOutput("SDM_SP_Selection1")),
+							  column(4, textOutput("SDM_SP_Selection2"), style = "height:480px; overflow-y: scroll;overflow-x: scroll;")
 							)
 						),
 						tabPanel(SDM_Name_Model_Variable, icon = icon("list-ul"),

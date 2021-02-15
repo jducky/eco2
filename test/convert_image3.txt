@@ -1,0 +1,87 @@
+
+
+
+
+dir <- "D:/MOTIVE_Ecosystem/DATA/Climate"
+dlist <- c("KEI") # c("KMA", "KEI")
+slist <- c("RCP4.5", "RCP8.5")
+ylist <- c("2000", "2010", "2020", "2030", "2040", "2050", "2060", "2070", "2080")
+
+
+
+mask <- raster("D:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.grd")
+crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+
+for (d in dlist) {
+	for (s in slist) {
+		for (y in ylist) {
+			path <- file.path(dir, d, s, y)
+			oflist <- list.files(path = path, pattern="\\.tif$", all.files=FALSE, full.names=FALSE)
+			for (file in oflist) {	
+				r <- raster(file.path(dir, d, s, y, file))
+				crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+#				i <- projectRaster(r, mask, method='ngb')
+				f <- sub(".tif", "", file)
+				writeRaster(r, file = file.path(dir, d, s, y, paste(f, ".grd", sep = "")), overwrite = TRUE)
+			}
+		}
+	}
+}
+
+
+
+C:/MOTIVE_Ecosystem/DATA/Climate/2000
+
+dir <- "C:/MOTIVE_Ecosystem/DATA/Climate/2000"
+oflist <- list.files(path = dir, pattern="\\.grd$", all.files=FALSE, full.names=FALSE)
+tdir <- "C:/MOTIVE_Ecosystem/DATA/Climate_100m/2000"
+
+#mask <- raster("D:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.tif")
+#crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+
+
+
+for (file in oflist) {	
+	r <- raster(file.path(dir, file))
+	crs(r) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+#	i <- projectRaster(r, mask, method='ngb')
+	f <- sub(".grd", "", file)
+	writeRaster(r, file = file.path(tdir, paste(f, ".asc", sep = "")), format="ascii", overwrite = TRUE)
+}
+
+
+
+tdir <- "C:/MOTIVE_Ecosystem/DATA/Climate_100m/2000"
+mask <- raster("C:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.grd")
+crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+#newproj <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+
+r_a <- disaggregate(mask, fact = 10, fun = mean, na.rm = TRUE)
+
+elev <- raster(file.path(tdir, paste("elevation_100m.asc", sep = "")))
+crs(elev) <- CRS("+proj=utm +zone=52 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+#i <- projectRaster(elev, crs=newproj, res=0.001, method='ngb')
+i <- projectRaster(elev, r_a, method='ngb')
+writeRaster(i, file = file.path(tdir, paste("elevation_100mG.asc", sep = "")), format="ascii", overwrite = TRUE)
+
+
+C:/MOTIVE_Ecosystem/Github/Projects-master_KOR
+C:/MOTIVE_Ecosystem/DATA/Variables_100m
+C:/MOTIVE_Ecosystem/EnvData/WGS84_UTM_52N
+
+dir <- "C:/MOTIVE_Ecosystem/EnvData/WGS84_UTM_52N"
+oflist <- list.files(path = dir, pattern="\\.asc$", all.files=FALSE, full.names=FALSE)
+tdir <- "C:/MOTIVE_Ecosystem/DATA/Variables_100mGEO"
+
+mask <- raster("C:/MOTIVE_Ecosystem/DATA/Climate/2000/bio01.grd")
+crs(mask) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+r_a <- disaggregate(mask, fact = 10, fun = mean, na.rm = TRUE)
+
+for (file in oflist) {
+	r_asc <- read.asc(file.path(dir, file))
+	r <- raster(r_asc)
+	crs(r) <- CRS("+proj=utm +zone=52 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+	i <- projectRaster(r, r_a, method='ngb')
+	f <- sub(".asc", "", file)
+	writeRaster(i, file = file.path(tdir, paste(f, ".grd", sep = "")), overwrite = TRUE)
+}

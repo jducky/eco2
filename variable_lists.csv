@@ -80,6 +80,9 @@ CD_Name_Year_selected,0,2000,2000
 SDM_Name,0,Species Distribution Model,종분포모형
 SDM_Name_Model,0,Modeling,모형구동
 SDM_Name_Model_Species,0,Species selection,종선택
+SDM_Name_Model_Species_List,1,SDM_species_list,SDM_species_list
+SDM_Name_Model_Species_Dir,0,Species List Folder (Project Folder),종리스트 폴더 (프로젝트 폴더)
+SDM_Name_Model_Species_File,0,Species List File (.csv),종리스트 파일 (.csv)
 SDM_Name_Model_Variable,0,Variable selection,변수선택
 SDM_Name_Model_Variable_Option,0,Modeling Input Variables Options,모델링 내부입력 변수
 SDM_Name_Model_Variable_Distribution,0,Species Distribution,종분포 결과
@@ -123,7 +126,7 @@ SDM_Name_CD_Year_list,1,CD_Year_list,CD_Year_list
 SDM_Name_CD_Year_selected,0,2000,2000
 SDM_Name_models,0,Model types,모델유형
 SDM_Name_models_list,1,SDM_models_list,SDM_models_list
-SDM_Name_models_selected,0,GLM,GLM
+SDM_Name_models_selected,0,MAXENT.Phillips,MAXENT.Phillips
 SDM_Name_EMmodels,0,Ensemble,앙상블
 SDM_Name_models_run,0,Run,실행
 SDM_Name_MO_Variables_Create,0,Create Variables,변수생성

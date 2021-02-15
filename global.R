@@ -13,8 +13,8 @@
 #SDMTools
 #MigClim1.6
 
-packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
-libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
+packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "leafem", "stars", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
+libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "leafem", "stars", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
 
 # packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
 # libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
@@ -162,6 +162,9 @@ names(CD_Scenarios_list) = as.character(Option_lists[,"CD_Scenarios_name"][Optio
 CD_Year_list = as.character(Option_lists[,"CD_Year_value"][Option_lists[,"CD_Year_value"] != ""])
 names(CD_Year_list) = as.character(Option_lists[,"CD_Year_name"][Option_lists[,"CD_Year_name"] != ""])
 
+SDM_species_list = as.character(Option_lists[,"SDM_Species_value"][Option_lists[,"SDM_Species_value"] != ""])
+names(SDM_species_list) = as.character(Option_lists[,"SDM_Species_name"][Option_lists[,"SDM_Species_name"] != ""])
+
 SDM_models_list = as.character(Option_lists[,"SDM_models_value"][Option_lists[,"SDM_models_value"] != ""])
 names(SDM_models_list) = as.character(Option_lists[,"SDM_models_name"][Option_lists[,"SDM_models_name"] != ""])
 
@@ -260,6 +263,7 @@ MotiveEco_SDM_plot <- function(r)
   crs(r) <- CRS(G$Projection_Info)
   pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
                       na.color = "transparent")
+#  tst = read_stars(r)
   
   leaflet() %>%
 #    addTiles(
@@ -268,8 +272,10 @@ MotiveEco_SDM_plot <- function(r)
 #    ) %>%
     addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
     
-#    addRasterImage(r, colors = pal, opacity = 0.7,) %>%
-    addRasterImage(r, colors = pal, opacity = 0.7, , maxBytes = 10 * 1024 * 1024) %>%
+    addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+#    leafem:::addGeoRaster(r, resolution = 96, colorOptions = colorOptions(palette = pal), opacity = 0.7,) %>%
+#    leafem:::addGeoRaster(r, resolution = 0.01, colorOptions = colorOptions(palette = pal), opacity = 1,) %>%
+#    addRasterImage(r, colors = pal, opacity = 0.7, , maxBytes = 10 * 1024 * 1024) %>%
     addLegend(pal = pal, values = values(r), title = "Legend")  %>%
     setView(lng = 127.00, lat = 36.00, zoom = 7)
 }
