@@ -39,6 +39,11 @@ SE_Name_DE_GIS,0,GIS Data Path,GIS자료
 SE_Name_DE_Species,0,Species Data Path,생물종자료
 SE_Name_DE_Species_Index,0,Select species index data (CSV file) Data Path,생물종정보 인덱스 자료 (CSV file)
 SE_Name_DE_Species_Location,0,Select species location data (CSV file),생물종위치자료 (CSV file)
+SE_Name_Image_Input,0,Select Input Image Format,입력 이미지파일 형식
+SE_Name_Image_File,0,Select Output Image Format,출력 이미지파일 형식
+SE_Name_Image_Info,0,Select Input Image information Format,출력 이미지정보 형식
+SE_Name_Image_File_list,1,Image_File_list,Image_File_list
+SE_Name_Image_Info_list,1,Image_Info_list,Image_Info_list
 SP_Name,0,Species Data,생물종자료
 SP_Name_Info,0,Species Information,생물종정보
 SP_Name_Location,0,Species Location,생물종위치
@@ -101,7 +106,7 @@ SDM_Name_Model_SDM_Modeling,0,SDM Modeling Optios,SDM 모델링 옵션
 SDM_Name_Model_SDM_Projection,0,Model Projection Options,모델 예측 옵션
 SDM_Name_Model_SDM_Ensemble,0,Ensemble Modeling Options,앙상블 모델링 옵션
 SDM_Name_Model_Out,0,Modeling Outputs,모형결과
-SDM_Name_Model_Out_Folder,0,Select a Species Distribution Folder,종분포 결과 폴더
+SDM_Name_Model_Out_Folder,0,Select a Species Distribution Folder,종분포모형 폴더
 SDM_Name_Model_Out_Species,0,Select a Species,종 선택
 SDM_Name_Model_Out_Model_Projection,0,Select a Projection Model,확률모델
 SDM_Name_Model_Out_Model_Prediction,0,Select a Prediction Model,예측모델
@@ -174,7 +179,7 @@ SRM_Name_VoronoiHull_sampling_Type_selected,0,ratio,ratio
 SRM_Name_SRM_MO_Folder,0,SRM Model Foler Name (SRM_*****),SRM 모형 결과 폴더 (SRM_*****)
 SRM_Name_SRM_MO_Action,0,Run,실행
 SRM_Name_Model_Out,0,Model Outputs,모형결과
-SRM_Name_Model_Out_Folder,0,Species Modeling Folder,종모델링 폴더
+SRM_Name_Model_Out_Folder,0,Species Modeling Folder,종분포모형 폴더
 SRM_Name_Model_Out_Model,0,SRM Modeling Folder,서식영역 모델링 폴더
 SRM_Name_Model_Out_Species,0,Select a Species,종 선택
 SRM_Name_Model_Out_SDM,0,Select a Model,SDM 모델 선택
@@ -182,7 +187,7 @@ SRM_Name_Out_Plot,0,Species Range Plot,생물종 서식영역
 DM_Name,0,Species Dispersal Model,종확산모형
 DM_Name_Model,0,Modeling,모형구동
 DM_Name_Model_SDM,0,SDM Option,SDM모형 옵션
-DM_Name_Model_SDM_Folder,0,SDM Output Folder,SDM 평가결과 폴더
+DM_Name_Model_SDM_Folder,0,SDM Output Folder,종분포모형 폴더
 DM_Name_Model_SDM_Select_All,0,Select All,전체 선택
 DM_Name_Model_SDM_Select_None,0,Unselect All,선택 해제
 DM_Name_Model_SDM_Species,0,Select a Species,종 선택
@@ -198,7 +203,7 @@ DM_Name_Model_DM_Barrier_Proportion_Landslide,0,Proportion of Landslide occurenc
 DM_Name_Model_DM,0,Dispersal Model Option,확산모형 옵션
 DM_Name_Model_DM_Folder,0,DM Model Foler Name (MIGCLIM_*****),DM 평가결과 폴더 (MIGCLIM_*****)
 DM_Name_Model_Out,0,Model Outputs,모형결과
-DM_Name_Model_Out_Folder,0,Species Modeling Folder,종모델링 폴더
+DM_Name_Model_Out_Folder,0,Species Modeling Folder,종분포모형 폴더
 DM_Name_Model_Out_Model,0,Dispersal Modeling Folder,확산 모델링 폴더
 DM_Name_Model_Out_Species,0,Select a Species,종 선택
 DM_Name_Model_Out_SDM,0,Select a Model,SDM 모델 선택
@@ -256,8 +261,8 @@ DM_Name_Display_types_selected,0,SDM,SDM
 DM_Name_Dir,0,DM Output Folder,DM 평가결과 폴더
 SA_Name,0,Species Assessment,생물종 평가
 SA_Name_Analysis,0,Impact and Vulnerability Asessment,영향 및 취약성평가
-SA_Name_Analysis_Folder,0,Species Modeling Folder,종모델링 폴더
-SA_Name_Analysis_Model,0,SDM Modeling Folder,확산 모델링 폴더
+SA_Name_Analysis_Folder,0,Species Assessment Folder,생물종평가 폴더
+SA_Name_Analysis_Model,0,Species Modeling Folder,종모델링 폴더
 SA_Name_Analysis_Select_All,0,Select All,전체 선택
 SA_Name_Analysis_Select_None,0,Unselect All,선택 해제
 SA_Name_Analysis_Species,0,Select a Species,종을 선택하세요.
@@ -265,8 +270,8 @@ SA_Name_Analysis_SDM,0,Select a Model,SDM 모델 선택
 SA_Name_Analysis_Change,0,Analayzing the change of Species Distribution,종분포 변화 분석
 SA_Name_Analysis_Vulnerability,0,Calculating the Climate Vulnerability Index of Species,종 취약성지수 산출
 SA_Name_Out,0,Assessment Result,평가결과
-SA_Name_Out_Folder,0,Species Modeling Folder,종모델링 폴더
-SA_Name_Out_Model,0,SDM Modeling Folder,확산 모델링 폴더
+SA_Name_Out_Folder,0,Species Assessment Folder,생물종평가 폴더
+SA_Name_Out_Model,0,Species Modeling Folder,종모델링 폴더
 SA_Name_Out_Select_All,0,Select All,전체 선택
 SA_Name_Out_Select_None,0,Unselect All,선택 해제
 SA_Name_Out_Species,0,Select a Species,종을 선택하세요.
@@ -315,16 +320,16 @@ SA_Name_MO_Dir,0,Input Folder,민감종평가 입력폴더
 SA_Name_AO_Dir,0,Output Folder,민감종평가 결과폴더
 HA_Name,0,Habitat Assessment,서식지 평가
 HA_Name_Anlayis,0,Change Analysis,영향 평가
-HA_Name_Analysis_Folder,0,Species Modeling Folder,종모델링 폴더
-HA_Name_Analysis_Folder,0,SDM Modeling Folder,확산 모델링 폴더
+HA_Name_Analysis_Folder,0,Species Assessment Folder,생물종평가 폴더
+HA_Name_Analysis_Model,0,Species Modeling Folder,종모델링 폴더
 HA_Name_Analysis_Select_All,0,Select All,전체 선택
 HA_Name_Analysis_Select_None,0,Unselect All,선택 해제
 HA_Name_Analysis_Species,0,Select a Species,종을 선택하세요.
 HA_Name_Analysis_SDM,0,Select a Model,SDM 모델 선택
 HA_Name_Out,0,Model Outputs,평가결과
-HA_Name_Out_Folder,0,Species Modeling Folder,종모델링 폴더
-HA_Name_Out_Model,0,SDM Modeling Folder,확산 모델링 폴더
-HA_Name_Out_Folder_Habitat,0,Habitat Modeling Folder,서식지 모델링 폴더
+HA_Name_Out_Folder,0,Species Assessment Folder,생물종평가 폴더
+HA_Name_Out_Model,0,Species Modeling Folder,종모델링 폴더
+HA_Name_Out_Folder_Habitat,0,Habitat Assessment Folder,서식지평가 폴더
 HA_Name_Out_Species_Select,0,Select a Species,종을 선택하세요.
 HA_Name_Out_SDM,0,Select a Model,SDM 모델 선택
 HA_Name_Out_Species,0,Species Distribution,생물종 분포

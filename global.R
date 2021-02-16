@@ -13,8 +13,8 @@
 #SDMTools
 #MigClim1.6
 
-packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "leafem", "stars", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
-libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "leafem", "stars", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
+packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
+libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
 
 # packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
 # libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
@@ -84,12 +84,17 @@ if (length(destfile) == 0 | !file.exists(destfile)) {
   G$SE_Species_Name <- as.character(system_env[12,2])
   G$SE_Species_Location_Longitude <- as.character(system_env[13,2])
   G$SE_Species_Location_Latitude <- as.character(system_env[14,2])
-  G$IMG_File <- as.character(system_env[15,2])
-  G$IMG_Info <- as.character(system_env[16,2])
-  G$Var_Current_Folder <- as.character(system_env[17,2])
-  G$Projection_Info <- as.character(system_env[21,2])
+  G$IMG_Input <- as.character(system_env[15,2])
+  SE_Name_Image_Input_list_selected <- isolate(G$IMG_Input)
+  G$IMG_File <- as.character(system_env[16,2])
+  SE_Name_Image_File_list_selected <- isolate(G$IMG_File)
+  G$IMG_Info <- as.character(system_env[17,2])
+  SE_Name_Image_Info_list_selected <- isolate(G$IMG_Info)
+  SE_Name_Leaflet_Width <- as.character(system_env[18,2])
+  SE_Name_Leaflet_Height <- as.character(system_env[19,2])
+  G$Var_Current_Folder <- as.character(system_env[20,2])
+  G$Projection_Info <- as.character(system_env[24,2])
 }
-
 
 destfile <- file.path(MOTIVE_DIR, "Project_Information.csv")
 if (length(destfile) == 0 | !file.exists(destfile)) {
@@ -131,10 +136,12 @@ G$DIR_NAME_SRM <- "SRM_"
 G$DIR_NAME_DM <- "MIGCLIM_"
 G$COL_CODE_PLOT_Ramp2 <- c("deepskyblue4", "darkorange2") # c("azure2", "darkolivegreen")  # c("coral4", "azure", "darkolivegreen4") deepskyblue4 dimgray
 G$COL_CODE_PLOT_Ramp3 <- c("deepskyblue4", "azure", "darkorange2") #   c("coral4", "azure", "darkolivegreen")  # c("dimgray", "azure", "darkolivegreen4")
+G$COL_CODE_PLOT_LD_Ramp2 <- c("gray90", "chocolate4")
+G$COL_CODE_PLOT_CD_Ramp3 <- c("deepskyblue4", "aliceblue", "firebrick4")
 G$COL_CODE_STAT_BND <- "lightskyblue3" # "lightseagreen" # "steelblue"
 G$COL_CODE_STAT_SP <- "lightseagreen" #"mediumseagreen" #"darkolivegreen4"
 
-Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[18,2])), header = T, sep = ",")
+Variable_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[21,2])), header = T, sep = ",")
 Variable_lists[is.na(Variable_lists)] = ""
 if (SE_Language == "English") {
     language_position <- 3
@@ -145,11 +152,11 @@ if (SE_Language == "English") {
 }
 
 if (SE_Language == "English") {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[19,2])), header = T, sep = ",")
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[22,2])), header = T, sep = ",")
 } else if (SE_Language == "Korean"){
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[20,2])), header = T, sep = ",")   
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[23,2])), header = T, sep = ",")   
 } else {
-    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[19,2])), header = T, sep = ",")  
+    Option_lists <- read.csv(file.path(MOTIVE_DIR, as.character(system_env[22,2])), header = T, sep = ",")  
 }
 Option_lists[is.na(Option_lists)] = ""
 
@@ -231,6 +238,11 @@ names(HA_Group2_list) = as.character(Option_lists[,"HA_Group2_name"][Option_list
 HA_VI_list = as.character(Option_lists[,"HA_VI_value"][Option_lists[,"HA_VI_value"] != ""])
 names(HA_VI_list) = as.character(Option_lists[,"HA_VI_name"][Option_lists[,"HA_VI_name"] != ""])
 
+Image_File_list = as.character(Option_lists[,"Image_File_value"][Option_lists[,"Image_File_value"] != ""])
+names(Image_File_list) = as.character(Option_lists[,"Image_File_name"][Option_lists[,"Image_File_name"] != ""])
+
+Image_Info_list = as.character(Option_lists[,"Image_Info_value"][Option_lists[,"Image_Info_value"] != ""])
+names(Image_Info_list) = as.character(Option_lists[,"Image_Info_name"][Option_lists[,"Image_Info_name"] != ""])
 
 for (v in 1: nrow(Variable_lists)) {
     if(Variable_lists[v,2] == 0) {
@@ -263,20 +275,39 @@ MotiveEco_SDM_plot <- function(r)
   crs(r) <- CRS(G$Projection_Info)
   pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
                       na.color = "transparent")
-#  tst = read_stars(r)
   
   leaflet() %>%
-#    addTiles(
-#      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-#      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-#    ) %>%
+    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+    addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+    setView(lng = 127.00, lat = 36.00, zoom = 7)
+}
+
+MotiveEco_LD_plot <- function(r)
+{
+  crs(r) <- CRS(G$Projection_Info)
+  pal <- colorFactor(G$COL_CODE_PLOT_LD_Ramp2, values(r),
+                     na.color = "transparent")
+  
+  leaflet() %>%
     addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
     
     addRasterImage(r, colors = pal, opacity = 0.7,) %>%
-#    leafem:::addGeoRaster(r, resolution = 96, colorOptions = colorOptions(palette = pal), opacity = 0.7,) %>%
-#    leafem:::addGeoRaster(r, resolution = 0.01, colorOptions = colorOptions(palette = pal), opacity = 1,) %>%
-#    addRasterImage(r, colors = pal, opacity = 0.7, , maxBytes = 10 * 1024 * 1024) %>%
-    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+    addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
+    setView(lng = 127.00, lat = 36.00, zoom = 7)
+}
+
+MotiveEco_CD_plot <- function(r)
+{
+  crs(r) <- CRS(G$Projection_Info)
+  pal <- colorFactor(G$COL_CODE_PLOT_CD_Ramp3, values(r),
+                     na.color = "transparent")
+  
+  leaflet() %>%
+    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+    
+    addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+    addLegend(pal = pal, values = values(r), title = "Legend")  %>%	
     setView(lng = 127.00, lat = 36.00, zoom = 7)
 }
 

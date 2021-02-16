@@ -68,7 +68,19 @@ shinyUI(
           tags$hr(),
           uiOutput("SE_speciesindex"),
           uiOutput("SE_specieslocation"),
-          tags$hr()
+          tags$hr(),
+          selectInput("SE_Image_Input", SE_Name_Image_Input,
+                      choices = c(SE_Name_Image_File_list),
+                      selected = SE_Name_Image_Input_list_selected
+          ),
+          selectInput("SE_Image_File", SE_Name_Image_File,
+                      choices = c(SE_Name_Image_File_list),
+                      selected = SE_Name_Image_File_list_selected
+          ),
+          selectInput("SE_Image_Info", SE_Name_Image_Info,
+                      choices = c(SE_Name_Image_Info_list),
+                      selected = SE_Name_Image_Info_list_selected
+          )
         )
       )
     ),
@@ -338,7 +350,7 @@ tags$script(HTML('
 							includeScript("gomap.js")
 							),
 							tags$br(),
-							column(6, leafletOutput("LD_Map", width = "800", height = "650"))
+							column(6, leafletOutput("LD_Map", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
 						),
 						tabPanel(LD_Name_Summary, icon = icon("list-alt"),
 							tags$br(),
@@ -354,7 +366,7 @@ tags$script(HTML('
 						             includeScript("gomap.js")
 						         ),
 						  tags$br(),
-						  column(6, leafletOutput("LD_Map_Landuse", width = "800", height = "650"))
+						  column(6, leafletOutput("LD_Map_Landuse", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
 						),
 						tabPanel(LD_Name_Map_Forestfire, icon = icon("layer-group"), 
 						         tags$head(
@@ -363,7 +375,7 @@ tags$script(HTML('
 						             includeScript("gomap.js")
 						         ),
 						  tags$br(),
-						  column(6, leafletOutput("LD_Map_Forestfire", width = "800", height = "650"))
+						  column(6, leafletOutput("LD_Map_Forestfire", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
 						),
 						tabPanel(LD_Name_Map_Landslide, icon = icon("layer-group"), 
 						         tags$head(
@@ -372,7 +384,7 @@ tags$script(HTML('
 						             includeScript("gomap.js")
 						         ),
 						  tags$br(),
-						  column(6, leafletOutput("LD_Map_Landslide", width = "800", height = "650"))
+						  column(6, leafletOutput("LD_Map_Landslide", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
 						)
 					)
 				)
@@ -411,7 +423,7 @@ tags$script(HTML('
 								includeScript("gomap.js")
 							),
 							tags$br(),
-							column(6, leafletOutput("CD_Map", width = "800", height = "650"))
+							column(6, leafletOutput("CD_Map", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
 						),
 						tabPanel(CD_Name_Summary, icon = icon("list-alt"),
 						  tags$br(),
@@ -684,7 +696,7 @@ tags$script(HTML('
 										includeScript("gomap.js")
 									),
 									tags$br(),
-									leafletOutput("SDM_OU_Probability_map", width = "800", height = "600"),
+									leafletOutput("SDM_OU_Probability_map", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height),
 									tags$hr(),
 #									column(10, verbatimTextOutput("SDM_OU_PROJ_Summary")),
 									column(9, plotOutput("SDM_OU_PROJ_Histogram"))
@@ -696,7 +708,7 @@ tags$script(HTML('
 										includeScript("gomap.js")
 									),
 									tags$br(),
-									leafletOutput("SDM_OU_Predicted_map", width = "800", height = "600"),
+									leafletOutput("SDM_OU_Predicted_map", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height),
 									tags$hr(),
 #									column(10, verbatimTextOutput("SDM_OU_PRED_Summary")),
 									column(9, plotOutput("SDM_OU_PRED_Histogram"))
@@ -938,7 +950,7 @@ tabPanel(DM_Name,
                                                 includeScript("gomap.js")
                                               ),
                                               tags$br(),
-                                              column(6, leafletOutput("DM_Map_Landuse", width = "800", height = "650"))
+                                              column(6, leafletOutput("DM_Map_Landuse", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
                                      ),
                                      tabPanel(DM_Name_Map_Forestfire, icon = icon("layer-group"), 
                                               tags$head(
@@ -947,7 +959,7 @@ tabPanel(DM_Name,
                                                 includeScript("gomap.js")
                                               ),
                                               tags$br(),
-                                              column(6, leafletOutput("DM_Map_Forestfire", width = "800", height = "650"))
+                                              column(6, leafletOutput("DM_Map_Forestfire", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
                                      ),
                                      tabPanel(DM_Name_Map_Landslide, icon = icon("layer-group"), 
                                               tags$head(
@@ -956,7 +968,7 @@ tabPanel(DM_Name,
                                                 includeScript("gomap.js")
                                               ),
                                               tags$br(),
-                                              column(6, leafletOutput("DM_Map_Landslide", width = "800", height = "650"))
+                                              column(6, leafletOutput("DM_Map_Landslide", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
                                      ),
                                      tabPanel(DM_Name_Map_Total, icon = icon("layer-group"), 
                                               tags$head(
@@ -965,7 +977,7 @@ tabPanel(DM_Name,
                                                 includeScript("gomap.js")
                                               ),
                                               tags$br(),
-                                              column(6, leafletOutput("DM_Map_Total", width = "800", height = "650"))
+                                              column(6, leafletOutput("DM_Map_Total", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height))
                                      )
                                    )
                                  )
