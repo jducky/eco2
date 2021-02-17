@@ -113,7 +113,9 @@ SDM_Name_Model_Out_Model_Prediction,0,Select a Prediction Model,예측모델
 SDM_Name_Model_Out_Validation,0,Validation,모형검증
 SDM_Name_Model_Out_Contribution,0,Contribution,변수기여도
 SDM_Name_Model_Out_Probability,0,Probability Map,확률지도
+SDM_Name_Model_Out_Probability_Species,0,Display Species,생물종 위치
 SDM_Name_Model_Out_Prediction,0,Predicted Map,예측지도
+SDM_Name_Model_Out_Prediction_Species,0,Display Species,생물종 위치
 SDM_Name_MO_Variables,0,SDM Variables,SDM 변수
 SDM_Name_MO_AO_Variables,0,Modeling Input Variables,모형입력변수
 SDM_Name_MO_Variables_list,1,SDM_Variables_list,SDM_Variables_list

@@ -275,12 +275,32 @@ MotiveEco_SDM_plot <- function(r)
   crs(r) <- CRS(G$Projection_Info)
   pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
                       na.color = "transparent")
-  
-  leaflet() %>%
-    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
-    addRasterImage(r, colors = pal, opacity = 0.7,) %>%
-    addLegend(pal = pal, values = values(r), title = "Legend")  %>%
-    setView(lng = 127.00, lat = 36.00, zoom = 7)
+    leaflet() %>%
+      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+      addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+      addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+      setView(lng = 127.00, lat = 36.00, zoom = 7)    
+}
+
+MotiveEco_SDM_plot_Species <- function(r, s, c)
+{
+  crs(r) <- CRS(G$Projection_Info)
+  pal <- colorNumeric(G$COL_CODE_PLOT_Ramp3, values(r),
+                      na.color = "transparent")
+  if (c) {
+    leaflet() %>%
+      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+      addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+      addMarkers(data = s, lng = s[[G$SE_Species_Location_Longitude]], lat = s[[G$SE_Species_Location_Latitude]], clusterOptions = markerClusterOptions()) %>%
+      addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+      setView(lng = 127.00, lat = 36.00, zoom = 7)
+  } else {
+    leaflet() %>%
+      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+      addRasterImage(r, colors = pal, opacity = 0.7,) %>%
+      addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+      setView(lng = 127.00, lat = 36.00, zoom = 7)    
+  } 
 }
 
 MotiveEco_LD_plot <- function(r)

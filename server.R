@@ -611,9 +611,9 @@ shinyServer(function(input, output) {
 	})
 	
 	output$SDM_MO_Variables_Select_Categorical <- renderUI({
-	  SDM_Name_MO_Variables_list <- input$SDM_MO_Variables
+	  SDM_Name_MO_Variables_selected <- input$SDM_MO_Variables
 	  checkboxGroupInput("SDM_MO_Variables_Categorical", SDM_Name_MO_Variables,
-	                     choices = c(SDM_Name_MO_Variables_list)
+	                     choices = c(SDM_Name_MO_Variables_selected)
 	  )
 	})
 	
@@ -924,19 +924,21 @@ shinyServer(function(input, output) {
 	    setwd(PATH_ENV_INPUT)
 	    if (length(ENV_VARIABLES) != 0) {
 	      v_stack <- ""
-	      if (length(CON_VARIABLES) != 0) {
+	      if (length(ENV_VARIABLES) != 0) {
 	        for (i in CON_VARIABLES) {
 	          v1 <- raster(i)
+	          names(v1) <- sub(input$SE_Image_Input, "", i)
 	          v_stack <- c(v_stack, v1)
 	        }
 	      }
 	      if (length(CAT_VARIABLES) != 0) {
 	        for (j in CAT_VARIABLES) {
 	          v2 <- as.factor(raster(j))
+	          names(v2) <- sub(input$SE_Image_Input, "", j)
 	          v_stack <- c(v_stack, v2)
 	        }
 	      }
-	      SDM_VARIABLES <- v_stack[-1]
+	      SDM_VARIABLES <<- v_stack[-1]
 	    }
 	    setwd(CUR_PATH)
 	    
@@ -1032,16 +1034,8 @@ shinyServer(function(input, output) {
 	      SPECIES_DATA <- cbind(ID = 1, t)
 	      colnames(SPECIES_DATA) <- c(NAME_ID, NAME_LONG, NAME_LAT)
 	      
-#	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID] <- 1)
-#	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID])
-	      
 	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID])
-	      
-#	      CUR_PATH <- getwd()
-#	      setwd(PATH_ENV_INPUT)
 	      myExpl <- stack(SDM_VARIABLES)  #stack(ENV_VARIABLES)
-#	      setwd(CUR_PATH)
-	      
 	      myRespXY <- SPECIES_DATA[,c(NAME_LONG, NAME_LAT)]
 	      myRespName <- SPECIES_NAME
 	      ##### End Setting Environmental variables ===================         
@@ -1107,7 +1101,7 @@ shinyServer(function(input, output) {
 	            # Setting Projection Environmenta variables
 	            CUR_PATH <- getwd()
 	            setwd(PATH_ENV_OUTPUT)
-	            myExpl <- stack(ENV_VARIABLES)
+	            myExpl <- stack(SDM_VARIABLES)  #stack(ENV_VARIABLES)
 	            setwd(CUR_PATH)
 	            
 	            # Defining projection Options using default options.
@@ -1494,8 +1488,10 @@ shinyServer(function(input, output) {
 		Map <- paste("PROJ", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Projection_model, input$SE_Image_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
 		r <- as.factor(r)
-	
-		MotiveEco_SDM_plot(r)
+		s <- read.csv(file.path(dir_path, paste(input$SDM_OU_Species, "_BIOMOD2_species.csv", sep="")))
+		
+	  c <- input$SDM_Name_Model_Out_Probability_Species
+	  MotiveEco_SDM_plot_Species(r, s, c)
 	})
 	
 	output$SDM_OU_PROJ_Summary <- renderPrint({
@@ -1525,8 +1521,10 @@ shinyServer(function(input, output) {
 		Map <- paste("PRED", "_", input$SDM_OU_Climate_model, "_", input$SDM_OU_Climate_scenario, "_", input$SDM_OU_Project_year, "_", input$SDM_OU_Species, "_", input$SDM_OU_Prediction_model, input$SE_Image_File, sep = "")
 		r <- raster(file.path(dir_path, Map))
 		r <- as.factor(r)
+		s <- read.csv(file.path(dir_path, paste(input$SDM_OU_Species, "_BIOMOD2_species.csv", sep="")))
 		
-		MotiveEco_SDM_plot(r)
+		c <- input$SDM_Name_Model_Out_Prediction_Species
+		MotiveEco_SDM_plot_Species(r, s, c)
 	})  
 	
 	output$SDM_OU_PRED_Summary <- renderPrint({

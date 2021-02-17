@@ -695,7 +695,8 @@ tags$script(HTML('
 										includeCSS("styles.css"),
 										includeScript("gomap.js")
 									),
-									tags$br(),
+#									tags$br(),
+									checkboxInput("SDM_Name_Model_Out_Probability_Species", SDM_Name_Model_Out_Probability_Species, value = TRUE),
 									leafletOutput("SDM_OU_Probability_map", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height),
 									tags$hr(),
 #									column(10, verbatimTextOutput("SDM_OU_PROJ_Summary")),
@@ -708,6 +709,7 @@ tags$script(HTML('
 										includeScript("gomap.js")
 									),
 									tags$br(),
+#									checkboxInput("SDM_Name_Model_Out_Prediction_Species", SDM_Name_Model_Out_Prediction_Species, value = TRUE),
 									leafletOutput("SDM_OU_Predicted_map", width = SE_Name_Leaflet_Width, height = SE_Name_Leaflet_Height),
 									tags$hr(),
 #									column(10, verbatimTextOutput("SDM_OU_PRED_Summary")),
