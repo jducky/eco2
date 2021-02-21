@@ -396,5 +396,7 @@ HA_Name_SD_Habitat_Plot_Types_selected,0,Map,Map
 HA_Name_VI_Types,0,Vulnerability Type,취약성 유형
 HA_Name_VI_Types_list,1,HA_VI_list,HA_VI_list
 HA_Name_VI_Types_selected,0,HA_VI1,HA_VI1
+ME_NAME_NotExist,0,does not exist.,이(가) 없습니다.
+ME_NAME_Alert,0,You did it!,작업을 완료하였습니다!
 HELP_Name,0,Help,도움말
 HELP_Name_Content,0,"MOTIVE Ecosystem (Climate Change Impact and Vulnerability Assessment Model for Ecosystem) was funded by the “Climate Change Response Technology Project” of the Ministry of Environment, the Republic of Korea (Project No.: 2014001310009)",MOTIVE Ecosystem (생태계 기후변화 영향 및 취약성평가모형)은 대한민국 환경부 기후변화 R&D 과제인 “Climate Change Response Technology Project” (Project No.: 2014001310009)의 결과물입니다.

@@ -83,7 +83,7 @@ shinyServer(function(input, output) {
 	    if (length(destfile) == 0 | !file.exists(destfile)) {
 	      showModal(modalDialog(
 	        title = "Error Message",
-	        paste(destfile, "does not exist.")
+	        paste(destfile, ME_NAME_NotExist)
 	      ))
 	    } 
 	      verbatimTextOutput("SE_Project_New_Path_Name")
@@ -202,12 +202,11 @@ shinyServer(function(input, output) {
 	    if (file.exists(destfile)) { 
 	        SDM_variables_lists <- read.csv(destfile, header = T, sep = ",")
 	        SDM_variables_lists[is.na(SDM_variables_lists)] = ""
-	        
 	        SDM_variables_lists_T <- data.frame(t(SDM_variables_lists))
 	        rownames(SDM_variables_lists_T) <- colnames(SDM_variables_lists)
 	        SDM_variables_lists_T[-1,]
 	    } 
-	    }, rownames = TRUE, colnames = FALSE)
+	}, rownames = TRUE, colnames = FALSE)
 	
 	output$SE_Dir_Project_SDM_Species_Model_Output <- renderPrint({
       Dir_Project_SDM_Species_Model_list_csv <- list.files(path = file.path(G$SE_Dir_Project, G$DIR_NAME_Species, input$Dir_Project_SDM, input$Dir_Project_SDM_Species, input$Dir_Project_SDM_Species_Model), pattern="\\.csv$", all.files=FALSE, full.names=FALSE)
@@ -228,14 +227,13 @@ shinyServer(function(input, output) {
 	output$SE_Dir_Project_HA_Species_Model_Options <- renderTable({
 	    
 	    destfile <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$Dir_Project_HA, "HabitatAssessment_Options.csv")
-	    
-	    HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
-	    HA_Options_lists[is.na(HA_Options_lists)] = ""
-	    
-	    HA_Options_lists_T <- data.frame(t(HA_Options_lists))
-	    rownames(HA_Options_lists_T) <- colnames(HA_Options_lists)
-	    HA_Options_lists_T[-1,]
-	    
+	    if (file.exists(destfile)) {
+	      HA_Options_lists <- read.csv(destfile, header = T, sep = ",")
+	      HA_Options_lists[is.na(HA_Options_lists)] = ""
+	      HA_Options_lists_T <- data.frame(t(HA_Options_lists))
+	      rownames(HA_Options_lists_T) <- colnames(HA_Options_lists)
+	      HA_Options_lists_T[-1,]
+	    }
 	}, rownames = TRUE, colnames = FALSE)
 	
 	output$SE_Dir_Project_HA_Species_Model_Output <- renderPrint({
@@ -356,7 +354,7 @@ shinyServer(function(input, output) {
 		    addLegend(position = "topright", pal = pal, values = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), title = "Legend")  %>%
 		    setView(lng = 127.00, lat = 36.00, zoom = 7)
 		} else {
-		  pal <- colorNumeric(c("deepskyblue4", "aliceblue", "firebrick4"), values(r), na.color = "transparent")	
+		  pal <- colorNumeric(G$COL_CODE_PLOT_LD_Ramp3, values(r), na.color = "transparent")	
 		  leaflet() %>%
 		    addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
 		    addRasterImage(r, colors = pal, opacity = 0.8,) %>%
@@ -440,8 +438,50 @@ shinyServer(function(input, output) {
 	  file <- file.path(G$SE_Dir_Climate, input$CD_Climate_model, input$CD_Climate_scenario, input$CD_Project_year, input$CD_Variables)
 	  r <- raster(file)
 	  crs(r) <- CRS(G$Projection_Info)
-	  
-	  MotiveEco_CD_plot(r)
+	  r <- as.factor(r)
+#	  MotiveEco_CD_plot(r)
+	  CD_Variables <- sub(input$SE_Image_Input, "",input$CD_Variables)
+	  if (CD_Variables == "bedrock") {
+	    col <- colorNumeric(c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), values(r), na.color = "transparent")
+	    pal <- colorFactor(palette = c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), domain = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), na.color = "transparent", ordered = T)
+	    leaflet() %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+	      addRasterImage(r, colors = col, opacity = 0.7,) %>%
+	      addLegend(position = "topright", pal = pal, values = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), title = "Legend")  %>%
+	      setView(lng = 127.00, lat = 36.00, zoom = 7)
+	  } else if (CD_Variables == "fore_ty") {
+	    col <- colorNumeric(c("forestgreen", "orange", "green", "steelblue3"), values(r), na.color = "transparent")
+	    pal <- colorFactor(palette = c("forestgreen", "orange", "green", "steelblue3"), domain = c("Evergreen", "Broadleaf", "Mixed Forest", "Others"), na.color = "transparent", ordered = T)
+	    leaflet() %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+	      addRasterImage(r, colors = col, opacity = 0.7,) %>%
+	      addLegend(position = "topright", pal = pal, values = c("Evergreen", "Broadleaf", "Mixed Forest", "Others"), title = "Legend")  %>%
+	      setView(lng = 127.00, lat = 36.00, zoom = 7)	    
+	  } else if (CD_Variables == "lc_ty") {
+	    col <- colorNumeric(c("red", "orange", "forestgreen", "green", "blue", "steelblue3"), values(r), na.color = "transparent")
+	    pal <- colorFactor(palette = c("red", "orange", "forestgreen", "green", "blue"), domain = c("Urban", "Cropland", "Forest", "Grassland", "Water", "steelblue3"), na.color = "transparent", ordered = T)
+	    leaflet() %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+	      addRasterImage(r, colors = col, opacity = 0.7,) %>%
+	      addLegend(position = "topright", pal = pal, values = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland"), title = "Legend")  %>%
+	      setView(lng = 127.00, lat = 36.00, zoom = 7)	    
+	  } else if (CD_Variables == "soil_ty") {
+	    col <- colorNumeric(c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), values(r), na.color = "transparent")
+	    pal <- colorFactor(palette = c("red", "orange", "forestgreen", "green", "blue", "steelblue3", "blue"), domain = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), na.color = "transparent", ordered = T)
+	    leaflet() %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+	      addRasterImage(r, colors = col, opacity = 0.7,) %>%
+	      addLegend(position = "topright", pal = pal, values = c("Urban", "Cropland", "Forest", "Grassland", "Water", "Wetland", "River"), title = "Legend")  %>%
+	      setView(lng = 127.00, lat = 36.00, zoom = 7)	    
+	  }
+	  else {
+	    pal <- colorNumeric(G$COL_CODE_PLOT_CD_Ramp3, values(r), na.color = "transparent")	
+	    leaflet() %>%
+	      addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%
+	      addRasterImage(r, colors = pal, opacity = 0.8,) %>%
+	      addLegend(pal = pal, values = values(r), title = "Legend")  %>%
+	      setView(lng = 127.00, lat = 36.00, zoom = 7)
+	  }
 	})
 	
 	output$CD_Summary <- renderPrint({
@@ -657,7 +697,7 @@ shinyServer(function(input, output) {
   	              if (!file.exists(ofile_path_grd)){
   	                showModal(modalDialog(
   	                  title = "Error Message",
-  	                  paste(ofile_path_grd, "does not exist.")
+  	                  paste(ofile_path_grd, ME_NAME_NotExist)
   	                ))
   	              } else {
   	                if (file.exists(tfile_path_grd)) {
@@ -682,7 +722,7 @@ shinyServer(function(input, output) {
   	                if (!file.exists(ofile_path_grd)){
   	                  showModal(modalDialog(
     	                    title = "Error Message",
-  	                    paste(ofile_path_grd, "does not exist.")
+  	                    paste(ofile_path_grd, ME_NAME_NotExist)
   	                  ))
   	                } else {
   	                  if (file.exists(tfile_path_grd)) {
@@ -701,7 +741,7 @@ shinyServer(function(input, output) {
   	              if (!file.exists(ofile_path_grd)){
   	                showModal(modalDialog(
   	                  title = "Error Message",
-  	                  paste(ofile_path_grd, "does not exist.")
+  	                  paste(ofile_path_grd, ME_NAME_NotExist)
   	                ))
   	              } else {
   	                if (file.exists(tfile_path_grd)) {
@@ -720,7 +760,7 @@ shinyServer(function(input, output) {
   	                if (!file.exists(ofile_path_grd)){
   	                  showModal(modalDialog(
   	                    title = "Error Message",
-  	                    paste(ofile_path_grd, "does not exist.")
+  	                    paste(ofile_path_grd, ME_NAME_NotExist)
   	                  ))
   	                } else {
   	                  if (file.exists(tfile_path_grd)) {
@@ -755,7 +795,7 @@ shinyServer(function(input, output) {
 	                if (!file.exists(ofile_path_grd)){
 	                  showModal(modalDialog(
 	                    title = "Error Message",
-	                    paste(ofile_path_grd, "does not exist.")
+	                    paste(ofile_path_grd, ME_NAME_NotExist)
 	                  ))
 	                } else {
 	                  if (file.exists(tfile_path_grd)) {
@@ -780,7 +820,7 @@ shinyServer(function(input, output) {
 	                  if (!file.exists(ofile_path_grd)){
 	                    showModal(modalDialog(
 	                      title = "Error Message",
-	                      paste(ofile_path_grd, "does not exist.")
+	                      paste(ofile_path_grd, ME_NAME_NotExist)
 	                    ))
 	                  } else {
 	                    if (file.exists(tfile_path_grd)) {
@@ -799,7 +839,7 @@ shinyServer(function(input, output) {
 	                if (!file.exists(ofile_path_grd)){
 	                  showModal(modalDialog(
 	                    title = "Error Message",
-	                    paste(ofile_path_grd, "does not exist.")
+	                    paste(ofile_path_grd, ME_NAME_NotExist)
 	                  ))
 	                } else {
 	                  if (file.exists(tfile_path_grd)) {
@@ -818,7 +858,7 @@ shinyServer(function(input, output) {
 	                  if (!file.exists(ofile_path_grd)){
 	                    showModal(modalDialog(
 	                      title = "Error Message",
-	                      paste(ofile_path_grd, "does not exist.")
+	                      paste(ofile_path_grd, ME_NAME_NotExist)
 	                    ))
 	                  } else {
 	                    if (file.exists(tfile_path_grd)) {
@@ -832,7 +872,8 @@ shinyServer(function(input, output) {
 	          }
 	        }
 	      }
-	    } 
+  	  }
+      shinyalert(title = ME_NAME_Alert, type = "success")
     }
     })
 	  G$SDM_MO_Variables_Folder <- file.path(G$SE_Dir_Climate, G$Var_Current_Folder)
@@ -926,19 +967,16 @@ shinyServer(function(input, output) {
 	      v_stack <- ""
 	      if (length(ENV_VARIABLES) != 0) {
 	        for (i in CON_VARIABLES) {
-	          v1 <- raster(i)
-	          names(v1) <- sub(input$SE_Image_Input, "", i)
-	          v_stack <- c(v_stack, v1)
+	          v_stack <- c(v_stack, i)
 	        }
 	      }
 	      if (length(CAT_VARIABLES) != 0) {
 	        for (j in CAT_VARIABLES) {
-	          v2 <- as.factor(raster(j))
-	          names(v2) <- sub(input$SE_Image_Input, "", j)
-	          v_stack <- c(v_stack, v2)
+	          v_stack <- c(v_stack, j)
 	        }
 	      }
 	      SDM_VARIABLES <<- v_stack[-1]
+	      cur_stack <- stack(SDM_VARIABLES)
 	    }
 	    setwd(CUR_PATH)
 	    
@@ -1035,7 +1073,7 @@ shinyServer(function(input, output) {
 	      colnames(SPECIES_DATA) <- c(NAME_ID, NAME_LONG, NAME_LAT)
 	      
 	      myResp <- as.numeric(SPECIES_DATA[,NAME_ID])
-	      myExpl <- stack(SDM_VARIABLES)  #stack(ENV_VARIABLES)
+	      myExpl <- cur_stack # stack(SDM_VARIABLES)  #stack(ENV_VARIABLES)
 	      myRespXY <- SPECIES_DATA[,c(NAME_LONG, NAME_LAT)]
 	      myRespName <- SPECIES_NAME
 	      ##### End Setting Environmental variables ===================         
@@ -1369,6 +1407,7 @@ shinyServer(function(input, output) {
 	      ### End Creating species evaluation information
 	      
 	    } # End Speices loop s
+	    shinyalert(title = ME_NAME_Alert, type = "success")
 	    
 	    ##### End Modeling loop =====================================
 	    #####========================================================
@@ -1815,8 +1854,7 @@ shinyServer(function(input, output) {
 	            write.csv(SRM_variables, file = file.path(PATH_MODEL_OUTPUT, s, paste(G$DIR_NAME_SRM, input$SRM_MO_Dir_Folder_Name, sep = ""), paste(s, "_SRM_", input$SRM_MO_Dir_Folder_Name, "_variables.csv", sep = "", collapse = "--")))
 	            
 	        }
-
-	
+	        shinyalert(title = ME_NAME_Alert, type = "success")
 	
 	    })
 	})
@@ -2532,6 +2570,7 @@ shinyServer(function(input, output) {
 	      #####
 	    } # End Speices loop s
 	    setwd(CUR_PATH)
+	    shinyalert(title = ME_NAME_Alert, type = "success")
 	    
 	    #####========================================================
 	    #####============ End Models Run ========================
@@ -2891,7 +2930,7 @@ shinyServer(function(input, output) {
 #			}
 		  }
 		}
-	    
+    shinyalert(title = ME_NAME_Alert, type = "success")  
 		    
 		})
 		##### End GAP analyzing =========================================      
@@ -3096,6 +3135,7 @@ shinyServer(function(input, output) {
 #		  }
 		}
 		write.csv(Tab_gap_sum, file = file.path(save_path, paste(input$SA_MO_Dir_Folder, "_Speices_VINDEX.csv", sep = "")))
+		shinyalert(title = ME_NAME_Alert, type = "success")
 		})
 		##### End GAP analyzing =========================================    
 	})
@@ -3682,9 +3722,9 @@ shinyServer(function(input, output) {
 		    
 		    HA_variables[is.na(HA_variables)] <- ""
 		    write.csv(HA_variables, file = file.path(G$HA_MO_Dir_Folder, "HabitatAssessment_Options.csv"))
-		    shinyalert(title = "You did it!", type = "success")
+		    shinyalert(title = ME_NAME_Alert, type = "success")
 		    #####		    
-		    
+      shinyalert(title = ME_NAME_Alert, type = "success")    
 		    
 		})
 	})
@@ -3764,7 +3804,7 @@ shinyServer(function(input, output) {
 #	      write.dbf(df_sp, file.path(dir_path, paste(a, ".dbf", sep = "")))
 	      }
 	    })
-	    shinyalert(title = "You did it!", type = "success")
+	    shinyalert(title = ME_NAME_Alert, type = "success")
 	  } else {
 	    showModal(modalDialog(
 	      title = "Error Message",
@@ -3861,7 +3901,7 @@ shinyServer(function(input, output) {
 	      file.copy(try1, file.path(G$HA_MO_Dir_Folder, paste(a, ".dbf", sep="")), overwrite = TRUE)
 	      file.remove(try1)
 	    }
-	    shinyalert(title = "You did it!", type = "success")
+	    shinyalert(title = ME_NAME_Alert, type = "success")
 	  } else {
 	    showModal(modalDialog(
 	      title = "Error Message",
@@ -3938,7 +3978,7 @@ shinyServer(function(input, output) {
 	        #	                write.dbf(df, file)
 	        #	                write.dbf(df, "C:/MOTIVE_Projects/Proj11/Habitat_Assessment/교란종_BIOMOD/test.dbf")
 	      })
-	      shinyalert(title = "You did it!", type = "success")
+	      shinyalert(title = ME_NAME_Alert, type = "success")
 	    }
 	  } else {
 	    showModal(modalDialog(
@@ -4396,7 +4436,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_SR_Map <- renderLeaflet({
 	  
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
-	  MotiveEco_gis_plot(dir_path, "HA_SR", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  MotiveEco_gis_plot(dir_path, "HA_SR", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year, input$SE_Image_File)
 	  
 	})
 	
@@ -4985,7 +5025,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_SL_Map <- renderLeaflet({
 	  
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
-	  MotiveEco_gis_plot(dir_path, "HA_LOSS", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  MotiveEco_gis_plot(dir_path, "HA_LOSS", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year, input$SE_Image_File)
 	  
 	})
 	
@@ -5574,7 +5614,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_SS_Map <- renderLeaflet({
 	  
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
-	  MotiveEco_gis_plot(dir_path, "HA_STAY", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  MotiveEco_gis_plot(dir_path, "HA_STAY", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year, input$SE_Image_File)
 	  
 	})
 	
@@ -6164,7 +6204,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_SG_Map <- renderLeaflet({
 	  
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
-	  MotiveEco_gis_plot(dir_path, "HA_GAIN", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  MotiveEco_gis_plot(dir_path, "HA_GAIN", input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year, input$SE_Image_File)
 	  
 	})
 	
@@ -6772,7 +6812,7 @@ shinyServer(function(input, output) {
 	output$HA_AO_VI_Map <- renderLeaflet({
 	  
 	  dir_path <- file.path(G$SE_Dir_Project, G$DIR_NAME_Habitat, input$HA_AO_MO_Dir)
-	  MotiveEco_gis_plot(dir_path, input$HA_AO_VI_TYPE_UI, input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year)
+	  MotiveEco_gis_plot(dir_path, input$HA_AO_VI_TYPE_UI, input$HA_AO_Climate_model, input$HA_AO_Climate_scenario, input$HA_AO_SDM_model, input$HA_AO_Project_year, input$SE_Image_File)
 	  
 	})
 	

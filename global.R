@@ -13,7 +13,7 @@
 #SDMTools
 #MigClim1.6
 
-packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
+packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal","ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
 libraries <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
 
 # packages <- c("shiny", "shinyWidgets", "shinyFiles", "shinyalert", "shinyjs", "shinythemes", "shinyjqui", "shinydashboard", "shinyBS", "tcltk", "colourpicker", "tiff", "sf", "backports", "biomod2", "rangemap", "dismo", "deldir", "gstat", "proj4", "gdata", "colorspace", "plyr", "leaflet", "RColorBrewer", "scales", "lattice", "dplyr", "maps", "maptools", "sp", "raster", "spatial", "rgdal", "ggplot2", "hrbrthemes", "plotly", "grid", "reshape", "rgeos", "stringr", "rgdal", "bnspatial", "R.utils", "SDMTools", "MigClim", "mgcv", "gsubfn", "DT", "fmsb", "data.table", "foreign", "scales", "leaflet.minicharts", "manipulateWidget", "radarchart")
@@ -137,6 +137,7 @@ G$DIR_NAME_DM <- "MIGCLIM_"
 G$COL_CODE_PLOT_Ramp2 <- c("deepskyblue4", "darkorange2") # c("azure2", "darkolivegreen")  # c("coral4", "azure", "darkolivegreen4") deepskyblue4 dimgray
 G$COL_CODE_PLOT_Ramp3 <- c("deepskyblue4", "azure", "darkorange2") #   c("coral4", "azure", "darkolivegreen")  # c("dimgray", "azure", "darkolivegreen4")
 G$COL_CODE_PLOT_LD_Ramp2 <- c("gray90", "chocolate4")
+G$COL_CODE_PLOT_LD_Ramp3 <- c("deepskyblue4", "aliceblue", "firebrick4")
 G$COL_CODE_PLOT_CD_Ramp3 <- c("deepskyblue4", "aliceblue", "firebrick4")
 G$COL_CODE_STAT_BND <- "lightskyblue3" # "lightseagreen" # "steelblue"
 G$COL_CODE_STAT_SP <- "lightseagreen" #"mediumseagreen" #"darkolivegreen4"
@@ -320,7 +321,7 @@ MotiveEco_LD_plot <- function(r)
 MotiveEco_CD_plot <- function(r)
 {
   crs(r) <- CRS(G$Projection_Info)
-  pal <- colorFactor(G$COL_CODE_PLOT_CD_Ramp3, values(r),
+  pal <- colorNumeric(G$COL_CODE_PLOT_CD_Ramp3, values(r),
                      na.color = "transparent")
   
   leaflet() %>%
@@ -397,7 +398,7 @@ MotiveEco_bnd_plot <- function(p, x, y, b, unit)
 }
 
 
-MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl)
+MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl, img)
 {
   lo <- length(ol)
   ld <- length(dl)
@@ -411,7 +412,7 @@ MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl)
         for (m in ml) {
           for (y in yl) {
             if (ly > 0) {
-              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, img, sep = "")
               r <- raster(file.path(dir, Map1))
             }
           }
@@ -425,10 +426,6 @@ MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl)
                       na.color = "transparent")
   
   leaflet() %>%
-#    addTiles(
-#      urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-#      attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-#    ) %>%
     addTiles(urlTemplate = "https://mts1.google.com/vt/lyrs=s&hl=en&src=app&x={x}&y={y}&z={z}&s=G", attribution = 'Google') %>%        
     
     addRasterImage(r, colors = pal, opacity = 0.7) %>%
@@ -437,7 +434,7 @@ MotiveEco_gis_plot <- function(dir, ol, dl, cl, ml, yl)
     setView(lng = 128.00, lat = 36.00, zoom = 7)
 }
 
-MotiveEco_img_plot <- function(dir, ol, dl, cl, ml, yl)
+MotiveEco_img_plot <- function(dir, ol, dl, cl, ml, yl, img)
 {
   lo <- length(ol)
   ld <- length(dl)
@@ -461,7 +458,7 @@ MotiveEco_img_plot <- function(dir, ol, dl, cl, ml, yl)
         for (m in ml) {
           for (y in yl) {
             if (ly > 0) {
-              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, ".grd", sep = "")
+              Map1 <- paste(o, "_", d, "_", c, "_", m, "_", y, img, sep = "")
               R_Map1 <- raster(file.path(dir, Map1))
               plot(R_Map1, main = Map1)
             }
